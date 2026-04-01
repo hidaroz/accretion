@@ -20,7 +20,7 @@ export function registerSearchNotes(server: McpServer, searchIndex: SearchIndex)
           .optional()
           .describe("Filter results to notes with this tag"),
         limit: z
-          .number()
+          .coerce.number()
           .int()
           .min(1)
           .max(50)

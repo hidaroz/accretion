@@ -12,7 +12,7 @@ export function registerDeleteNote(server: McpServer, vault: VaultManager): void
       inputSchema: {
         path: z.string().describe("Relative path of the note to delete"),
         confirm: z
-          .boolean()
+          .coerce.boolean()
           .describe("Must be set to true to confirm deletion. Safety gate to prevent accidental deletions."),
       },
       annotations: {

@@ -15,12 +15,12 @@ export function registerListNotes(server: McpServer, vault: VaultManager): void 
           .default("")
           .describe("Relative folder path to list (e.g., 'Meeting Notes'). Empty string for vault root."),
         recursive: z
-          .boolean()
+          .coerce.boolean()
           .optional()
           .default(false)
           .describe("If true, list notes in subdirectories as well"),
         limit: z
-          .number()
+          .coerce.number()
           .int()
           .min(1)
           .max(500)

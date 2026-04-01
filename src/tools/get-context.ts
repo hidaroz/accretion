@@ -25,7 +25,7 @@ export function registerGetContext(
             "Array of topic keywords (e.g., ['roasting', 'cycling'])"
           ),
         max_tokens: z
-          .number()
+          .coerce.number()
           .int()
           .min(1000)
           .max(20000)
