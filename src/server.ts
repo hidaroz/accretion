@@ -7,6 +7,7 @@ import { registerCreateNote } from "./tools/create-note.js";
 import { registerListNotes } from "./tools/list-notes.js";
 import { registerSearchNotes } from "./tools/search-notes.js";
 import { registerUpdateNote } from "./tools/update-note.js";
+import { registerPatchNote } from "./tools/patch-note.js";
 import { registerDeleteNote } from "./tools/delete-note.js";
 import { registerListTags } from "./tools/list-tags.js";
 import { registerSearchByTag } from "./tools/search-by-tag.js";
@@ -31,6 +32,7 @@ export function createMcpServer(
   registerListNotes(server, vault);
   registerSearchNotes(server, searchIndex);
   registerUpdateNote(server, vault);
+  registerPatchNote(server, vault);
   registerDeleteNote(server, vault);
   registerListTags(server, tagIndex);
   registerSearchByTag(server, vault, tagIndex);
