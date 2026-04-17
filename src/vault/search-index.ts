@@ -1,5 +1,5 @@
 import MiniSearch from "minisearch";
-import type { VaultManager, NoteContent } from "./vault-manager.js";
+import type { VaultManager, NoteContent, NoteInfo } from "./vault-manager.js";
 import { logger } from "../utils/logger.js";
 
 export interface SearchResult {
@@ -22,6 +22,7 @@ interface IndexedDoc {
 export class SearchIndex {
   private index: MiniSearch<IndexedDoc>;
   private docs = new Map<string, IndexedDoc>();
+  private noteInfos = new Map<string, NoteInfo>();
 
   constructor() {
     this.index = new MiniSearch<IndexedDoc>({
@@ -41,10 +42,14 @@ export class SearchIndex {
 
     this.index.removeAll();
     this.docs.clear();
+    this.noteInfos.clear();
 
     this.index.addAll(docs);
     for (const doc of docs) {
       this.docs.set(doc.id, doc);
+    }
+    for (const note of notes) {
+      this.noteInfos.set(note.path, this.toNoteInfo(note));
     }
 
     logger.info(`Search index built with ${docs.length} documents`);
@@ -59,6 +64,7 @@ export class SearchIndex {
 
     this.index.add(doc);
     this.docs.set(doc.id, doc);
+    this.noteInfos.set(note.path, this.toNoteInfo(note));
   }
 
   remove(relativePath: string): void {
@@ -66,6 +72,39 @@ export class SearchIndex {
       this.index.discard(relativePath);
       this.docs.delete(relativePath);
     }
+    this.noteInfos.delete(relativePath);
+  }
+
+  listNotes(
+    folder: string = "",
+    recursive: boolean = true,
+    limit: number = 100
+  ): NoteInfo[] {
+    const normalized = folder.replace(/\/+$/, "");
+    const prefix = normalized ? normalized + "/" : "";
+
+    const matches: NoteInfo[] = [];
+    for (const info of this.noteInfos.values()) {
+      if (!normalized) {
+        // Root: recursive = all notes; non-recursive = only files without a "/"
+        if (recursive || !info.path.includes("/")) matches.push(info);
+        continue;
+      }
+
+      if (!info.path.startsWith(prefix)) continue;
+      if (recursive) {
+        matches.push(info);
+      } else {
+        const rest = info.path.slice(prefix.length);
+        if (!rest.includes("/")) matches.push(info);
+      }
+    }
+
+    matches.sort(
+      (a, b) =>
+        new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
+    );
+    return matches.slice(0, limit);
   }
 
   search(
@@ -109,6 +148,16 @@ export class SearchIndex {
 
   get size(): number {
     return this.docs.size;
+  }
+
+  private toNoteInfo(note: NoteContent): NoteInfo {
+    return {
+      path: note.path,
+      title: note.title,
+      tags: note.tags,
+      modifiedAt: note.modifiedAt,
+      size: note.size,
+    };
   }
 
   private noteToDoc(note: NoteContent): IndexedDoc {

@@ -29,7 +29,7 @@ export function createMcpServer(
   // Tools
   registerReadNote(server, vault);
   registerCreateNote(server, vault);
-  registerListNotes(server, vault);
+  registerListNotes(server, searchIndex);
   registerSearchNotes(server, searchIndex);
   registerUpdateNote(server, vault);
   registerPatchNote(server, vault);

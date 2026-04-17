@@ -336,8 +336,9 @@ export class VaultManager {
 
   private gitCommit(message: string): void {
     const cwd = this.vaultRoot;
+    const autoPush = process.env.GIT_AUTO_PUSH === "true";
 
-    // Stage → commit → push as separate steps to avoid shell injection
+    // Stage → commit → (optionally) push as separate steps to avoid shell injection
     execFile("git", ["add", "-A"], { cwd })
       .then(() =>
         // Check if there are staged changes before committing
@@ -346,14 +347,15 @@ export class VaultManager {
           execFile("git", ["commit", "-m", message], { cwd })
         )
       )
-      .then(() =>
-        execFile("git", ["push"], { cwd }).catch((pushErr) => {
+      .then(() => {
+        if (!autoPush) return;
+        return execFile("git", ["push"], { cwd }).catch((pushErr) => {
           logger.error("Git push failed", {
             message,
             error: String(pushErr),
           });
-        })
-      )
+        });
+      })
       .catch((err) => {
         logger.error("Git commit failed", {
           message,
