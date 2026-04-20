@@ -1,13 +1,11 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultManager } from "../vault/vault-manager.js";
-import type { TagIndex } from "../vault/tag-index.js";
+import type { VaultRegistry } from "../vault/vault-registry.js";
 import { handleToolError } from "../utils/errors.js";
 
 export function registerSearchByTag(
   server: McpServer,
-  vault: VaultManager,
-  tagIndex: TagIndex
+  registry: VaultRegistry
 ): void {
   server.registerTool(
     "search_by_tag",
@@ -15,6 +13,7 @@ export function registerSearchByTag(
       description:
         "Find all notes with a specific tag in the Obsidian vault. Returns note paths, titles, and modification dates.",
       inputSchema: {
+        vault: z.string().optional().describe("Vault ID (e.g., 'work'). Omit for default vault. Use list_vaults to see available vaults."),
         tag: z.string().describe("Tag to search for (without # prefix)"),
         folder: z
           .string()
@@ -26,11 +25,11 @@ export function registerSearchByTag(
         destructiveHint: false,
       },
     },
-    async ({ tag, folder }) => {
+    async ({ vault: vaultId, tag, folder }) => {
       try {
-        let notePaths = tagIndex.getNotesByTag(tag);
+        const ctx = registry.resolve(vaultId);
+        let notePaths = ctx.tagIndex.getNotesByTag(tag);
 
-        // Filter by folder
         if (folder) {
           const prefix = folder.endsWith("/") ? folder : folder + "/";
           notePaths = notePaths.filter((p) => p.startsWith(prefix));
@@ -47,11 +46,10 @@ export function registerSearchByTag(
           };
         }
 
-        // Read basic info for each note
         const notes = await Promise.all(
           notePaths.map(async (p) => {
             try {
-              const note = await vault.read(p);
+              const note = await ctx.vault.read(p);
               return {
                 path: note.path,
                 title: note.title,

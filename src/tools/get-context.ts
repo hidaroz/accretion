@@ -1,22 +1,20 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { VaultManager } from "../vault/vault-manager.js";
-import { SearchIndex } from "../vault/search-index.js";
+import type { VaultRegistry } from "../vault/vault-registry.js";
 import { logger } from "../utils/logger.js";
-import { BRIEF_MAP } from "../constants/brief-map.js";
 import { handleToolError } from "../utils/errors.js";
 
 export function registerGetContext(
   server: McpServer,
-  vault: VaultManager,
-  searchIndex: SearchIndex
+  registry: VaultRegistry
 ): void {
   server.registerTool(
     "get_context",
     {
       description:
-        "Assemble context from multiple domain briefs in a single call. Provide an array of topic keywords and get all relevant briefs concatenated. Reduces multiple MCP round-trips to one.",
+        "Assemble context from multiple domain briefs in a single call. Provide an array of topic keywords and get all relevant briefs concatenated. Reduces multiple MCP round-trips to one. Brief maps are vault-specific.",
       inputSchema: {
+        vault: z.string().optional().describe("Vault ID (e.g., 'work'). Omit for default vault. Use list_vaults to see available vaults."),
         topics: z
           .array(z.string())
           .min(1)
@@ -40,24 +38,23 @@ export function registerGetContext(
         destructiveHint: false,
       },
     },
-    async ({ topics, max_tokens }) => {
+    async ({ vault: vaultId, topics, max_tokens }) => {
       try {
+        const ctx = registry.resolve(vaultId);
         const maxChars = max_tokens * 4;
         const sections: string[] = [];
         const resolved: string[] = [];
         const notFound: string[] = [];
         let totalChars = 0;
 
-        // Deduplicate paths (multiple topics may map to same brief)
         const seenPaths = new Set<string>();
 
         for (const topic of topics) {
           const normalized = topic.toLowerCase().trim();
-          let briefPath = BRIEF_MAP[normalized];
+          let briefPath = ctx.briefMap[normalized];
 
-          // Fallback: search briefs
           if (!briefPath) {
-            const results = searchIndex.search(normalized, {
+            const results = ctx.searchIndex.search(normalized, {
               tag: "type/brief",
               limit: 1,
             });
@@ -74,7 +71,7 @@ export function registerGetContext(
           seenPaths.add(briefPath);
 
           try {
-            const note = await vault.read(briefPath);
+            const note = await ctx.vault.read(briefPath);
             const section = `---\n# ${note.title}\n\n${note.content}\n`;
 
             if (totalChars + section.length > maxChars && sections.length > 0) {
@@ -97,6 +94,7 @@ export function registerGetContext(
           resolved: resolved.length,
           notFound: notFound.length,
           totalChars,
+          vault: ctx.id,
         });
 
         let output = sections.join("\n");

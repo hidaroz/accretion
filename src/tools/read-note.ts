@@ -1,14 +1,15 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultManager } from "../vault/vault-manager.js";
+import type { VaultRegistry } from "../vault/vault-registry.js";
 import { handleToolError } from "../utils/errors.js";
 
-export function registerReadNote(server: McpServer, vault: VaultManager): void {
+export function registerReadNote(server: McpServer, registry: VaultRegistry): void {
   server.registerTool(
     "read_note",
     {
       description: "Read a note from the Obsidian vault by its relative path. Returns the full markdown content, YAML frontmatter, and file metadata.",
       inputSchema: {
+        vault: z.string().optional().describe("Vault ID (e.g., 'work'). Omit for default vault. Use list_vaults to see available vaults."),
         path: z.string().describe("Relative path from vault root (e.g., 'Meeting Notes/2024-03-20.md')"),
       },
       annotations: {
@@ -16,9 +17,10 @@ export function registerReadNote(server: McpServer, vault: VaultManager): void {
         destructiveHint: false,
       },
     },
-    async ({ path: notePath }) => {
+    async ({ vault: vaultId, path: notePath }) => {
       try {
-        const note = await vault.read(notePath);
+        const ctx = registry.resolve(vaultId);
+        const note = await ctx.vault.read(notePath);
 
         const output = [
           `# ${note.title}`,

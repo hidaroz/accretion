@@ -1,15 +1,16 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultManager } from "../vault/vault-manager.js";
+import type { VaultRegistry } from "../vault/vault-registry.js";
 import { handleToolError } from "../utils/errors.js";
 
-export function registerUpdateNote(server: McpServer, vault: VaultManager): void {
+export function registerUpdateNote(server: McpServer, registry: VaultRegistry): void {
   server.registerTool(
     "update_note",
     {
       description:
         "Update an existing note in the Obsidian vault. Can replace, append, or prepend content. Can also merge new frontmatter fields into existing ones.",
       inputSchema: {
+        vault: z.string().optional().describe("Vault ID (e.g., 'work'). Omit for default vault. Use list_vaults to see available vaults."),
         path: z.string().describe("Relative path of the note to update"),
         content: z.string().optional().describe("New content to write (behavior depends on 'mode')"),
         append: z.string().optional().describe("Text to append to the end of the note (shorthand for mode='append')"),
@@ -29,9 +30,10 @@ export function registerUpdateNote(server: McpServer, vault: VaultManager): void
         destructiveHint: false,
       },
     },
-    async ({ path: notePath, content, append, prepend, frontmatter, mode }) => {
+    async ({ vault: vaultId, path: notePath, content, append, prepend, frontmatter, mode }) => {
       try {
-        const updated = await vault.update(notePath, {
+        const ctx = registry.resolve(vaultId);
+        const updated = await ctx.vault.update(notePath, {
           content,
           append,
           prepend,

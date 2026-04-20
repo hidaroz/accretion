@@ -33,8 +33,17 @@ export interface FolderTree {
   children?: FolderTree[];
 }
 
+export interface VaultManagerOptions {
+  gitAutoCommit?: boolean;
+  gitAutoPush?: boolean;
+}
+
 export class VaultManager {
-  constructor(private vaultRoot: string) {}
+  private options: VaultManagerOptions;
+
+  constructor(private vaultRoot: string, options?: VaultManagerOptions) {
+    this.options = options ?? {};
+  }
 
   get root(): string {
     return this.vaultRoot;
@@ -335,8 +344,10 @@ export class VaultManager {
   }
 
   private gitCommit(message: string): void {
+    if (!this.options.gitAutoCommit) return;
+
     const cwd = this.vaultRoot;
-    const autoPush = process.env.GIT_AUTO_PUSH === "true";
+    const autoPush = this.options.gitAutoPush ?? false;
 
     // Stage → commit → (optionally) push as separate steps to avoid shell injection
     execFile("git", ["add", "-A"], { cwd })

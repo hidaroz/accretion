@@ -1,15 +1,16 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { SearchIndex } from "../vault/search-index.js";
+import type { VaultRegistry } from "../vault/vault-registry.js";
 import { handleToolError } from "../utils/errors.js";
 
-export function registerSearchNotes(server: McpServer, searchIndex: SearchIndex): void {
+export function registerSearchNotes(server: McpServer, registry: VaultRegistry): void {
   server.registerTool(
     "search_notes",
     {
       description:
         "Full-text search across all notes in the Obsidian vault. Returns ranked results with titles, snippets, and relevance scores. Supports optional folder and tag filtering.",
       inputSchema: {
+        vault: z.string().optional().describe("Vault ID (e.g., 'work'). Omit for default vault. Use list_vaults to see available vaults."),
         query: z.string().describe("Search terms to find in notes"),
         folder: z
           .string()
@@ -33,9 +34,10 @@ export function registerSearchNotes(server: McpServer, searchIndex: SearchIndex)
         destructiveHint: false,
       },
     },
-    async ({ query, folder, tag, limit }) => {
+    async ({ vault: vaultId, query, folder, tag, limit }) => {
       try {
-        const results = searchIndex.search(query, { folder, tag, limit });
+        const ctx = registry.resolve(vaultId);
+        const results = ctx.searchIndex.search(query, { folder, tag, limit });
 
         if (results.length === 0) {
           return {

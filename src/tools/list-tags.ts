@@ -1,15 +1,16 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { TagIndex } from "../vault/tag-index.js";
+import type { VaultRegistry } from "../vault/vault-registry.js";
 import { handleToolError } from "../utils/errors.js";
 
-export function registerListTags(server: McpServer, tagIndex: TagIndex): void {
+export function registerListTags(server: McpServer, registry: VaultRegistry): void {
   server.registerTool(
     "list_tags",
     {
       description:
         "List all unique tags used across notes in the Obsidian vault, with the count of notes using each tag. Sorted by frequency.",
       inputSchema: {
+        vault: z.string().optional().describe("Vault ID (e.g., 'work'). Omit for default vault. Use list_vaults to see available vaults."),
         prefix: z
           .string()
           .optional()
@@ -20,9 +21,10 @@ export function registerListTags(server: McpServer, tagIndex: TagIndex): void {
         destructiveHint: false,
       },
     },
-    async ({ prefix }) => {
+    async ({ vault: vaultId, prefix }) => {
       try {
-        const tags = tagIndex.getAllTags(prefix);
+        const ctx = registry.resolve(vaultId);
+        const tags = ctx.tagIndex.getAllTags(prefix);
 
         if (tags.length === 0) {
           return {

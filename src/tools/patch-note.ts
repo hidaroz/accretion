@@ -1,15 +1,16 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultManager } from "../vault/vault-manager.js";
+import type { VaultRegistry } from "../vault/vault-registry.js";
 import { handleToolError } from "../utils/errors.js";
 
-export function registerPatchNote(server: McpServer, vault: VaultManager): void {
+export function registerPatchNote(server: McpServer, registry: VaultRegistry): void {
   server.registerTool(
     "patch_note",
     {
       description:
         "Apply surgical find/replace edits to a note. Each edit replaces an exact occurrence of old_string with new_string in the note body (frontmatter is untouched). Edits are applied sequentially — edit N's old_string matches against the result of edit N-1. Errors if old_string is not found, or is not unique and replace_all is false. Use update_note for bulk replace/append/prepend or frontmatter changes.",
       inputSchema: {
+        vault: z.string().optional().describe("Vault ID (e.g., 'work'). Omit for default vault. Use list_vaults to see available vaults."),
         path: z.string().describe("Relative path of the note to patch"),
         edits: z
           .array(
@@ -42,9 +43,10 @@ export function registerPatchNote(server: McpServer, vault: VaultManager): void 
         destructiveHint: false,
       },
     },
-    async ({ path: notePath, edits }) => {
+    async ({ vault: vaultId, path: notePath, edits }) => {
       try {
-        const updated = await vault.patch(notePath, edits);
+        const ctx = registry.resolve(vaultId);
+        const updated = await ctx.vault.patch(notePath, edits);
 
         return {
           content: [

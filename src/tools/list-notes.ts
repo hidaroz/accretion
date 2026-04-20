@@ -1,15 +1,16 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { SearchIndex } from "../vault/search-index.js";
+import type { VaultRegistry } from "../vault/vault-registry.js";
 import { handleToolError } from "../utils/errors.js";
 
-export function registerListNotes(server: McpServer, searchIndex: SearchIndex): void {
+export function registerListNotes(server: McpServer, registry: VaultRegistry): void {
   server.registerTool(
     "list_notes",
     {
       description:
         "List markdown notes in the Obsidian vault, optionally filtered to a specific folder. Returns note paths, titles, tags, and modification dates sorted by most recently modified. Defaults to recursive traversal from the requested folder (or the whole vault if no folder is given).",
       inputSchema: {
+        vault: z.string().optional().describe("Vault ID (e.g., 'work'). Omit for default vault. Use list_vaults to see available vaults."),
         folder: z
           .string()
           .optional()
@@ -34,9 +35,10 @@ export function registerListNotes(server: McpServer, searchIndex: SearchIndex): 
         destructiveHint: false,
       },
     },
-    async ({ folder, recursive, limit }) => {
+    async ({ vault: vaultId, folder, recursive, limit }) => {
       try {
-        const notes = searchIndex.listNotes(folder, recursive, limit);
+        const ctx = registry.resolve(vaultId);
+        const notes = ctx.searchIndex.listNotes(folder, recursive, limit);
 
         if (notes.length === 0) {
           const locationMsg = folder ? `in folder '${folder}'` : "in the vault";

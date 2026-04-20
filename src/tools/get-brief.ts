@@ -1,22 +1,20 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { VaultManager } from "../vault/vault-manager.js";
-import { SearchIndex } from "../vault/search-index.js";
+import type { VaultRegistry } from "../vault/vault-registry.js";
 import { logger } from "../utils/logger.js";
-import { BRIEF_MAP } from "../constants/brief-map.js";
 import { handleToolError } from "../utils/errors.js";
 
 export function registerGetBrief(
   server: McpServer,
-  vault: VaultManager,
-  searchIndex: SearchIndex
+  registry: VaultRegistry
 ): void {
   server.registerTool(
     "get_brief",
     {
       description:
-        "Get an agent-optimized domain brief by topic keyword. Maps common topics (roasting, cycling, auth, etc.) to the correct brief note and returns its full content. Falls back to search if no exact match.",
+        "Get an agent-optimized domain brief by topic keyword. Maps common topics (roasting, cycling, auth, etc.) to the correct brief note and returns its full content. Falls back to search if no exact match. Brief maps are vault-specific.",
       inputSchema: {
+        vault: z.string().optional().describe("Vault ID (e.g., 'work'). Omit for default vault. Use list_vaults to see available vaults."),
         topic: z
           .string()
           .describe(
@@ -28,16 +26,18 @@ export function registerGetBrief(
         destructiveHint: false,
       },
     },
-    async ({ topic }) => {
+    async ({ vault: vaultId, topic }) => {
       try {
+        const ctx = registry.resolve(vaultId);
         const normalized = topic.toLowerCase().trim();
-        const briefPath = BRIEF_MAP[normalized];
+        const briefPath = ctx.briefMap[normalized];
 
         if (briefPath) {
-          const note = await vault.read(briefPath);
+          const note = await ctx.vault.read(briefPath);
           logger.info("get_brief resolved topic to brief", {
             topic: normalized,
             path: briefPath,
+            vault: ctx.id,
           });
           return {
             content: [
@@ -49,17 +49,17 @@ export function registerGetBrief(
           };
         }
 
-        // Fallback: search for the topic
-        const results = searchIndex.search(normalized, {
+        const results = ctx.searchIndex.search(normalized, {
           tag: "type/brief",
           limit: 1,
         });
 
         if (results.length > 0) {
-          const note = await vault.read(results[0].path);
+          const note = await ctx.vault.read(results[0].path);
           logger.info("get_brief resolved topic via search", {
             topic: normalized,
             path: results[0].path,
+            vault: ctx.id,
           });
           return {
             content: [
@@ -71,8 +71,7 @@ export function registerGetBrief(
           };
         }
 
-        // No brief found — search all notes
-        const allResults = searchIndex.search(normalized, { limit: 3 });
+        const allResults = ctx.searchIndex.search(normalized, { limit: 3 });
         if (allResults.length > 0) {
           const lines = allResults.map(
             (r, i) =>

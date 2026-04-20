@@ -1,7 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { VaultManager } from "./vault/vault-manager.js";
-import { SearchIndex } from "./vault/search-index.js";
-import { TagIndex } from "./vault/tag-index.js";
+import type { VaultRegistry } from "./vault/vault-registry.js";
 import { registerReadNote } from "./tools/read-note.js";
 import { registerCreateNote } from "./tools/create-note.js";
 import { registerListNotes } from "./tools/list-notes.js";
@@ -13,35 +11,33 @@ import { registerListTags } from "./tools/list-tags.js";
 import { registerSearchByTag } from "./tools/search-by-tag.js";
 import { registerGetBrief } from "./tools/get-brief.js";
 import { registerGetContext } from "./tools/get-context.js";
+import { registerListVaults } from "./tools/list-vaults.js";
 import { registerVaultTree } from "./resources/vault-tree.js";
 import { registerNoteResource } from "./resources/note-resource.js";
 
-export function createMcpServer(
-  vault: VaultManager,
-  searchIndex: SearchIndex,
-  tagIndex: TagIndex
-): McpServer {
+export function createMcpServer(registry: VaultRegistry): McpServer {
   const server = new McpServer({
     name: "obsidian-mcp-server",
-    version: "1.0.0",
+    version: "2.0.0",
   });
 
   // Tools
-  registerReadNote(server, vault);
-  registerCreateNote(server, vault);
-  registerListNotes(server, searchIndex);
-  registerSearchNotes(server, searchIndex);
-  registerUpdateNote(server, vault);
-  registerPatchNote(server, vault);
-  registerDeleteNote(server, vault);
-  registerListTags(server, tagIndex);
-  registerSearchByTag(server, vault, tagIndex);
-  registerGetBrief(server, vault, searchIndex);
-  registerGetContext(server, vault, searchIndex);
+  registerListVaults(server, registry);
+  registerReadNote(server, registry);
+  registerCreateNote(server, registry);
+  registerListNotes(server, registry);
+  registerSearchNotes(server, registry);
+  registerUpdateNote(server, registry);
+  registerPatchNote(server, registry);
+  registerDeleteNote(server, registry);
+  registerListTags(server, registry);
+  registerSearchByTag(server, registry);
+  registerGetBrief(server, registry);
+  registerGetContext(server, registry);
 
   // Resources
-  registerVaultTree(server, vault);
-  registerNoteResource(server, vault);
+  registerVaultTree(server, registry);
+  registerNoteResource(server, registry);
 
   return server;
 }

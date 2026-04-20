@@ -21,6 +21,22 @@ export class VaultError extends Error {
   }
 }
 
+export class VaultNotFoundError extends Error {
+  constructor(vaultId: string) {
+    super(
+      `Unknown vault: "${vaultId}". Use list_vaults to see available vaults.`
+    );
+    this.name = "VaultNotFoundError";
+  }
+}
+
+export class VaultNotReadyError extends Error {
+  constructor(vaultId: string) {
+    super(`Vault "${vaultId}" is still initializing. Try again shortly.`);
+    this.name = "VaultNotReadyError";
+  }
+}
+
 export class PatchStringNotFoundError extends Error {
   constructor(path: string, editIndex: number, oldString: string) {
     const preview =
@@ -53,6 +69,8 @@ export function handleToolError(err: unknown, action: string) {
     err instanceof NoteAlreadyExistsError ||
     err instanceof PatchStringNotFoundError ||
     err instanceof PatchStringAmbiguousError ||
+    err instanceof VaultNotFoundError ||
+    err instanceof VaultNotReadyError ||
     (err instanceof Error && err.name === "PathSafetyError");
 
   const message = err instanceof Error ? err.message : String(err);
