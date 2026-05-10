@@ -17,6 +17,7 @@ interface IndexedDoc {
   content: string;
   folder: string;
   rawTags: string[];
+  createdAt: string;
 }
 
 export class SearchIndex {
@@ -27,7 +28,7 @@ export class SearchIndex {
   constructor() {
     this.index = new MiniSearch<IndexedDoc>({
       fields: ["title", "tags", "content"],
-      storeFields: ["title", "tags", "folder", "rawTags"],
+      storeFields: ["title", "tags", "folder", "rawTags", "createdAt"],
       searchOptions: {
         boost: { title: 3, tags: 2, content: 1 },
         prefix: true,
@@ -112,8 +113,38 @@ export class SearchIndex {
     options?: { folder?: string; tag?: string; limit?: number }
   ): SearchResult[] {
     const limit = options?.limit ?? 10;
+    const explicitSessionSearch =
+      options?.tag?.toLowerCase() === "type/session";
+    const now = Date.now();
+    const SEVEN_DAYS = 7 * 24 * 3600000;
+    const THIRTY_DAYS = 30 * 24 * 3600000;
 
-    let results = this.index.search(query);
+    let results = this.index.search(query, {
+      boostDocument: (
+        _id: string,
+        _term: string,
+        storedFields?: Record<string, unknown>
+      ) => {
+        let boost = 1;
+
+        const createdAt = storedFields?.createdAt as string | undefined;
+        if (createdAt) {
+          const ageMs = now - new Date(createdAt).getTime();
+          if (ageMs <= 0) boost *= 1.5;
+          else if (ageMs <= SEVEN_DAYS) boost *= 1.3;
+          else if (ageMs > THIRTY_DAYS) boost *= 0.7;
+        }
+
+        if (!explicitSessionSearch) {
+          const tags = storedFields?.rawTags as string[] | undefined;
+          if (tags?.some((t) => t === "type/session")) {
+            boost *= 0.3;
+          }
+        }
+
+        return boost;
+      },
+    });
 
     // Post-filter by folder
     if (options?.folder) {
@@ -155,6 +186,7 @@ export class SearchIndex {
       path: note.path,
       title: note.title,
       tags: note.tags,
+      createdAt: note.createdAt,
       modifiedAt: note.modifiedAt,
       size: note.size,
     };
@@ -172,6 +204,7 @@ export class SearchIndex {
       content: note.content,
       folder,
       rawTags: note.tags,
+      createdAt: note.createdAt,
     };
   }
 
@@ -180,10 +213,20 @@ export class SearchIndex {
     if (!doc) return "";
 
     const content = doc.content;
+    const isSession = doc.rawTags.some((t) => t === "type/session");
 
     // Prefer TL;DR line if present (agent briefs)
     const tldrMatch = content.match(/^>\s*TL;DR[:\s](.+)$/m);
     if (tldrMatch) return tldrMatch[1].trim();
+
+    // For session notes: prefer Topics section
+    if (isSession) {
+      const topicsMatch = content.match(/## Topics\n([\s\S]*?)(?=\n##|\n$)/);
+      if (topicsMatch) {
+        const topics = topicsMatch[1].trim();
+        return topics.length > 400 ? topics.slice(0, 400) + "..." : topics;
+      }
+    }
 
     // Prefer Key Facts section if present
     const factsMatch = content.match(/## Key Facts\n([\s\S]*?)(?=\n##|\n$)/);
@@ -192,8 +235,10 @@ export class SearchIndex {
       return facts.length > 300 ? facts.slice(0, 300) + "..." : facts;
     }
 
-    // Fall back to keyword-proximity snippet
+    // Fall back to keyword-proximity snippet (wider for sessions)
     const words = query.toLowerCase().split(/\s+/);
+    const windowBefore = isSession ? 120 : 80;
+    const windowAfter = isSession ? 280 : 120;
 
     let bestPos = 0;
     for (const word of words) {
@@ -204,8 +249,8 @@ export class SearchIndex {
       }
     }
 
-    const start = Math.max(0, bestPos - 80);
-    const end = Math.min(content.length, bestPos + 120);
+    const start = Math.max(0, bestPos - windowBefore);
+    const end = Math.min(content.length, bestPos + windowAfter);
     let snippet = content.slice(start, end).trim();
 
     if (start > 0) snippet = "..." + snippet;

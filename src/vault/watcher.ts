@@ -22,6 +22,7 @@ export class VaultWatcher {
       ignored: [
         /(^|[/\\])\./,       // Hidden files/folders (.obsidian, .git)
         /node_modules/,
+        /sessions\/archive/, // Archived sessions excluded from live index
       ],
       persistent: true,
       ignoreInitial: true,

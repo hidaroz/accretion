@@ -18,6 +18,7 @@ export interface NoteInfo {
   path: string;
   title: string;
   tags: string[];
+  createdAt: string;
   modifiedAt: string;
   size: number;
 }
@@ -67,6 +68,10 @@ export class VaultManager {
       path: relativePath,
       title: extractTitle(frontmatter, content, relativePath),
       tags: extractTags(frontmatter, content),
+      createdAt:
+        typeof frontmatter.created === "string"
+          ? new Date(frontmatter.created).toISOString()
+          : stat.mtime.toISOString(),
       modifiedAt: stat.mtime.toISOString(),
       size: stat.size,
       frontmatter,
@@ -109,6 +114,10 @@ export class VaultManager {
       path: relativePath,
       title: extractTitle(frontmatter, content, relativePath),
       tags: extractTags(frontmatter, content),
+      createdAt:
+        typeof frontmatter.created === "string"
+          ? new Date(frontmatter.created).toISOString()
+          : stat.mtime.toISOString(),
       modifiedAt: stat.mtime.toISOString(),
       size: stat.size,
     };
@@ -289,6 +298,10 @@ export class VaultManager {
             path: relativePath,
             title: extractTitle(frontmatter, content, relativePath),
             tags: extractTags(frontmatter, content),
+            createdAt:
+              typeof frontmatter.created === "string"
+                ? new Date(frontmatter.created).toISOString()
+                : stat.mtime.toISOString(),
             modifiedAt: stat.mtime.toISOString(),
             size: stat.size,
           });

@@ -7,6 +7,7 @@ function makeNote(overrides: Partial<NoteContent> = {}): NoteContent {
     path: overrides.path ?? "test/note.md",
     title: overrides.title ?? "Test Note",
     tags: overrides.tags ?? [],
+    createdAt: overrides.createdAt ?? new Date().toISOString(),
     modifiedAt: overrides.modifiedAt ?? new Date().toISOString(),
     size: overrides.size ?? 100,
     frontmatter: overrides.frontmatter ?? {},
@@ -127,6 +128,92 @@ describe("SearchIndex", () => {
       }));
       const results = index.search("roasting");
       expect(results[0].snippet).toContain("roasting");
+    });
+
+    it("uses Topics section for session notes", () => {
+      index.addOrUpdate(makeNote({
+        path: "sessions/2026/05-07/test.md",
+        title: "Session Note",
+        tags: ["type/session"],
+        content: "# Session\n\n## Topics\n\n- discussed roasting changes\n- reviewed auth flow\n\n## Files Changed\n\n- src/roasting.ts",
+      }));
+      const results = index.search("Session Note");
+      expect(results[0].snippet).toContain("discussed roasting");
+    });
+  });
+
+  describe("freshness weighting", () => {
+    it("ranks recent notes higher than old notes with same content", () => {
+      const now = new Date();
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 3600000);
+
+      index.addOrUpdate(makeNote({
+        path: "old.md",
+        title: "Deployment Guide",
+        content: "How to deploy the application",
+        createdAt: ninetyDaysAgo.toISOString(),
+      }));
+      index.addOrUpdate(makeNote({
+        path: "new.md",
+        title: "Deployment Guide",
+        content: "How to deploy the application",
+        createdAt: now.toISOString(),
+      }));
+
+      const results = index.search("deployment guide");
+      expect(results).toHaveLength(2);
+      expect(results[0].path).toBe("new.md");
+    });
+
+    it("title boost still dominates freshness for briefs", () => {
+      const now = new Date();
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 3600000);
+
+      index.addOrUpdate(makeNote({
+        path: "brief.md",
+        title: "Roasting System",
+        tags: ["type/brief"],
+        content: "Complete roasting documentation",
+        createdAt: ninetyDaysAgo.toISOString(),
+      }));
+      index.addOrUpdate(makeNote({
+        path: "recent.md",
+        title: "Random Note",
+        content: "mentioned roasting in passing",
+        createdAt: now.toISOString(),
+      }));
+
+      const results = index.search("roasting");
+      expect(results[0].path).toBe("brief.md");
+    });
+  });
+
+  describe("session de-prioritization", () => {
+    beforeEach(() => {
+      index.addOrUpdate(makeNote({
+        path: "05-Kitchen/roasting-brief.md",
+        title: "Roasting System Brief",
+        tags: ["type/brief"],
+        content: "Complete roasting and sourdough documentation",
+      }));
+      index.addOrUpdate(makeNote({
+        path: "sessions/2026/05-07/session.md",
+        title: "Roasting discussion session",
+        tags: ["type/session", "project/work"],
+        content: "## Topics\n\n- discussed roasting changes\n\n## Files Changed\n\n- roasting.ts",
+      }));
+    });
+
+    it("de-prioritizes session notes in default search", () => {
+      const results = index.search("roasting");
+      expect(results.length).toBeGreaterThan(0);
+      expect(results[0].path).toBe("05-Kitchen/roasting-brief.md");
+    });
+
+    it("does not de-prioritize when explicitly searching sessions", () => {
+      const results = index.search("roasting", { tag: "type/session" });
+      expect(results).toHaveLength(1);
+      expect(results[0].path).toBe("sessions/2026/05-07/session.md");
     });
   });
 });

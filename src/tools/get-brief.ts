@@ -39,6 +39,15 @@ export function registerGetBrief(
             path: briefPath,
             vault: ctx.id,
           });
+          ctx.analytics.log({
+            timestamp: new Date().toISOString(),
+            tool: "get_brief",
+            query: normalized,
+            vault: ctx.id,
+            resultCount: 1,
+            topPaths: [briefPath],
+            resolution: "direct_map",
+          });
           return {
             content: [
               {
@@ -61,6 +70,15 @@ export function registerGetBrief(
             path: results[0].path,
             vault: ctx.id,
           });
+          ctx.analytics.log({
+            timestamp: new Date().toISOString(),
+            tool: "get_brief",
+            query: normalized,
+            vault: ctx.id,
+            resultCount: 1,
+            topPaths: [results[0].path],
+            resolution: "tag_search",
+          });
           return {
             content: [
               {
@@ -72,6 +90,16 @@ export function registerGetBrief(
         }
 
         const allResults = ctx.searchIndex.search(normalized, { limit: 3 });
+        ctx.analytics.log({
+          timestamp: new Date().toISOString(),
+          tool: "get_brief",
+          query: normalized,
+          vault: ctx.id,
+          resultCount: allResults.length,
+          topPaths: allResults.map((r) => r.path),
+          resolution: allResults.length > 0 ? "general_search" : "not_found",
+        });
+
         if (allResults.length > 0) {
           const lines = allResults.map(
             (r, i) =>

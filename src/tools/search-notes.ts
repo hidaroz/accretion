@@ -50,6 +50,15 @@ export function registerSearchNotes(server: McpServer, registry: VaultRegistry):
           };
         }
 
+        ctx.analytics.log({
+          timestamp: new Date().toISOString(),
+          tool: "search_notes",
+          query,
+          vault: ctx.id,
+          resultCount: results.length,
+          topPaths: results.slice(0, 3).map((r) => r.path),
+        });
+
         const lines = results.map(
           (r, i) =>
             `${i + 1}. **${r.title}** (score: ${r.score.toFixed(1)})\n   Path: \`${r.path}\`${r.tags.length > 0 ? `\n   Tags: ${r.tags.join(", ")}` : ""}\n   > ${r.snippet}`

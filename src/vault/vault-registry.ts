@@ -2,6 +2,8 @@ import { VaultManager } from "./vault-manager.js";
 import { SearchIndex } from "./search-index.js";
 import { TagIndex } from "./tag-index.js";
 import { VaultWatcher } from "./watcher.js";
+import { BriefMapWatcher } from "./brief-map-watcher.js";
+import { SearchAnalytics } from "./search-analytics.js";
 import { loadBriefMap } from "./brief-map-loader.js";
 import type { VaultConfig } from "./vault-config.js";
 import { VaultNotFoundError, VaultNotReadyError } from "../utils/errors.js";
@@ -14,6 +16,8 @@ export interface VaultContext {
   searchIndex: SearchIndex;
   tagIndex: TagIndex;
   watcher: VaultWatcher;
+  briefMapWatcher: BriefMapWatcher;
+  analytics: SearchAnalytics;
   briefMap: Record<string, string>;
   ready: boolean;
   initError: string | null;
@@ -76,6 +80,7 @@ export class VaultRegistry {
 
   async shutdown(): Promise<void> {
     for (const ctx of this.contexts.values()) {
+      ctx.briefMapWatcher.stop();
       ctx.watcher.stop();
     }
   }
@@ -89,6 +94,11 @@ export class VaultRegistry {
     const tagIndex = new TagIndex();
     const watcher = new VaultWatcher(vault, searchIndex, tagIndex);
     const briefMap = await loadBriefMap(cfg.path);
+    const analytics = new SearchAnalytics(cfg.path);
+
+    const briefMapWatcher = new BriefMapWatcher(cfg.path, (newMap) => {
+      ctx.briefMap = newMap;
+    });
 
     const ctx: VaultContext = {
       id: cfg.id,
@@ -97,6 +107,8 @@ export class VaultRegistry {
       searchIndex,
       tagIndex,
       watcher,
+      briefMapWatcher,
+      analytics,
       briefMap,
       ready: false,
       initError: null,
@@ -112,6 +124,7 @@ export class VaultRegistry {
       await searchIndex.buildFromVault(vault, allNotes);
       await tagIndex.buildFromVault(vault, allNotes);
       watcher.start();
+      briefMapWatcher.start();
 
       ctx.ready = true;
       logger.info(`Vault "${cfg.id}" initialized in ${Date.now() - start}ms`);
