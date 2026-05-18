@@ -52,7 +52,7 @@ export function registerGetBrief(
             content: [
               {
                 type: "text" as const,
-                text: `# ${note.title}\n\n${note.content}`,
+                text: `# ${note.title}\n\n${note.content}\n\n---\n_Resolved via: direct_map_`,
               },
             ],
           };
@@ -83,7 +83,7 @@ export function registerGetBrief(
             content: [
               {
                 type: "text" as const,
-                text: `# ${note.title}\n\n${note.content}`,
+                text: `# ${note.title}\n\n${note.content}\n\n---\n_Resolved via: tag_search (fuzzy match — verify this is the correct brief)_`,
               },
             ],
           };
