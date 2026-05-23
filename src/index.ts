@@ -4,6 +4,7 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { randomUUID } from "node:crypto";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { hostHeaderValidation } from "@modelcontextprotocol/sdk/server/middleware/hostHeaderValidation.js";
 import { loadVaultsConfig } from "./vault/vault-config.js";
 import { VaultRegistry } from "./vault/vault-registry.js";
 import { createMcpServer } from "./server.js";
@@ -84,6 +85,9 @@ app.get("/.well-known/oauth-protected-resource", (_req, res) => {
 app.post("/register", (_req, res) => {
   res.status(404).json({ error: "OAuth client registration not supported. Use Bearer token authentication." });
 });
+
+// DNS rebinding protection
+app.use("/mcp", hostHeaderValidation(["localhost", "127.0.0.1", "[::1]", "0.0.0.0"]));
 
 // Rate limiting on MCP routes — defense against accidental loops
 const mcpLimiter = rateLimit({

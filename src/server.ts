@@ -20,7 +20,7 @@ import { registerNoteResource } from "./resources/note-resource.js";
 export function createMcpServer(registry: VaultRegistry): McpServer {
   const server = new McpServer({
     name: "obsidian-mcp-server",
-    version: "2.0.0",
+    version: "2.1.0",
   });
 
   // Tools
