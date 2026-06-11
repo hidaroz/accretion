@@ -3,61 +3,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { VaultRegistry } from "../vault/vault-registry.js";
-import { parseNote, extractTags } from "../vault/frontmatter.js";
+import { findSessionNotes } from "../vault/session-scan.js";
+import { getDigestedSessionPaths } from "../vault/digest-candidates.js";
 import { handleToolError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
-
-interface SessionCandidate {
-  relativePath: string;
-  createdAt: Date;
-}
-
-async function findSessionNotes(
-  vaultRoot: string,
-  sessionsDir: string
-): Promise<SessionCandidate[]> {
-  const candidates: SessionCandidate[] = [];
-  const absDir = path.join(vaultRoot, sessionsDir);
-
-  async function walk(dir: string): Promise<void> {
-    let entries;
-    try {
-      entries = await fs.readdir(dir, { withFileTypes: true });
-    } catch {
-      return;
-    }
-
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      const rel = path.relative(vaultRoot, fullPath);
-
-      if (entry.isDirectory()) {
-        if (entry.name === "archive" || entry.name === "digests") continue;
-        await walk(fullPath);
-      } else if (entry.isFile() && entry.name.endsWith(".md")) {
-        try {
-          const raw = await fs.readFile(fullPath, "utf-8");
-          const { frontmatter } = parseNote(raw);
-          const tags = extractTags(frontmatter, raw);
-
-          if (!tags.includes("type/session")) continue;
-
-          const createdAt =
-            typeof frontmatter.created === "string"
-              ? new Date(frontmatter.created)
-              : (await fs.stat(fullPath)).mtime;
-
-          candidates.push({ relativePath: rel, createdAt });
-        } catch {
-          // skip unreadable files
-        }
-      }
-    }
-  }
-
-  await walk(absDir);
-  return candidates;
-}
 
 export function registerArchiveSessions(
   server: McpServer,
@@ -82,6 +31,13 @@ export function registerArchiveSessions(
           .describe(
             "Archive sessions older than this many days (default 30)"
           ),
+        require_digest: z.coerce
+          .boolean()
+          .optional()
+          .default(false)
+          .describe(
+            "If true, only archive sessions already covered by a digest's `sources` frontmatter (default false)"
+          ),
         dry_run: z.coerce
           .boolean()
           .optional()
@@ -95,21 +51,33 @@ export function registerArchiveSessions(
         destructiveHint: false,
       },
     },
-    async ({ vault: vaultId, days_old, dry_run }) => {
+    async ({ vault: vaultId, days_old, require_digest, dry_run }) => {
       try {
         const ctx = registry.resolve(vaultId);
         const vaultRoot = ctx.vault.root;
         const cutoff = new Date(Date.now() - days_old * 24 * 3600000);
 
-        const candidates = await findSessionNotes(vaultRoot, "sessions");
-        const toArchive = candidates.filter((c) => c.createdAt < cutoff);
+        const { sessions } = await findSessionNotes(vaultRoot);
+        let toArchive = sessions.filter((c) => c.createdAt < cutoff);
+
+        let skippedUndigested = 0;
+        if (require_digest) {
+          const digested = await getDigestedSessionPaths(vaultRoot);
+          const before = toArchive.length;
+          toArchive = toArchive.filter((c) => digested.has(c.relativePath));
+          skippedUndigested = before - toArchive.length;
+        }
 
         if (toArchive.length === 0) {
+          const suffix =
+            skippedUndigested > 0
+              ? ` (${skippedUndigested} old session(s) skipped — not yet covered by a digest)`
+              : "";
           return {
             content: [
               {
                 type: "text" as const,
-                text: `No session notes older than ${days_old} days found.`,
+                text: `No session notes older than ${days_old} days found to archive${suffix}.`,
               },
             ],
           };
@@ -122,6 +90,10 @@ export function registerArchiveSessions(
         const newest = toArchive[toArchive.length - 1].createdAt
           .toISOString()
           .slice(0, 10);
+        const skippedNote =
+          skippedUndigested > 0
+            ? `\n\n${skippedUndigested} old session(s) skipped — not yet covered by a digest.`
+            : "";
 
         if (dry_run) {
           const paths = toArchive.map((c) => `- \`${c.relativePath}\``);
@@ -129,7 +101,7 @@ export function registerArchiveSessions(
             content: [
               {
                 type: "text" as const,
-                text: `**Dry run:** Would archive ${toArchive.length} session note(s) (oldest: ${oldest}, newest: ${newest}).\n\n${paths.join("\n")}`,
+                text: `**Dry run:** Would archive ${toArchive.length} session note(s) (oldest: ${oldest}, newest: ${newest}).\n\n${paths.join("\n")}${skippedNote}`,
               },
             ],
           };
@@ -163,7 +135,7 @@ export function registerArchiveSessions(
           content: [
             {
               type: "text" as const,
-              text: `Archived ${moved} session note(s) to \`sessions/archive/\` (oldest: ${oldest}, newest: ${newest}).`,
+              text: `Archived ${moved} session note(s) to \`sessions/archive/\` (oldest: ${oldest}, newest: ${newest}).${skippedNote}`,
             },
           ],
         };

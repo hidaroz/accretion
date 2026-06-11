@@ -135,11 +135,16 @@ export class SearchIndex {
           else if (ageMs > THIRTY_DAYS) boost *= 0.7;
         }
 
-        if (!explicitSessionSearch) {
-          const tags = storedFields?.rawTags as string[] | undefined;
-          if (tags?.some((t) => t === "type/session")) {
-            boost *= 0.3;
-          }
+        const tags = storedFields?.rawTags as string[] | undefined;
+
+        if (!explicitSessionSearch && tags?.some((t) => t === "type/session")) {
+          boost *= 0.3;
+        }
+
+        // Digests are synthesized summaries — keep them prominent even as
+        // they age past the temporal decay window.
+        if (tags?.some((t) => t === "type/digest")) {
+          boost *= 1.5;
         }
 
         return boost;

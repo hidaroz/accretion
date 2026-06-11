@@ -188,6 +188,65 @@ describe("SearchIndex", () => {
     });
   });
 
+  describe("digest boost", () => {
+    it("ranks a digest above an equivalent plain note", () => {
+      index.addOrUpdate(makeNote({
+        path: "notes/plain.md",
+        title: "Roasting work summary",
+        content: "Summary of roasting work this week",
+      }));
+      index.addOrUpdate(makeNote({
+        path: "sessions/digests/2026-W23-work.md",
+        title: "Roasting work summary",
+        tags: ["type/digest", "project/work"],
+        content: "Summary of roasting work this week",
+      }));
+
+      const results = index.search("roasting work summary");
+      expect(results[0].path).toBe("sessions/digests/2026-W23-work.md");
+    });
+
+    it("does not downrank digests the way raw sessions are downranked", () => {
+      index.addOrUpdate(makeNote({
+        path: "sessions/2026/05-07/raw.md",
+        title: "Sourdough deep dive",
+        tags: ["type/session"],
+        content: "## Topics\n\n- sourdough edge cases",
+      }));
+      index.addOrUpdate(makeNote({
+        path: "sessions/digests/2026-W19-work.md",
+        title: "Sourdough deep dive",
+        tags: ["type/digest"],
+        content: "Synthesized notes on sourdough edge cases",
+      }));
+
+      const results = index.search("sourdough");
+      expect(results[0].path).toBe("sessions/digests/2026-W19-work.md");
+    });
+
+    it("keeps an old digest competitive against temporal decay", () => {
+      const now = new Date();
+      const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 3600000);
+
+      index.addOrUpdate(makeNote({
+        path: "sessions/digests/2026-W15-work.md",
+        title: "Cycling overhaul digest",
+        tags: ["type/digest"],
+        content: "Cycling overhaul decisions",
+        createdAt: sixtyDaysAgo.toISOString(),
+      }));
+      index.addOrUpdate(makeNote({
+        path: "notes/recent.md",
+        title: "Misc note",
+        content: "mentions cycling once",
+        createdAt: now.toISOString(),
+      }));
+
+      const results = index.search("cycling");
+      expect(results[0].path).toBe("sessions/digests/2026-W15-work.md");
+    });
+  });
+
   describe("session de-prioritization", () => {
     beforeEach(() => {
       index.addOrUpdate(makeNote({

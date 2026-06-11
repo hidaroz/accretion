@@ -13,6 +13,8 @@ import { registerGetBrief } from "./tools/get-brief.js";
 import { registerGetContext } from "./tools/get-context.js";
 import { registerArchiveSessions } from "./tools/archive-sessions.js";
 import { registerConsolidateSessions } from "./tools/consolidate-sessions.js";
+import { registerGetDigestCandidates } from "./tools/get-digest-candidates.js";
+import { registerGetStaleBriefs } from "./tools/get-stale-briefs.js";
 import { registerListVaults } from "./tools/list-vaults.js";
 import { registerVaultTree } from "./resources/vault-tree.js";
 import { registerNoteResource } from "./resources/note-resource.js";
@@ -38,6 +40,8 @@ export function createMcpServer(registry: VaultRegistry): McpServer {
   registerGetContext(server, registry);
   registerArchiveSessions(server, registry);
   registerConsolidateSessions(server, registry);
+  registerGetDigestCandidates(server, registry);
+  registerGetStaleBriefs(server, registry);
 
   // Resources
   registerVaultTree(server, registry);

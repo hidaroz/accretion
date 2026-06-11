@@ -3,109 +3,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { VaultRegistry } from "../vault/vault-registry.js";
-import { parseNote, extractTitle, extractTags } from "../vault/frontmatter.js";
+import {
+  findSessionNotes,
+  groupSessions,
+  type SessionNote,
+} from "../vault/session-scan.js";
 import { handleToolError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
-
-interface SessionNote {
-  relativePath: string;
-  title: string;
-  tags: string[];
-  createdAt: Date;
-  topics: string[];
-  filesChanged: string[];
-  decisions: string[];
-  project: string;
-}
-
-function getISOWeek(date: Date): string {
-  const d = new Date(date);
-  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil(
-    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
-  );
-  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
-}
-
-function getYearMonth(date: Date): string {
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-function extractSection(content: string, heading: string): string[] {
-  const regex = new RegExp(
-    `## ${heading}\\n([\\s\\S]*?)(?=\\n##|$)`,
-    "m"
-  );
-  const match = content.match(regex);
-  if (!match) return [];
-
-  return match[1]
-    .trim()
-    .split("\n")
-    .map((line) => line.replace(/^-\s*/, "").trim())
-    .filter((line) => line.length > 0);
-}
-
-function extractProjectTag(tags: string[]): string {
-  const projectTag = tags.find((t) => t.startsWith("project/"));
-  return projectTag ? projectTag.replace("project/", "") : "unknown";
-}
-
-async function findSessionNotes(
-  vaultRoot: string
-): Promise<SessionNote[]> {
-  const sessions: SessionNote[] = [];
-  const sessionsDir = path.join(vaultRoot, "sessions");
-
-  async function walk(dir: string): Promise<void> {
-    let entries;
-    try {
-      entries = await fs.readdir(dir, { withFileTypes: true });
-    } catch {
-      return;
-    }
-
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-
-      if (entry.isDirectory()) {
-        if (entry.name === "archive" || entry.name === "digests") continue;
-        await walk(fullPath);
-      } else if (entry.isFile() && entry.name.endsWith(".md")) {
-        try {
-          const raw = await fs.readFile(fullPath, "utf-8");
-          const { frontmatter, content } = parseNote(raw);
-          const tags = extractTags(frontmatter, raw);
-
-          if (!tags.includes("type/session")) continue;
-
-          const relativePath = path.relative(vaultRoot, fullPath);
-          const createdAt =
-            typeof frontmatter.created === "string"
-              ? new Date(frontmatter.created as string)
-              : (await fs.stat(fullPath)).mtime;
-
-          sessions.push({
-            relativePath,
-            title: extractTitle(frontmatter, content, relativePath),
-            tags,
-            createdAt,
-            topics: extractSection(content, "Topics"),
-            filesChanged: extractSection(content, "Files Changed"),
-            decisions: extractSection(content, "Decisions"),
-            project: extractProjectTag(tags),
-          });
-        } catch {
-          // skip unreadable
-        }
-      }
-    }
-  }
-
-  await walk(sessionsDir);
-  return sessions;
-}
 
 function dedup(items: string[]): string[] {
   return [...new Set(items)];
@@ -147,20 +51,17 @@ function buildDigest(
     `## Source Sessions\n\n${notes.map((n) => `- [[${n.relativePath}|${n.title}]] (${n.createdAt.toISOString().slice(0, 10)})`).join("\n")}`
   );
 
-  const isWeekly = period.includes("W");
-  const digestPath = isWeekly
-    ? `sessions/digests/${period}-${project}.md`
-    : `sessions/digests/${period}-${project}.md`;
-
   return {
-    path: digestPath,
+    path: `sessions/digests/${period}-${project}.md`,
     content: `# ${title}\n\n${sections.join("\n\n")}`,
     frontmatter: {
       title,
       tags: ["type/digest", `project/${project}`],
       period,
       session_count: notes.length,
+      sources: notes.map((n) => n.relativePath),
       created: new Date().toISOString(),
+      generated_by: "consolidate_sessions/mechanical",
     },
   };
 }
@@ -173,7 +74,7 @@ export function registerConsolidateSessions(
     "consolidate_sessions",
     {
       description:
-        "Merge session notes into per-project weekly or monthly digest notes. Purely mechanical (dedup + concatenate). Source notes are preserved. Use dry_run=true (default) to preview.",
+        "Mechanical fallback — prefer the /memory-weekly LLM digest workflow. Merge session notes into per-project weekly or monthly digest notes (dedup + concatenate, no synthesis). Source notes are preserved. Use dry_run=true (default) to preview.",
       inputSchema: {
         vault: z
           .string()
@@ -190,6 +91,13 @@ export function registerConsolidateSessions(
           .describe(
             "Filter to specific project slug (e.g., 'work-web-app'). Omit for all projects."
           ),
+        min_sessions: z.coerce
+          .number()
+          .int()
+          .min(1)
+          .optional()
+          .default(2)
+          .describe("Minimum sessions per group to consolidate (default 2)"),
         dry_run: z.coerce
           .boolean()
           .optional()
@@ -201,12 +109,12 @@ export function registerConsolidateSessions(
         destructiveHint: false,
       },
     },
-    async ({ vault: vaultId, period, project: projectFilter, dry_run }) => {
+    async ({ vault: vaultId, period, project: projectFilter, min_sessions, dry_run }) => {
       try {
         const ctx = registry.resolve(vaultId);
         const vaultRoot = ctx.vault.root;
 
-        const sessions = await findSessionNotes(vaultRoot);
+        const { sessions } = await findSessionNotes(vaultRoot);
         const filtered = projectFilter
           ? sessions.filter((s) => s.project === projectFilter)
           : sessions;
@@ -222,23 +130,11 @@ export function registerConsolidateSessions(
           };
         }
 
-        // Group by project + period
-        const groups = new Map<string, SessionNote[]>();
-        for (const session of filtered) {
-          const periodKey =
-            period === "week"
-              ? getISOWeek(session.createdAt)
-              : getYearMonth(session.createdAt);
-          const key = `${session.project}:${periodKey}`;
-          const group = groups.get(key) ?? [];
-          group.push(session);
-          groups.set(key, group);
-        }
+        const groups = groupSessions(filtered, period);
 
-        // Only consolidate groups with 2+ sessions
         const digestsToCreate: ReturnType<typeof buildDigest>[] = [];
         for (const [key, notes] of groups) {
-          if (notes.length < 2) continue;
+          if (notes.length < min_sessions) continue;
           const [proj, periodKey] = key.split(":");
           digestsToCreate.push(buildDigest(proj, periodKey, notes));
         }
@@ -248,7 +144,7 @@ export function registerConsolidateSessions(
             content: [
               {
                 type: "text" as const,
-                text: `No groups with 2+ sessions found for ${period}ly consolidation.`,
+                text: `No groups with ${min_sessions}+ sessions found for ${period}ly consolidation.`,
               },
             ],
           };
