@@ -15,6 +15,8 @@ import { registerArchiveSessions } from "./tools/archive-sessions.js";
 import { registerConsolidateSessions } from "./tools/consolidate-sessions.js";
 import { registerGetDigestCandidates } from "./tools/get-digest-candidates.js";
 import { registerGetStaleBriefs } from "./tools/get-stale-briefs.js";
+import { registerGetVaultHealth } from "./tools/get-vault-health.js";
+import { registerGetResurfaceCandidates } from "./tools/get-resurface-candidates.js";
 import { registerListVaults } from "./tools/list-vaults.js";
 import { registerVaultTree } from "./resources/vault-tree.js";
 import { registerNoteResource } from "./resources/note-resource.js";
@@ -42,6 +44,8 @@ export function createMcpServer(registry: VaultRegistry): McpServer {
   registerConsolidateSessions(server, registry);
   registerGetDigestCandidates(server, registry);
   registerGetStaleBriefs(server, registry);
+  registerGetVaultHealth(server, registry);
+  registerGetResurfaceCandidates(server, registry);
 
   // Resources
   registerVaultTree(server, registry);
