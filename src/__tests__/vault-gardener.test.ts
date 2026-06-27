@@ -65,6 +65,75 @@ describe("buildWikilinkIndex", () => {
     expect(index.backlinks.get("Knowledge/Note A.md")?.has("MOCs/Topic.md")).toBe(true);
     expect(index.dangling.get("MOCs/Topic.md")?.has("Ghost")).toBe(true);
   });
+
+  it("resolves a link by the target's frontmatter title when filename differs", async () => {
+    // File is slug-named but titled in display style; link uses the title.
+    await writeNote("03-Architecture/brief-auth-rbac.md", "title: 'Brief: Auth & RBAC'\ntags:\n  - type/brief", "Body");
+    await writeNote("03-Architecture/ADR.md", "title: ADR", "See [[Brief: Auth & RBAC]]");
+
+    const index = buildWikilinkIndex(await readAllNotes(vaultRoot));
+
+    expect(index.forward.get("03-Architecture/ADR.md")?.has("03-Architecture/brief-auth-rbac.md")).toBe(true);
+    expect(index.backlinks.get("03-Architecture/brief-auth-rbac.md")?.has("03-Architecture/ADR.md")).toBe(true);
+    expect(index.dangling.get("03-Architecture/ADR.md")).toBeUndefined();
+  });
+
+  it("resolves a link by a frontmatter alias when title and filename both differ", async () => {
+    await writeNote(
+      "03-Architecture/Authentication Flow.md",
+      "title: Authentication Flow\naliases:\n  - Auth Flow",
+      "Body"
+    );
+    await writeNote("03-Architecture/Source.md", "title: Source", "See [[Auth Flow]]");
+
+    const index = buildWikilinkIndex(await readAllNotes(vaultRoot));
+
+    expect(index.forward.get("03-Architecture/Source.md")?.has("03-Architecture/Authentication Flow.md")).toBe(true);
+    expect(index.dangling.get("03-Architecture/Source.md")).toBeUndefined();
+  });
+
+  it("supports aliases provided as a comma-separated string", async () => {
+    await writeNote("a/Target.md", "title: Target\naliases: First Alias, Second Alias", "Body");
+    await writeNote("a/Src.md", "title: Src", "[[Second Alias]]");
+
+    const index = buildWikilinkIndex(await readAllNotes(vaultRoot));
+
+    expect(index.forward.get("a/Src.md")?.has("a/Target.md")).toBe(true);
+  });
+
+  it("prefers exact path and basename over title/alias matches", async () => {
+    // A note's title collides with another note's basename — basename wins.
+    await writeNote("a/Real.md", "title: Decoy", "Body");
+    await writeNote("b/Other.md", "title: Real", "Body");
+    await writeNote("c/Src.md", "title: Src", "[[Real]]");
+
+    const index = buildWikilinkIndex(await readAllNotes(vaultRoot));
+
+    // [[Real]] must resolve to the file *named* Real.md, not the one titled Real.
+    expect(index.forward.get("c/Src.md")?.has("a/Real.md")).toBe(true);
+    expect(index.forward.get("c/Src.md")?.has("b/Other.md")).toBe(false);
+  });
+
+  it("prefers an alias match over a title match", async () => {
+    await writeNote("a/Aliased.md", "title: Something Else\naliases:\n  - Shared Key", "Body");
+    await writeNote("b/Titled.md", "title: Shared Key", "Body");
+    await writeNote("c/Src.md", "title: Src", "[[Shared Key]]");
+
+    const index = buildWikilinkIndex(await readAllNotes(vaultRoot));
+
+    expect(index.forward.get("c/Src.md")?.has("a/Aliased.md")).toBe(true);
+    expect(index.forward.get("c/Src.md")?.has("b/Titled.md")).toBe(false);
+  });
+
+  it("resolves title collisions deterministically to the shortest path", async () => {
+    await writeNote("zzz/long/path/A.md", "title: Shared Title", "Body");
+    await writeNote("B.md", "title: Shared Title", "Body");
+    await writeNote("Src.md", "title: Src", "[[Shared Title]]");
+
+    const index = buildWikilinkIndex(await readAllNotes(vaultRoot));
+
+    expect(index.forward.get("Src.md")?.has("B.md")).toBe(true);
+  });
 });
 
 describe("findOrphanNotes", () => {

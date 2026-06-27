@@ -42,35 +42,73 @@ function normalize(target: string): string {
 }
 
 /**
+ * Read a note's frontmatter `aliases` into a normalized list. Obsidian
+ * accepts either a YAML sequence or a single/comma-separated string.
+ */
+function extractAliases(frontmatter: Record<string, unknown>): string[] {
+  const raw = frontmatter.aliases ?? frontmatter.alias;
+  if (Array.isArray(raw)) {
+    return raw.filter((a): a is string => typeof a === "string");
+  }
+  if (typeof raw === "string") {
+    return raw.split(",").map((a) => a.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+/**
  * Build a forward/back link graph over the vault. Targets resolve
- * Obsidian-style: first by exact relative path (with or without `.md`),
- * then by basename. Basename collisions resolve deterministically to the
- * shortest (then lexicographically first) path.
+ * Obsidian-style, in precedence order: exact relative path (with or without
+ * `.md`), then basename, then frontmatter `aliases`, then frontmatter
+ * `title`. The title/alias fallbacks mirror how Obsidian resolves links that
+ * point at a note's display name when the file itself is slug-named.
+ * Collisions within any tier resolve deterministically to the shortest
+ * (then lexicographically first) path.
  */
 export function buildWikilinkIndex(notes: NoteFile[]): WikilinkIndex {
   // basename -> candidate paths (for basename resolution)
   const byBasename = new Map<string, string[]>();
   // normalized full relative path -> path (for path-style links)
   const byPath = new Map<string, string>();
+  // normalized frontmatter alias -> candidate paths
+  const byAlias = new Map<string, string[]>();
+  // normalized frontmatter title -> candidate paths
+  const byTitle = new Map<string, string[]>();
+
+  const addCandidate = (map: Map<string, string[]>, key: string, path: string) => {
+    if (!key) return;
+    const list = map.get(key) ?? [];
+    list.push(path);
+    map.set(key, list);
+  };
 
   for (const note of notes) {
     byPath.set(normalize(note.relativePath), note.relativePath);
-    const key = note.basename.toLowerCase();
-    const list = byBasename.get(key) ?? [];
-    list.push(note.relativePath);
-    byBasename.set(key, list);
+    addCandidate(byBasename, note.basename.toLowerCase(), note.relativePath);
+    addCandidate(byTitle, normalize(note.title), note.relativePath);
+    for (const alias of extractAliases(note.frontmatter)) {
+      addCandidate(byAlias, normalize(alias), note.relativePath);
+    }
   }
+
+  const pickShortest = (candidates: string[]): string =>
+    [...candidates].sort((a, b) => a.length - b.length || a.localeCompare(b))[0];
 
   function resolve(target: string): string | null {
     const norm = normalize(target);
     if (byPath.has(norm)) return byPath.get(norm)!;
     const base = norm.split("/").pop() ?? norm;
-    const candidates = byBasename.get(base);
-    if (!candidates || candidates.length === 0) return null;
-    if (candidates.length === 1) return candidates[0];
-    return [...candidates].sort(
-      (a, b) => a.length - b.length || a.localeCompare(b)
-    )[0];
+    // basename matches the file's basename; alias/title match the full target.
+    const tiers: Array<[Map<string, string[]>, string]> = [
+      [byBasename, base],
+      [byAlias, norm],
+      [byTitle, norm],
+    ];
+    for (const [map, key] of tiers) {
+      const candidates = map.get(key);
+      if (candidates && candidates.length > 0) return pickShortest(candidates);
+    }
+    return null;
   }
 
   const forward = new Map<string, Set<string>>();
