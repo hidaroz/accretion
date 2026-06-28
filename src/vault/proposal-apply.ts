@@ -27,18 +27,19 @@ export interface ApplyResult {
   lastReviewed: string;
 }
 
-/** Heading level of a line (1 or 2), or 0 if not an H1/H2 heading. */
+/** Heading level of a line (1–6), or 0 if the line is not an ATX heading. */
 function headingLevel(line: string): number {
-  const m = line.match(/^(#{1,2})\s+/);
+  const m = line.match(/^(#{1,6})\s+/);
   return m ? m[1].length : 0;
 }
 
 /**
- * Apply structured section edits to a markdown body. Sections are delimited
- * by `## ` headings (an H1 or H2 ends the preceding section). `replace` swaps
- * a section's body (heading preserved); `append` adds before the next heading.
- * Appending to a missing section creates it at the end; replacing a missing
- * section throws (surfaces drift rather than guessing). Pure — no I/O.
+ * Apply structured section edits to a markdown body. A section is an ATX
+ * heading of any level (`#`–`######`) and runs until the next heading of the
+ * same-or-shallower level (so a section includes its deeper subsections).
+ * `replace` swaps a section's body (heading preserved); `append` adds before
+ * that boundary. Appending to a missing section creates it (as `## `);
+ * replacing a missing section throws (surfaces drift). Pure — no I/O.
  */
 export function applySectionEdits(
   body: string,
@@ -51,10 +52,12 @@ export function applySectionEdits(
     const target = edit.section.trim().toLowerCase();
 
     let headingIdx = -1;
+    let targetLevel = 2;
     for (let i = 0; i < lines.length; i++) {
-      const m = lines[i].match(/^##\s+(.+?)\s*$/);
-      if (m && m[1].trim().toLowerCase() === target) {
+      const m = lines[i].match(/^(#{1,6})\s+(.+?)\s*$/);
+      if (m && m[2].trim().toLowerCase() === target) {
         headingIdx = i;
+        targetLevel = m[1].length;
         break;
       }
     }
@@ -70,10 +73,12 @@ export function applySectionEdits(
       continue;
     }
 
-    // Section spans (headingIdx, next H1/H2 or EOF).
+    // Section spans (headingIdx, next same-or-shallower heading or EOF) —
+    // deeper subsections stay inside this section.
     let endIdx = lines.length;
     for (let i = headingIdx + 1; i < lines.length; i++) {
-      if (headingLevel(lines[i]) >= 1) {
+      const lvl = headingLevel(lines[i]);
+      if (lvl >= 1 && lvl <= targetLevel) {
         endIdx = i;
         break;
       }

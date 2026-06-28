@@ -93,6 +93,55 @@ describe("applySectionEdits", () => {
     const { body } = applySectionEdits(BRIEF_BODY, edits);
     expect(body).toContain("- useQux");
   });
+
+  // Regression: briefs use H3 (### ) sections too — the matcher must handle
+  // any heading level, not just H2 (found by the first autonomous run).
+  const H3_BODY = `# Brief
+
+## Phase 4a
+Intro.
+
+### Step 7 Idle Timeout
+15-minute idle timeout.
+
+### Step 8 Cleanup
+Drop the table.
+
+## Notes
+- note one
+`;
+
+  it("replaces an H3 section without touching its siblings", () => {
+    const { body, changed } = applySectionEdits(H3_BODY, [
+      { section: "Step 7 Idle Timeout", action: "replace", content: "2-hour idle timeout." },
+    ]);
+    expect(body).toContain("### Step 7 Idle Timeout\n2-hour idle timeout.");
+    expect(body).not.toContain("15-minute idle timeout.");
+    expect(body).toContain("### Step 8 Cleanup"); // sibling intact
+    expect(body).toContain("Drop the table."); // sibling body intact
+    expect(changed).toEqual(["Step 7 Idle Timeout"]);
+  });
+
+  it("appends to an existing H3 section instead of creating a duplicate", () => {
+    const { body } = applySectionEdits(H3_BODY, [
+      { section: "Step 8 Cleanup", action: "append", content: "- also drop the index" },
+    ]);
+    // exactly one "Step 8 Cleanup" heading — no spurious duplicate at EOF
+    expect(body.match(/Step 8 Cleanup/g)?.length).toBe(1);
+    expect(body).toContain("- also drop the index");
+    // the new line lands inside Step 8, before the next H2 (## Notes)
+    expect(body.indexOf("- also drop the index")).toBeLessThan(body.indexOf("## Notes"));
+  });
+
+  it("replacing an H2 spans its H3 subsections (ends at the next H2)", () => {
+    const { body } = applySectionEdits(H3_BODY, [
+      { section: "Phase 4a", action: "replace", content: "Rewritten." },
+    ]);
+    expect(body).toContain("## Phase 4a\nRewritten.");
+    expect(body).not.toContain("### Step 7"); // subsections swallowed by the replace
+    expect(body).toContain("## Notes"); // next H2 preserved
+    expect(body).toContain("- note one");
+  });
 });
 
 describe("parseEdits", () => {
