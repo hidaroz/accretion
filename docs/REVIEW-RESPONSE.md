@@ -190,3 +190,188 @@ fixed by pinning rather than weighting, as you predicted.
    sample (hence the CI). Real next step is your call: **push the negative+positive set toward
    100 stratified before trusting these as stable**, and only then consider weighted RRF (which
    pinning may have made unnecessary).
+
+---
+
+## Update 4 — the 98% was an upper bound, not product behavior (you were right to distrust it)
+
+You caught the thing Update 3 was quietly leaning on: **the eval pinned the brief routed from
+`c.topic || c.query` — a clean keyword — while live `hybrid_search` only ever sees the raw
+`query`.** So the 98.1% was crediting retrieval for a routing assist real callers never get. I
+made the eval measure all three modes side by side and froze the clock so the numbers stop
+drifting. Full write-up: `docs/2026-06-28-eval-parity-split.md`.
+
+**Retrieval (work, 66 cases, k=5, frozen clock) — `evals/results/2026-06-28-curated.md`:**
+
+| Mode | recall@5 | success@5 | MRR |
+|---|---|---|---|
+| Keyword | 62.3% | 62.3% | 0.317 |
+| Semantic | 78.3% | 79.2% | 0.424 |
+| Hybrid raw (no pin) | 80.2% | 81.1% | 0.582 |
+| **Hybrid query-pin (live)** | **85.8%** | **86.8%** | **0.759** |
+| Hybrid topic-pin (diagnostic) | 98.1% | 98.1% | 0.981 |
+
+So **topic-pin was an upper bound; the honest live number is 85.8%** (CI [76.4%, 94.3%] — still a
+53-positive sample). The 12.3-pt gap is harness assistance. Query-pin is now the headline; topic-pin
+stays as a diagnostic. The frozen `EVAL_EPOCH` (embedded in every scorecard) makes reruns
+byte-identical — `SearchIndex`'s recency boost was running off `Date.now()`, so the regression
+harness was drifting as notes aged past the 7/30-day thresholds.
+
+**Then I fixed the four artifact/measurement issues you flagged on that round:**
+
+1. **Result files clobbered each other** (my own `--no-semantic` verification run had overwritten
+   the semantic-on scorecard — the 85.8% only existed in the doc). Files are now mode-stamped:
+   `2026-06-28-curated.{md,json}` / `…-no-semantic.{md,json}`.
+2. **Live query-route false positives were unmeasured** — routing precision was still topic-based,
+   so a bad raw-query route could pin a wrong brief in production while the scorecard showed 100%.
+   There's now a separate **query-path routing table** with a **pin false-positive** count.
+3. **`--no-semantic` output was inconsistent** (blanked hybrid rows but still printed a query-pin
+   CI/misses). Now it cleanly suppresses everything semantic-dependent and stays a keyword+routing
+   diagnostic.
+4. **`EVAL_EPOCH` wasn't in the artifact** — now in the header and JSON.
+
+**The query-path table immediately earned its keep — it found the live wrong-pin you predicted:**
+
+| Routing metric | Topic path (`get_brief`) | Query path (live `hybrid_search`) |
+|---|---|---|
+| Precision (of routed) | 100% | 95.8% |
+| Recall (positives routed) | 100% | **43.4%** |
+| Abstention | 19.7% | **63.6%** |
+| Negative accuracy | 100% | 100% |
+| Pin false-positives | — | **1** (`observability-migration`) *— refined into 3 tiers in Update 5* |
+
+On raw NL queries the router **abstains 63.6%** of the time (no pin → that's why query-pin recall
+sits at 85.8% vs topic-pin's 98.1%), and one wrong route (`observability-migration`) got pinned. *(You
+correctly flagged that "pin false-positive" overstates it — see Update 5 for the route/applied/
+harmful split; it turns out applied + harmful, but mildly.)* The topic-path 100% was hiding both.
+**NL-query routing — not fusion — is the real gap**, which also retires the weighted-RRF question:
+fusion isn't the bottleneck.
+
+**Honest status:** parity split + clock + the four fixes are done, 392 tests green, reruns
+reproducible, not yet committed. The `mcp-transport` miss from Update 3 still stands (pure retrieval
+failure, pin-independent — your step-3).
+
+**Where I'd value your take next:**
+1. **NL routing** is the headline gap. Lower the confidence floor for the query path, add a
+   measured "route-injected hybrid" 4th mode (routed brief as a tiny third RRF source when
+   high-confidence — more blast radius from routing mistakes), or leave routing strict? I'd want
+   the ~100-case set in place before tuning.
+2. **Telemetry before more cases?** `hybrid_search` logs nothing today. Logging real queries
+   (top paths, route method, pin path, whether the pin was retrieved) would seed the next 100
+   cases from actual usage instead of hand-invented ones — arguably higher-leverage than authoring
+   cases now.
+3. **`EVAL_EPOCH`** is pinned to 2026-06-28. Re-pin on each scorecard refresh (tracks the live
+   vault) or leave fixed (comparable over time)? Currently fixed.
+
+---
+
+## Update 5 — "pin false-positive" split into route / applied / harmful (you were right)
+
+You caught that my Update-4 metric conflated three things: it counted any wrong raw-query *route*,
+but `rrf()` only applies pins that were already retrieved (`src/vault/hybrid.ts:39` —
+`pins.filter((p) => score.has(p))`), and even an applied pin only matters if it displaces an
+expected note. Split into the three tiers you named (each a strict subset of the one above):
+
+| Tier | Count | Cases |
+|---|---|---|
+| Wrong query routes (route ≠ expected brief) | 1 | `observability-migration` |
+| ↳ Applied wrong pins (route was retrieved → pinned by RRF) | 1 | `observability-migration` |
+| ↳ Harmful wrong pins (displaced an expected note) *— renamed "pin-induced retrieval regression (vs raw RRF)" in Update 6* | 1 | `observability-migration` |
+| &nbsp;&nbsp;• severe (expected note dropped from top-5) | **0** | — |
+| &nbsp;&nbsp;• mild (demoted from rank 1, still in top-5) | **1** | `observability-migration` |
+
+So `observability-migration` *is* applied and *is* harmful — but **mildly**: `"what is the Observability migration
+roadmap"` routes to the Observability *observability* brief, which gets pinned to rank 1, demoting the actual
+roadmap note from rank 1 → rank 2. recall@5 preserved (still in top-5), MRR 1.0 → 0.5, **zero
+expected notes dropped from top-k.** Less alarming than Update 4's "reaches production," more
+precise. (I added the severe/mild breakdown beyond your three tiers because the blast radius
+genuinely differs — a top-k drop loses the answer; a rank-1 demotion just buries it one slot.)
+`harmful ≤ applied ≤ wrongRoutes` is asserted in the scorecard; metrics live in
+`evals/results/2026-06-28-curated.json` under `pinAnalysis`. The query path needs the retrieval
+candidate set, so applied/harmful read `—` in `--no-semantic` mode.
+
+**Your guidance on the open questions — recorded as decisions, thank you:**
+- **NL routing:** not lowering the floor yet. Expanding to ~100 cases and classifying misses
+  ("should route from NL" vs "retrieval should handle it") first.
+- **Route-injected mode:** experiment-only, not shipping — it bypasses the `rrf()` unretrieved-pin
+  safeguard, so it makes wrong routes more dangerous.
+- **Telemetry:** doing this next, before authoring more cases (route method/path, pin-applied?,
+  top paths, semantic availability) — agreed it gives better strata than invented queries.
+- **`EVAL_EPOCH`:** staying fixed for the regression baseline; live-clock only as an exploratory
+  report.
+
+Net, per your framing: the harness now distinguishes wrong routes from applied/harmful pins, and
+**telemetry is the agreed next highest-leverage step**.
+
+---
+
+## For your review (Updates 4–5)
+
+All three rounds are in the working tree, **not yet committed** — review before I commit. 392
+tests green, `npm run build` clean, scorecards reproducible across reruns.
+
+**Diff surface (what to read):**
+
+| File | What changed | Worth scrutinizing |
+|---|---|---|
+| `src/vault/search-index.ts` | Injectable clock (`now`), defaults to `Date.now` | Is constructor injection the right seam, or would you pass the clock into `search()`? |
+| `src/eval/metrics.ts` | `hybrid` → `hybridRaw` / `hybridQueryPin` / `hybridTopicPin` | Naming + whether `hybridQueryPin` is the right headline |
+| `scripts/memory-eval.mjs` | parity split, frozen `EVAL_EPOCH`, dual routing tables, **pin route/applied/harmful tiers**, mode-stamped artifacts | **The harmful-pin classification** (`droppedTopK` / `lostRank1`, lines ~170–185) — does my definition of "harmful" match what you meant? |
+| `src/__tests__/{search-index,eval-metrics}.test.ts` | clock determinism + split-metric assertions | Coverage gaps |
+| `evals/results/2026-06-28-{curated,no-semantic}.{md,json}` | regenerated, mode-stamped | The numbers themselves |
+| `docs/2026-06-28-eval-parity-split.md` | standalone write-up | — |
+
+**Reproduce in ~3 min (semantic cached):**
+```bash
+cd ~/devprojects/obsidian-mcp-server
+npm test && npm run build
+node scripts/memory-eval.mjs --vault work                 # curated → results/2026-06-28-curated.md
+node scripts/memory-eval.mjs --vault work --no-semantic   # → results/2026-06-28-no-semantic.md
+```
+Then read `evals/results/2026-06-28-curated.md` (headline query-pin **85.8%**, the two routing
+tables, the three pin tiers) and `…-curated.json` → `pinAnalysis`.
+
+**Specific things I want you to challenge:**
+1. **Harmful-pin definition.** I split harmful into severe (expected note dropped from top-k) vs
+   mild (demoted from rank 1, recall preserved). Is rank-1 demotion really "harmful," or should
+   only top-k drops count? `observability-migration` is the only case and it's the mild kind — so this
+   choice decides whether the harness reports 1 harmful pin or 0.
+2. **Faithful baselines.** Topic-path routing for `get_brief` (explicit topic arg) vs query-path
+   for `hybrid_search` (raw query). Agree these are the right two faithful baselines, or is there
+   a third path I'm not modeling?
+3. **`EVAL_EPOCH` = 2026-06-28.** Fixed-epoch keeps recency ranking realistic for the snapshot and
+   deterministic. Any failure mode you'd flag (e.g. new notes created after the epoch getting the
+   age-0 boost)?
+4. **Is the harness now trustworthy enough** to move to telemetry + the ~100-case expansion, or is
+   there a measurement hole still open before we tune anything?
+
+---
+
+## Update 6 — your sign-off + naming fix (harm → retrieval regression)
+
+You signed off on the substance ("solid measurement harness… doing its job") and gave a naming
+push I took: **the metric measures retrieval regression *relative to raw RRF*, not all user
+harm** — so I renamed it rather than letting "harmful: 1" get quoted out of context.
+
+- **Renamed** the umbrella `Harmful wrong pins` → **`Pin-induced retrieval regression (vs raw
+  RRF)`**, keeping your two tiers: **severe** (expected note dropped from top-k) and **mild
+  (ranking)** (demoted from rank 1, still in top-k). For `observability-migration`: **0 severe, 1
+  ranking** — the honest headline is "no answer lost, one answer demoted a slot." JSON
+  `pinAnalysis` keys renamed to match (`pinRegressions`, `severeRegressionIds`,
+  `rankingRegressionIds`); invariant now `regression ≤ applied ≤ wrongRoutes`.
+- **Fixed the `--no-semantic` wording** you flagged: applied pins *can* come from keyword-only
+  candidates, so it's not "requires semantic" — it's **"suppressed in no-semantic"** (a choice, so
+  that mode stays a clean keyword/routing diagnostic). Reworded everywhere.
+
+**Recorded as deferred (your "later" list — not built):**
+- **Misleading-first-context metric:** an applied wrong pin at **rank 1 regardless of whether raw
+  had an expected note there** — doesn't move recall, but a wrong brief as the agent's *first*
+  context can still mislead. A distinct safety metric to add with telemetry.
+- **Observed-agent-query baseline:** a third faithful path from `hybrid_search` telemetry — real
+  agents phrase queries differently than my fixture.
+- **`EVAL_EPOCH`:** staying fixed as snapshot-time; I'll repin (new baseline) only if I add many
+  future-dated cases. No clamp.
+
+**Agreed direction, locked:** next work is **`hybrid_search` telemetry**, then grow to ~100 cases
+from real queries. **No more retrieval changes; no NL-routing tuning yet.** Thanks — this closes
+the eval-hardening arc; the harness is doing its job and the next move is observation, not tuning.

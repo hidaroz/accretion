@@ -247,6 +247,43 @@ describe("SearchIndex", () => {
     });
   });
 
+  describe("injectable clock", () => {
+    it("uses the injected clock for recency boost (not wall-clock)", () => {
+      // Freeze the index's notion of "now" at a fixed past instant. A note
+      // created at that instant (age 0 → 1.5x boost) must outrank an identical
+      // note created 90 days earlier (>30 days → 0.7x). Under wall-clock both
+      // would be far past 30 days and tie — so this proves the clock is injected.
+      const frozen = Date.parse("2026-01-01T00:00:00Z");
+      const idx = new SearchIndex({ now: () => frozen });
+      idx.addOrUpdate(makeNote({
+        path: "fresh.md",
+        title: "Deployment Guide",
+        content: "How to deploy the application",
+        createdAt: "2026-01-01T00:00:00Z",
+      }));
+      idx.addOrUpdate(makeNote({
+        path: "old.md",
+        title: "Deployment Guide",
+        content: "How to deploy the application",
+        createdAt: "2025-10-01T00:00:00Z",
+      }));
+      const results = idx.search("deployment guide");
+      expect(results.map((r) => r.path)).toEqual(["fresh.md", "old.md"]);
+    });
+
+    it("is deterministic: same injected clock → identical result order", () => {
+      const frozen = Date.parse("2026-06-28T00:00:00Z");
+      const build = () => {
+        const idx = new SearchIndex({ now: () => frozen });
+        idx.addOrUpdate(makeNote({ path: "a.md", title: "Roasting Guide", content: "roasting one", createdAt: "2026-06-20T00:00:00Z" }));
+        idx.addOrUpdate(makeNote({ path: "b.md", title: "Roasting Guide", content: "roasting two", createdAt: "2026-03-01T00:00:00Z" }));
+        idx.addOrUpdate(makeNote({ path: "c.md", title: "Roasting Notes", content: "more roasting", createdAt: "2026-06-27T00:00:00Z" }));
+        return idx.search("roasting").map((r) => r.path);
+      };
+      expect(build()).toEqual(build());
+    });
+  });
+
   describe("session de-prioritization", () => {
     beforeEach(() => {
       index.addOrUpdate(makeNote({

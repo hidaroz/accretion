@@ -109,21 +109,28 @@ describe("aggregate", () => {
   });
 
   it("rolls up per-mode metrics over positive cases and routing over both", () => {
+    // query-pin is the live-faithful headline; topic-pin is the diagnostic that
+    // gets the clean keyword. Here topic-pin recovers case 1 that raw/query-pin miss.
     const scores: CaseScore[] = [
-      { id: "1", negative: false, keyword: rs(1, true, 1), semantic: rs(0, false, 0), hybrid: rs(1, true, 1), routingHit: true },
-      { id: "2", negative: false, keyword: rs(0, false, 0), semantic: rs(1, true, 0.5), hybrid: rs(1, true, 1), routingHit: true },
-      { id: "neg", negative: true, keyword: rs(0, false, 0), semantic: rs(0, false, 0), hybrid: rs(0, false, 0), routingHit: true },
+      { id: "1", negative: false, keyword: rs(1, true, 1), semantic: rs(0, false, 0), hybridRaw: rs(0, false, 0), hybridQueryPin: rs(0, false, 0), hybridTopicPin: rs(1, true, 1), routingHit: true },
+      { id: "2", negative: false, keyword: rs(0, false, 0), semantic: rs(1, true, 0.5), hybridRaw: rs(1, true, 1), hybridQueryPin: rs(1, true, 1), hybridTopicPin: rs(1, true, 1), routingHit: true },
+      { id: "neg", negative: true, keyword: rs(0, false, 0), semantic: rs(0, false, 0), hybridRaw: rs(0, false, 0), hybridQueryPin: rs(0, false, 0), hybridTopicPin: rs(0, false, 0), routingHit: true },
     ];
     const agg = aggregate(scores);
     expect(agg.count).toBe(3);
     expect(agg.positives).toBe(2);
     expect(agg.negatives).toBe(1);
-    // hybrid beats both singles on recall/success here
-    expect(agg.hybrid.recall).toBeCloseTo(1);
-    expect(agg.hybrid.success).toBeCloseTo(1);
+    // The parity delta is visible: topic-pin > query-pin because the harness
+    // hands topic-pin a clean keyword the live tool never gets.
+    expect(agg.hybridTopicPin.recall).toBeCloseTo(1);
+    expect(agg.hybridTopicPin.success).toBeCloseTo(1);
+    expect(agg.hybridQueryPin.recall).toBeCloseTo(0.5);
+    expect(agg.hybridQueryPin.success).toBeCloseTo(0.5);
+    expect(agg.hybridRaw.recall).toBeCloseTo(0.5);
     expect(agg.keyword.recall).toBeCloseTo(0.5);
     expect(agg.semantic.recall).toBeCloseTo(0.5);
-    expect(agg.hybrid.mrr).toBeCloseTo(1);
+    expect(agg.hybridTopicPin.mrr).toBeCloseTo(1);
+    expect(agg.hybridQueryPin.mrr).toBeCloseTo(0.5); // (0 + 1)/2
     expect(agg.semantic.mrr).toBeCloseTo(0.25); // (0 + 0.5)/2
     expect(agg.routingAccuracy).toBeCloseTo(1); // over positives
     expect(agg.negativeRoutingAccuracy).toBeCloseTo(1); // the negative correctly returned null

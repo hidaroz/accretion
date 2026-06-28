@@ -27,7 +27,12 @@ export interface CaseScore {
   negative: boolean;
   keyword: RetrievalScore;
   semantic: RetrievalScore;
-  hybrid: RetrievalScore;
+  /** RRF fusion with no routed-brief pin — pure retrieval. */
+  hybridRaw: RetrievalScore;
+  /** RRF pinned on the brief routed from the raw query — matches live hybrid_search. Headline. */
+  hybridQueryPin: RetrievalScore;
+  /** RRF pinned on the brief routed from the clean topic keyword — diagnostic only. */
+  hybridTopicPin: RetrievalScore;
   routingHit: boolean;
 }
 
@@ -37,7 +42,9 @@ export interface Aggregate {
   negatives: number;
   keyword: ModeAggregate;
   semantic: ModeAggregate;
-  hybrid: ModeAggregate;
+  hybridRaw: ModeAggregate;
+  hybridQueryPin: ModeAggregate;
+  hybridTopicPin: ModeAggregate;
   routingAccuracy: number;
   negativeRoutingAccuracy: number;
 }
@@ -154,7 +161,9 @@ export function aggregate(scores: CaseScore[]): Aggregate {
     negatives: neg.length,
     keyword: modeAgg((s) => s.keyword),
     semantic: modeAgg((s) => s.semantic),
-    hybrid: modeAgg((s) => s.hybrid),
+    hybridRaw: modeAgg((s) => s.hybridRaw),
+    hybridQueryPin: modeAgg((s) => s.hybridQueryPin),
+    hybridTopicPin: modeAgg((s) => s.hybridTopicPin),
     routingAccuracy: mean(pos.map((s) => (s.routingHit ? 1 : 0))),
     // For negatives, routingHit is true iff routing correctly returned null.
     negativeRoutingAccuracy: neg.length
