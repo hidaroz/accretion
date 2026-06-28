@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
 #
-# Autonomous weekly memory curation. Invoked by launchd (com.work.memory-weekly)
+# Autonomous weekly memory curation. Invoked by launchd (com.memory-weekly.<vault>)
 # or by hand for a supervised first run. Runs `/memory-weekly --autonomous`
-# headless and logs to ~/Library/Logs/work-memory-weekly/.
+# headless and logs to ~/Library/Logs/memory-weekly/<vault>/.
 #
 # First-run validation (do this once, watching the output, before trusting the
 # schedule):
-#   bin/memory-weekly-run.sh work
+#   bin/memory-weekly-run.sh <vault-id>
 #
 set -uo pipefail
 
-VAULT="${1:-work}"
-SERVER_REPO="/Users/hidaroz/devprojects/obsidian-mcp-server"
-LOG_DIR="$HOME/Library/Logs/work-memory-weekly"
+VAULT="${1:-}"
+if [ -z "$VAULT" ]; then
+  echo "usage: memory-weekly-run.sh <vault-id>" >&2
+  exit 2
+fi
+
+# Derive the repo from this script's own location — no hardcoded machine path.
+SERVER_REPO="$(cd "$(dirname "$0")/.." && pwd)"
+export OBSIDIAN_MCP_HOME="$SERVER_REPO"
+LOG_DIR="$HOME/Library/Logs/memory-weekly/$VAULT"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/$(date +%Y-%m-%d).log"
 
