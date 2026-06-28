@@ -31,9 +31,19 @@ Writes `evals/results/{date}.md` (+ `.json`) and prints a scorecard.
 
 ## Metrics
 
-- **Keyword / Semantic precision@k & recall@k** — of the top-k retrieved notes vs `expectedNotes`.
-- **Brief routing accuracy** — did `get_brief(topic)` resolve to `expectedBrief` (direct_map → tag_search → none)?
+For each retrieval mode — **keyword**, **semantic**, and **hybrid (RRF fusion)**:
+- **recall@k** — fraction of expected notes in the top-k.
+- **success@k** — did ≥1 expected note land in top-k (what matters for agent context assembly).
+- **MRR** — reciprocal rank of the first hit (did the best source appear early enough?).
+- precision@k is computed but de-emphasized — with 1–2-note expected sets it's capped low and punishes helpful supporting context.
+
+Plus:
+- **Brief routing accuracy** (positives) — did `get_brief(topic)` resolve to `expectedBrief`?
+- **Negative-routing accuracy** — for `negative: true` cases (off-domain queries), did routing correctly return *no* brief? Low here = false-positive routing (the fuzzy fallback over-matching).
+- **Verdict** — hybrid is a WIN only if it beats both singles on recall@k *and* MRR, with routing preserved and stable across reruns.
 - **Misses** — per-case list of what fell short (the actionable signal).
+
+Negative cases: `{ "id", "query", "topic", "expectedNotes": [], "expectedBrief": null, "negative": true }`.
 
 ## How to use it
 

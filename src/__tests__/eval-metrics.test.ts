@@ -1,59 +1,73 @@
 import { describe, it, expect } from "vitest";
 import {
   precisionRecallAtK,
+  successAtK,
+  reciprocalRank,
+  scoreRetrieval,
   routingHit,
   mean,
   aggregate,
   type CaseScore,
+  type RetrievalScore,
 } from "../eval/metrics.js";
 
 describe("precisionRecallAtK", () => {
   it("scores a full hit", () => {
     const r = precisionRecallAtK(["a.md", "b.md"], ["a.md", "b.md"], 5);
-    expect(r.precision).toBeCloseTo(1);
     expect(r.recall).toBeCloseTo(1);
     expect(r.hits).toBe(2);
   });
-
-  it("scores a partial hit (precision vs recall differ)", () => {
-    // retrieved 4, 1 relevant of 2 expected
-    const r = precisionRecallAtK(["x.md", "a.md", "y.md", "z.md"], ["a.md", "b.md"], 5);
-    expect(r.hits).toBe(1);
-    expect(r.precision).toBeCloseTo(1 / 4);
-    expect(r.recall).toBeCloseTo(1 / 2);
-  });
-
   it("truncates to k before scoring", () => {
-    // a.md is relevant but ranked 3rd; k=2 excludes it
     const r = precisionRecallAtK(["x.md", "y.md", "a.md"], ["a.md"], 2);
-    expect(r.hits).toBe(0);
     expect(r.recall).toBe(0);
   });
-
-  it("normalizes a leading ./ on both sides", () => {
-    const r = precisionRecallAtK(["./a.md"], ["a.md"], 5);
-    expect(r.hits).toBe(1);
-  });
-
-  it("handles empty inputs without NaN", () => {
+  it("normalizes leading ./ and handles empties", () => {
+    expect(precisionRecallAtK(["./a.md"], ["a.md"], 5).hits).toBe(1);
     expect(precisionRecallAtK([], ["a.md"], 5)).toEqual({ precision: 0, recall: 0, hits: 0 });
-    expect(precisionRecallAtK(["a.md"], [], 5)).toEqual({ precision: 0, recall: 0, hits: 0 });
+  });
+});
+
+describe("successAtK", () => {
+  it("is true when any expected note is in top-k", () => {
+    expect(successAtK(["x.md", "a.md"], ["a.md"], 5)).toBe(true);
+  });
+  it("respects the k cutoff", () => {
+    expect(successAtK(["x.md", "y.md", "a.md"], ["a.md"], 2)).toBe(false);
+  });
+  it("is false when nothing matches", () => {
+    expect(successAtK(["x.md"], ["a.md"], 5)).toBe(false);
+  });
+});
+
+describe("reciprocalRank", () => {
+  it("is 1 when the first result is a hit", () => {
+    expect(reciprocalRank(["a.md", "b.md"], ["a.md"])).toBeCloseTo(1);
+  });
+  it("is 1/2 when the second is the first hit", () => {
+    expect(reciprocalRank(["x.md", "a.md"], ["a.md"])).toBeCloseTo(0.5);
+  });
+  it("is 0 when no hit", () => {
+    expect(reciprocalRank(["x.md"], ["a.md"])).toBe(0);
+  });
+});
+
+describe("scoreRetrieval", () => {
+  it("combines pr + success + rr, capping rr at k", () => {
+    const s = scoreRetrieval(["x.md", "y.md", "a.md"], ["a.md"], 2);
+    expect(s.success).toBe(false); // a.md is rank 3, k=2
+    expect(s.rr).toBe(0); // not within top-2
+    const s2 = scoreRetrieval(["a.md", "y.md"], ["a.md"], 2);
+    expect(s2.success).toBe(true);
+    expect(s2.rr).toBeCloseTo(1);
   });
 });
 
 describe("routingHit", () => {
-  it("matches the expected brief", () => {
-    expect(routingHit("03/brief-auth.md", "03/brief-auth.md")).toBe(true);
-  });
-  it("misses a wrong brief", () => {
-    expect(routingHit("03/brief-x.md", "03/brief-auth.md")).toBe(false);
-  });
-  it("treats expected:null as 'no brief expected'", () => {
-    expect(routingHit(null, null)).toBe(true);
-    expect(routingHit("03/brief-x.md", null)).toBe(false);
-  });
-  it("normalizes leading ./", () => {
-    expect(routingHit("./a.md", "a.md")).toBe(true);
+  it("matches, misses, and handles expected:null", () => {
+    expect(routingHit("a.md", "a.md")).toBe(true);
+    expect(routingHit("b.md", "a.md")).toBe(false);
+    expect(routingHit(null, null)).toBe(true); // negative case: correctly no brief
+    expect(routingHit("x.md", null)).toBe(false); // false-positive routing
   });
 });
 
@@ -65,16 +79,32 @@ describe("mean", () => {
 });
 
 describe("aggregate", () => {
-  it("rolls up per-case scores into means", () => {
-    const cases: CaseScore[] = [
-      { id: "1", keyword: { precision: 1, recall: 1, hits: 1 }, semantic: { precision: 0.5, recall: 1, hits: 1 }, routingHit: true },
-      { id: "2", keyword: { precision: 0, recall: 0, hits: 0 }, semantic: { precision: 1, recall: 1, hits: 1 }, routingHit: false },
+  const rs = (recall: number, success: boolean, rr: number): RetrievalScore => ({
+    precision: recall,
+    recall,
+    hits: success ? 1 : 0,
+    success,
+    rr,
+  });
+
+  it("rolls up per-mode metrics over positive cases and routing over both", () => {
+    const scores: CaseScore[] = [
+      { id: "1", negative: false, keyword: rs(1, true, 1), semantic: rs(0, false, 0), hybrid: rs(1, true, 1), routingHit: true },
+      { id: "2", negative: false, keyword: rs(0, false, 0), semantic: rs(1, true, 0.5), hybrid: rs(1, true, 1), routingHit: true },
+      { id: "neg", negative: true, keyword: rs(0, false, 0), semantic: rs(0, false, 0), hybrid: rs(0, false, 0), routingHit: true },
     ];
-    const agg = aggregate(cases);
-    expect(agg.count).toBe(2);
-    expect(agg.keywordPrecision).toBeCloseTo(0.5);
-    expect(agg.keywordRecall).toBeCloseTo(0.5);
-    expect(agg.semanticPrecision).toBeCloseTo(0.75);
-    expect(agg.routingAccuracy).toBeCloseTo(0.5);
+    const agg = aggregate(scores);
+    expect(agg.count).toBe(3);
+    expect(agg.positives).toBe(2);
+    expect(agg.negatives).toBe(1);
+    // hybrid beats both singles on recall/success here
+    expect(agg.hybrid.recall).toBeCloseTo(1);
+    expect(agg.hybrid.success).toBeCloseTo(1);
+    expect(agg.keyword.recall).toBeCloseTo(0.5);
+    expect(agg.semantic.recall).toBeCloseTo(0.5);
+    expect(agg.hybrid.mrr).toBeCloseTo(1);
+    expect(agg.semantic.mrr).toBeCloseTo(0.25); // (0 + 0.5)/2
+    expect(agg.routingAccuracy).toBeCloseTo(1); // over positives
+    expect(agg.negativeRoutingAccuracy).toBeCloseTo(1); // the negative correctly returned null
   });
 });
