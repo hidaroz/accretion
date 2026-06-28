@@ -71,8 +71,14 @@ try {
       cachePath: path.join(vaultRoot, ".mcp", "embeddings.json"),
     });
     await embeddingIndex.loadCache();
+    // Index curated knowledge (briefs/digests/notes), not the hundreds of raw
+    // session journals — far faster and on-target for measuring brief recall.
+    // (Diverges from the server's all-notes index; documented in evals/README.)
+    const curated = notes.filter(
+      (n) => !n.path.startsWith("sessions/") || n.path.startsWith("sessions/digests/")
+    );
     await embeddingIndex.buildFromVault(
-      notes.map((n) => ({ path: n.path, title: n.title, content: n.content }))
+      curated.map((n) => ({ path: n.path, title: n.title, content: n.content }))
     );
     await embeddingIndex.saveCache();
   }

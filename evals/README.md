@@ -16,6 +16,8 @@ node scripts/memory-eval.mjs --vault work --no-semantic   # fast: keyword + rout
 
 Writes `evals/results/{date}.md` (+ `.json`) and prints a scorecard.
 
+**Scope & performance:** the semantic index covers **curated notes** (briefs, digests, knowledge) — it excludes the hundreds of raw session journals, which are slow to embed and not the target of brief-recall cases. (This diverges slightly from the server's all-notes semantic index; it's a deliberate eval-tractability choice.) Vectors are cached in the vault's `.mcp/embeddings.json`, so the first semantic run is slow (cold embed) and later runs are fast.
+
 ## Case format (`cases.jsonl`, one JSON object per line)
 
 ```json
