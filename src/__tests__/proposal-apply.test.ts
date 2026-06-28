@@ -225,7 +225,39 @@ describe("applyProposal", () => {
 
     const proposal = await vault.read("proposals/brief-updates/2026-W26-brief-demo.md");
     expect(proposal.frontmatter.status).toBe("applied");
-    expect(proposal.content).toContain("## Applied");
+    expect(proposal.content).toMatch(/\[!done\] Applied/);
+  });
+
+  it("marks an applied proposal unambiguously at the TOP, above the old prose", async () => {
+    await writeNote(
+      "05-Kitchen/brief-demo.md",
+      "title: Demo\ntags:\n  - type/brief",
+      "# Demo\n\n## Overview\nold\n"
+    );
+    await writeNote(
+      "proposals/brief-updates/p.md",
+      [
+        "status: proposed",
+        "confidence: low",
+        "target_brief: 05-Kitchen/brief-demo.md",
+        "edits:",
+        "  - section: Overview",
+        "    action: replace",
+        "    content: new",
+      ].join("\n"),
+      "## Why\nReason.\n\n## Apply instructions\nApply by hand — downgraded to low.\n"
+    );
+
+    await applyProposal(vault, "proposals/brief-updates/p.md", { today: "2026-06-28" });
+    const p = await vault.read("proposals/brief-updates/p.md");
+
+    // The resolved banner must come BEFORE the now-moot "apply by hand" prose,
+    // so a fresh reader sees "done" first and never re-flags it as pending.
+    const bannerPos = p.content.indexOf("[!done] Applied");
+    const prosePos = p.content.indexOf("Apply by hand");
+    expect(bannerPos).toBeGreaterThanOrEqual(0);
+    expect(bannerPos).toBeLessThan(prosePos);
+    expect(p.frontmatter.status).toBe("applied");
   });
 
   it("throws if the proposal is not in 'proposed' status", async () => {

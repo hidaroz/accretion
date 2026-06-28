@@ -221,10 +221,15 @@ export async function applyProposal(
     frontmatter: { last_reviewed: today },
   });
 
+  // Prepend an unmistakable banner at the TOP so any later reader — human or a
+  // fresh autonomous run with no memory — sees "applied" before the now-moot
+  // "apply by hand" guidance below it. (A trailing note got narrated as still
+  // pending by the next run; the banner must lead, not trail.)
+  const banner = `> [!done] Applied ${today} — applied to \`${briefPath}\` (${changed.join(
+    ", "
+  )}). This proposal is resolved; the notes below are historical, no action needed.`;
   await vault.update(proposalPath, {
-    append: `## Applied\n\n${today}: applied ${changed.length} section edit(s) to \`${briefPath}\` (${changed.join(
-      ", "
-    )}).`,
+    prepend: banner,
     frontmatter: { status: "applied", applied: today },
   });
 
