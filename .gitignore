@@ -3,3 +3,8 @@ dist/
 .env
 /vault/
 *.log
+
+# Generated, machine-specific launchd agents (templates are committed).
+infra/launchd/com.*.plist
+# macOS cruft
+.DS_Store

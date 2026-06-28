@@ -1,13 +1,33 @@
 {
   "name": "obsidian-mcp-server",
-  "version": "2.1.0",
+  "version": "2.2.0",
+  "description": "Curated Obsidian-vault memory served to AI agents over MCP: hybrid retrieval, confidence-gated brief routing, and a self-running weekly maintenance loop.",
   "type": "module",
+  "main": "dist/index.js",
+  "author": "Hidar Elhassan",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hidaroz/obsidian-mcp-server.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "obsidian-mcp-server": "dist/index.js",
+    "omcp-setup-vault": "scripts/setup-vault.mjs",
+    "omcp-bootstrap": "scripts/bootstrap.mjs",
+    "omcp-doctor": "scripts/doctor.mjs"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "doctor": "node scripts/doctor.mjs",
+    "bootstrap": "node scripts/bootstrap.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
