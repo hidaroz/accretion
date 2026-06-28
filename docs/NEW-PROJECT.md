@@ -34,12 +34,25 @@ What it does (idempotent — safe to re-run):
 - **Local embeddings** download a model from HuggingFace on first use. On a locked-down network, pre-seed it (`TRANSFORMERS_CACHE` / `EMBEDDING_MODEL` → a vendored path) or run with `DISABLE_EMBEDDINGS=1` until sorted.
 - **git-crypt is optional** — a private org repo + their access controls is usually enough; don't carry over personal-vault encryption blindly.
 
-## Fresh-machine setup (manual, until scripted)
+## Fresh-machine setup
 
-`setup-vault` handles per-project onboarding. On a brand-new machine you also need, once:
-1. Clone this repo, `npm install`, `npm run build`.
-2. Copy the capture hook: `cp hooks/session-journal.mjs ~/.claude/hooks/` (and `project-vault-map.json.example` → `~/.claude/hooks/project-vault-map.json` if absent).
-3. Add a `SessionEnd` hook in `~/.claude/settings.json` running `node ~/.claude/hooks/session-journal.mjs`.
-4. Run `setup-vault` for your first project (it creates `vaults.json`).
+On a brand-new machine, run the bootstrap once — it builds, installs the capture hook, and wires
+the `SessionEnd` hook into `~/.claude/settings.json` (idempotent, backs up settings first):
 
-The hook resolves `vaults.json` via `$VAULTS_CONFIG` or `~/.config/obsidian-mcp/vaults.json`, and the repo path via `$OBSIDIAN_MCP_HOME` — nothing is hardcoded to a user or machine.
+```bash
+git clone https://github.com/hidaroz/obsidian-mcp-server.git && cd obsidian-mcp-server
+node scripts/bootstrap.mjs            # add --server-autostart to install the launchd agent (macOS)
+```
+
+Then onboard your first project and verify:
+
+```bash
+node scripts/setup-vault.mjs --id <name> --path <abs-path> --default   # creates vaults.json
+cp .env.example .env                                                    # set API_KEY
+node scripts/doctor.mjs                                                 # health check
+```
+
+The hook resolves `vaults.json` via `$VAULTS_CONFIG` or `~/.config/obsidian-mcp/vaults.json`, the
+repo path via `$OBSIDIAN_MCP_HOME`, and the project map via `$PROJECT_VAULT_MAP` — nothing is
+hardcoded to a user or machine. `bootstrap`/`doctor` also honor `$CLAUDE_HOME` (default `~/.claude`).
+See the root [`README.md`](../README.md) for running the server and registering MCP clients.
