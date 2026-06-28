@@ -6,6 +6,7 @@ import {
   scoreRetrieval,
   routingHit,
   mean,
+  bootstrapCI,
   aggregate,
   type CaseScore,
   type RetrievalScore,
@@ -75,6 +76,26 @@ describe("mean", () => {
   it("averages and is 0 for empty", () => {
     expect(mean([1, 0, 0.5])).toBeCloseTo(0.5);
     expect(mean([])).toBe(0);
+  });
+});
+
+describe("bootstrapCI", () => {
+  it("is deterministic for a fixed seed", () => {
+    const v = [1, 0, 1, 0, 1, 1, 0, 1];
+    expect(bootstrapCI(v, 500, 7)).toEqual(bootstrapCI(v, 500, 7));
+  });
+  it("brackets the sample mean", () => {
+    const v = [0.5, 0.6, 0.7, 0.8, 0.9];
+    const [lo, hi] = bootstrapCI(v, 1000, 42);
+    const m = mean(v);
+    expect(lo).toBeLessThanOrEqual(m);
+    expect(hi).toBeGreaterThanOrEqual(m);
+  });
+  it("collapses to the value for a constant sample", () => {
+    expect(bootstrapCI([0.5, 0.5, 0.5], 200, 1)).toEqual([0.5, 0.5]);
+  });
+  it("returns [0,0] for empty", () => {
+    expect(bootstrapCI([], 100, 1)).toEqual([0, 0]);
   });
 });
 

@@ -108,3 +108,38 @@ So the honest scorecard: hybrid is a clear aggregate win, *and* it surfaced two 
 problems (routing threshold; fusion regressions) — which is the eval doing its job rather than
 me declaring victory. Next: fix negative-routing, then decide whether weighted-RRF or
 query-expansion closes the residual misses — measured each time.
+
+---
+
+## Update 2 — negative routing fixed (your #1, before RRF tuning)
+
+Took your priority literally: fixed routing precision before touching RRF. Implemented
+threshold + margin + evidence-type in a shared `routeBrief` (one source of truth for
+`get_brief`, `get_context`, and the eval): `direct_map` and exact-title route freely; the
+fuzzy `tag_search` fallback must clear a score floor AND beat #2 by a ratio, else it
+**abstains**. `get_brief` now returns "no confident brief — related notes (verify)" instead
+of a wrong brief.
+
+Calibrated by sweep (not learned from 8 negatives), on 66 stratified cases:
+
+| Routing metric | Before | After (floor 8, ratio 1.3) |
+|---|---|---|
+| Negative-routing accuracy | 37.5% | **92.3%** |
+| Routing precision (of routed) | — | **98.1%** |
+| Positive routing recall | 100% | **100%** (untouched) |
+| Abstention rate | 0% | 18.2% |
+
+The sweep showed positive recall stays 100% across every threshold — the gate only ever
+touches the fuzzy fallback, never confident routes. Per-stratum: off-domain negatives abstain
+100%, near-domain 80% (1 residual: "support phone number" still fuzzy-matches the Observability brief
+— a near-domain edge to chip at). Hybrid retrieval held at recall@5 82.1%, **95% CI
+[71.7%, 91.5%]** — deliberately reporting the CI because, as you said, 53 positives swing.
+
+Did the rest of your eval guidance too: added success@k + MRR, **strata** tags, **seeded
+bootstrap CIs**, and a two-tier eval (fast curated / `--faithful` all-notes). Still deferred,
+in your order: RRF weighting + exact-match pinning (now next, since routing is fixed),
+full-100 cases, cross-encoder.
+
+Open question for you: the residual near-domain false positive (support-phone → Observability). Worth
+adding an absolute-floor bump or a st​opword/!brief-term guard, or is 92% neg-accuracy a fine
+place to stop and move to RRF tuning?

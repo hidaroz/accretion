@@ -111,6 +111,34 @@ export function mean(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
 }
 
+/**
+ * 95% bootstrap confidence interval for the mean of `values`. Uses a seeded
+ * LCG so results are deterministic/reproducible (eval scorecards must not drift
+ * run-to-run). Keeps small-sample claims honest.
+ */
+export function bootstrapCI(
+  values: number[],
+  iters = 1000,
+  seed = 42
+): [number, number] {
+  if (values.length === 0) return [0, 0];
+  let s = seed >>> 0;
+  const rand = () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+  const means: number[] = [];
+  for (let it = 0; it < iters; it++) {
+    let sum = 0;
+    for (let i = 0; i < values.length; i++) {
+      sum += values[Math.floor(rand() * values.length)];
+    }
+    means.push(sum / values.length);
+  }
+  means.sort((a, b) => a - b);
+  return [means[Math.floor(iters * 0.025)], means[Math.floor(iters * 0.975)]];
+}
+
 export function aggregate(scores: CaseScore[]): Aggregate {
   const pos = scores.filter((s) => !s.negative);
   const neg = scores.filter((s) => s.negative);

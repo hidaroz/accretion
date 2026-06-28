@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { VaultRegistry } from "../vault/vault-registry.js";
+import { routeBrief } from "../vault/brief-routing.js";
 import { logger } from "../utils/logger.js";
 import { handleToolError } from "../utils/errors.js";
 
@@ -51,17 +52,8 @@ export function registerGetContext(
 
         for (const topic of topics) {
           const normalized = topic.toLowerCase().trim();
-          let briefPath = ctx.briefMap[normalized];
-
-          if (!briefPath) {
-            const results = ctx.searchIndex.search(normalized, {
-              tag: "type/brief",
-              limit: 1,
-            });
-            if (results.length > 0) {
-              briefPath = results[0].path;
-            }
-          }
+          // Confidence-gated routing — abstain rather than assemble a wrong brief.
+          const briefPath = routeBrief(ctx.briefMap, ctx.searchIndex, normalized).path;
 
           if (!briefPath || seenPaths.has(briefPath)) {
             if (!briefPath) notFound.push(topic);

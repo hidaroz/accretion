@@ -43,7 +43,20 @@ Plus:
 - **Verdict** — hybrid is a WIN only if it beats both singles on recall@k *and* MRR, with routing preserved and stable across reruns.
 - **Misses** — per-case list of what fell short (the actionable signal).
 
-Negative cases: `{ "id", "query", "topic", "expectedNotes": [], "expectedBrief": null, "negative": true }`.
+Negative cases: `{ "id", "query", "topic", "expectedNotes": [], "expectedBrief": null, "negative": true, "stratum": "off-domain-neg" }`.
+
+## Routing precision & calibration
+
+Routing prefers **"no brief" over a plausible-but-wrong one**. The fuzzy `tag_search` fallback must clear a score `floor` AND beat #2 by a `marginRatio`, else it abstains (`src/vault/brief-routing.ts`). `direct_map` and exact-title routes bypass the gate.
+
+- **Calibrate:** `node scripts/memory-eval.mjs --vault work --sweep-routing` prints precision/recall/abstention/neg-accuracy across a `(floor, marginRatio)` grid. Pick the conservative high-precision point by inspection; bake into `DEFAULT_FLOOR` / `DEFAULT_MARGIN_RATIO`. (Scores are MiniSearch-relative → may need per-vault tuning.)
+- **Routing precision** (of routed) is the headline; **negative-routing accuracy** is the false-positive guard. Goal: high precision without crushing positive routing recall.
+
+## Strata, CIs, and the two-tier eval
+
+- Cases carry a `stratum` (`direct-name`, `nl`, `terse-acronym`, `off-domain-neg`, `near-domain-neg`); the scorecard breaks success/neg-accuracy down by stratum.
+- The scorecard reports a **95% bootstrap CI** (seeded → reproducible) on hybrid recall — small samples swing, so don't over-read point estimates.
+- **Fast tier (default):** curated-only semantic index, runs every change. **Faithful tier:** `--faithful` indexes all notes (incl. raw sessions), mirrors production — slower, run before release. Divergence between the two is itself a signal.
 
 ## How to use it
 
