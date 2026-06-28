@@ -12,7 +12,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // Machine-agnostic: honor VAULTS_CONFIG, else ~/.config/obsidian-mcp/vaults.json.
 const VAULTS_CONFIG =
   process.env.VAULTS_CONFIG || join(homedir(), '.config', 'obsidian-mcp', 'vaults.json');
-const VAULT_MAP = join(__dirname, 'project-vault-map.json');
+const VAULT_MAP =
+  process.env.PROJECT_VAULT_MAP || join(__dirname, 'project-vault-map.json');
 
 try {
   main();

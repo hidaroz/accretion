@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -12,7 +13,9 @@ import { bearerAuth } from "./auth.js";
 import { logger } from "./utils/logger.js";
 
 const PORT = parseInt(process.env.PORT || "3001", 10);
-const HOST = process.env.HOST || "0.0.0.0";
+// Bind localhost-only by default — this is a personal, single-user server.
+// Override with HOST=0.0.0.0 only when intentionally exposing it (e.g. in Docker).
+const HOST = process.env.HOST || "127.0.0.1";
 const API_KEY = process.env.API_KEY;
 
 if (!API_KEY) {
