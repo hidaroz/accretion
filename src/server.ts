@@ -4,6 +4,8 @@ import { registerReadNote } from "./tools/read-note.js";
 import { registerCreateNote } from "./tools/create-note.js";
 import { registerListNotes } from "./tools/list-notes.js";
 import { registerSearchNotes } from "./tools/search-notes.js";
+import { registerSemanticSearch } from "./tools/semantic-search.js";
+import { registerHybridSearch } from "./tools/hybrid-search.js";
 import { registerUpdateNote } from "./tools/update-note.js";
 import { registerPatchNote } from "./tools/patch-note.js";
 import { registerDeleteNote } from "./tools/delete-note.js";
@@ -15,6 +17,9 @@ import { registerArchiveSessions } from "./tools/archive-sessions.js";
 import { registerConsolidateSessions } from "./tools/consolidate-sessions.js";
 import { registerGetDigestCandidates } from "./tools/get-digest-candidates.js";
 import { registerGetStaleBriefs } from "./tools/get-stale-briefs.js";
+import { registerGetVaultHealth } from "./tools/get-vault-health.js";
+import { registerGetResurfaceCandidates } from "./tools/get-resurface-candidates.js";
+import { registerApplyBriefProposal } from "./tools/apply-brief-proposal.js";
 import { registerListVaults } from "./tools/list-vaults.js";
 import { registerVaultTree } from "./resources/vault-tree.js";
 import { registerNoteResource } from "./resources/note-resource.js";
@@ -31,6 +36,8 @@ export function createMcpServer(registry: VaultRegistry): McpServer {
   registerCreateNote(server, registry);
   registerListNotes(server, registry);
   registerSearchNotes(server, registry);
+  registerSemanticSearch(server, registry);
+  registerHybridSearch(server, registry);
   registerUpdateNote(server, registry);
   registerPatchNote(server, registry);
   registerDeleteNote(server, registry);
@@ -42,6 +49,9 @@ export function createMcpServer(registry: VaultRegistry): McpServer {
   registerConsolidateSessions(server, registry);
   registerGetDigestCandidates(server, registry);
   registerGetStaleBriefs(server, registry);
+  registerGetVaultHealth(server, registry);
+  registerGetResurfaceCandidates(server, registry);
+  registerApplyBriefProposal(server, registry);
 
   // Resources
   registerVaultTree(server, registry);

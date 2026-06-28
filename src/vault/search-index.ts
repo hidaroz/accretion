@@ -24,8 +24,12 @@ export class SearchIndex {
   private index: MiniSearch<IndexedDoc>;
   private docs = new Map<string, IndexedDoc>();
   private noteInfos = new Map<string, NoteInfo>();
+  /** Clock for recency boosts. Injectable so the eval harness can freeze it
+   *  (Date.now() makes scorecards drift as notes age past 7/30-day thresholds). */
+  private readonly now: () => number;
 
-  constructor() {
+  constructor(opts: { now?: () => number } = {}) {
+    this.now = opts.now ?? Date.now;
     this.index = new MiniSearch<IndexedDoc>({
       fields: ["title", "tags", "content"],
       storeFields: ["title", "tags", "folder", "rawTags", "createdAt"],
@@ -115,7 +119,7 @@ export class SearchIndex {
     const limit = options?.limit ?? 10;
     const explicitSessionSearch =
       options?.tag?.toLowerCase() === "type/session";
-    const now = Date.now();
+    const now = this.now();
     const SEVEN_DAYS = 7 * 24 * 3600000;
     const THIRTY_DAYS = 30 * 24 * 3600000;
 

@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { VaultRegistry } from "../vault/vault-registry.js";
+import { routeBrief } from "../vault/brief-routing.js";
 import { logger } from "../utils/logger.js";
 import { handleToolError } from "../utils/errors.js";
 
@@ -30,13 +31,17 @@ export function registerGetBrief(
       try {
         const ctx = registry.resolve(vaultId);
         const normalized = topic.toLowerCase().trim();
-        const briefPath = ctx.briefMap[normalized];
 
-        if (briefPath) {
-          const note = await ctx.vault.read(briefPath);
+        // Route with confidence gating: prefer "no brief" over a plausible-but-
+        // wrong one (a wrong governance brief is worse than missing context).
+        const route = routeBrief(ctx.briefMap, ctx.searchIndex, normalized);
+
+        if (route.path) {
+          const note = await ctx.vault.read(route.path);
           logger.info("get_brief resolved topic to brief", {
             topic: normalized,
-            path: briefPath,
+            path: route.path,
+            method: route.method,
             vault: ctx.id,
           });
           ctx.analytics.log({
@@ -45,50 +50,25 @@ export function registerGetBrief(
             query: normalized,
             vault: ctx.id,
             resultCount: 1,
-            topPaths: [briefPath],
-            resolution: "direct_map",
+            topPaths: [route.path],
+            resolution: route.method,
           });
+          const caveat =
+            route.method === "tag_search"
+              ? " (fuzzy match — verify this is the correct brief)"
+              : "";
           return {
             content: [
               {
                 type: "text" as const,
-                text: `# ${note.title}\n\n${note.content}\n\n---\n_Resolved via: direct_map_`,
+                text: `# ${note.title}\n\n${note.content}\n\n---\n_Resolved via: ${route.method}${caveat}_`,
               },
             ],
           };
         }
 
-        const results = ctx.searchIndex.search(normalized, {
-          tag: "type/brief",
-          limit: 1,
-        });
-
-        if (results.length > 0) {
-          const note = await ctx.vault.read(results[0].path);
-          logger.info("get_brief resolved topic via search", {
-            topic: normalized,
-            path: results[0].path,
-            vault: ctx.id,
-          });
-          ctx.analytics.log({
-            timestamp: new Date().toISOString(),
-            tool: "get_brief",
-            query: normalized,
-            vault: ctx.id,
-            resultCount: 1,
-            topPaths: [results[0].path],
-            resolution: "tag_search",
-          });
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `# ${note.title}\n\n${note.content}\n\n---\n_Resolved via: tag_search (fuzzy match — verify this is the correct brief)_`,
-              },
-            ],
-          };
-        }
-
+        // Abstained — no confident brief. Offer related notes WITHOUT claiming a
+        // brief, so the agent isn't handed wrong governance context.
         const allResults = ctx.searchIndex.search(normalized, { limit: 3 });
         ctx.analytics.log({
           timestamp: new Date().toISOString(),
@@ -97,7 +77,7 @@ export function registerGetBrief(
           vault: ctx.id,
           resultCount: allResults.length,
           topPaths: allResults.map((r) => r.path),
-          resolution: allResults.length > 0 ? "general_search" : "not_found",
+          resolution: "abstain",
         });
 
         if (allResults.length > 0) {
@@ -109,7 +89,7 @@ export function registerGetBrief(
             content: [
               {
                 type: "text" as const,
-                text: `No domain brief found for "${topic}". Related notes:\n\n${lines.join("\n\n")}`,
+                text: `No domain brief confidently matches "${topic}" — not routing to avoid a wrong brief. Possibly related notes (verify before relying on them):\n\n${lines.join("\n\n")}`,
               },
             ],
           };

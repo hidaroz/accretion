@@ -3,6 +3,7 @@ import path from "node:path";
 import { VaultManager } from "./vault-manager.js";
 import { SearchIndex } from "./search-index.js";
 import { TagIndex } from "./tag-index.js";
+import type { EmbeddingIndex } from "./embedding-index.js";
 import { logger } from "../utils/logger.js";
 
 export class VaultWatcher {
@@ -12,7 +13,8 @@ export class VaultWatcher {
   constructor(
     private vault: VaultManager,
     private searchIndex: SearchIndex,
-    private tagIndex: TagIndex
+    private tagIndex: TagIndex,
+    private embeddingIndex?: EmbeddingIndex
   ) {}
 
   start(): void {
@@ -65,6 +67,9 @@ export class VaultWatcher {
           const note = await this.vault.read(relativePath);
           this.searchIndex.addOrUpdate(note);
           this.tagIndex.addNote(note.path, note.tags);
+          if (this.embeddingIndex) {
+            await this.embeddingIndex.addOrUpdate(note);
+          }
           logger.debug("Index updated for note", { path: relativePath });
         } catch (err) {
           logger.warn("Failed to index note", {
@@ -82,6 +87,7 @@ export class VaultWatcher {
     const relativePath = path.relative(this.vault.root, filePath);
     this.searchIndex.remove(relativePath);
     this.tagIndex.removeNote(relativePath);
+    this.embeddingIndex?.remove(relativePath);
     logger.debug("Removed from index", { path: relativePath });
   }
 }

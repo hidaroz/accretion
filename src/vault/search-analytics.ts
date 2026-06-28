@@ -9,6 +9,28 @@ export interface SearchLogEntry {
   resultCount: number;
   topPaths: string[];
   resolution?: string;
+
+  // --- richer telemetry, currently emitted by hybrid_search (all optional so
+  //     search_notes / get_brief entries stay backward-compatible) ---
+  /** Requested result cap. */
+  limit?: number;
+  /** Whether the semantic index was available for this query. */
+  semanticAvailable?: boolean;
+  /** The brief routing decision used as the fusion pin source. */
+  route?: {
+    method: string;
+    path: string | null;
+    score?: number;
+    marginRatio?: number;
+  };
+  /** True if the routed brief was retrieved (kw∪sem) and so actually pinned by RRF. */
+  pinApplied?: boolean;
+  /** Top keyword-only result paths (pre-fusion), for reconstructing the decision. */
+  keywordTopPaths?: string[];
+  /** Top semantic-only result paths (pre-fusion). */
+  semanticTopPaths?: string[];
+  /** Wall-clock latency of the retrieval, ms. */
+  latencyMs?: number;
 }
 
 export class SearchAnalytics {

@@ -1,3 +1,4 @@
+import path from "node:path";
 import { VaultManager } from "./vault-manager.js";
 import { SearchIndex } from "./search-index.js";
 import { TagIndex } from "./tag-index.js";
@@ -5,6 +6,8 @@ import { VaultWatcher } from "./watcher.js";
 import { BriefMapWatcher } from "./brief-map-watcher.js";
 import { SearchAnalytics } from "./search-analytics.js";
 import { loadBriefMap } from "./brief-map-loader.js";
+import { EmbeddingIndex, type Embedder } from "./embedding-index.js";
+import { createLocalEmbedder } from "./embedder.js";
 import type { VaultConfig } from "./vault-config.js";
 import { VaultNotFoundError, VaultNotReadyError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
@@ -15,6 +18,7 @@ export interface VaultContext {
   vault: VaultManager;
   searchIndex: SearchIndex;
   tagIndex: TagIndex;
+  embeddingIndex?: EmbeddingIndex;
   watcher: VaultWatcher;
   briefMapWatcher: BriefMapWatcher;
   analytics: SearchAnalytics;
@@ -26,10 +30,16 @@ export interface VaultContext {
 export class VaultRegistry {
   private contexts = new Map<string, VaultContext>();
   private defaultVaultId: string;
+  /** Shared across vaults so the embedding model loads at most once. Null when
+   *  embeddings are disabled (DISABLE_EMBEDDINGS) — semantic search no-ops. */
+  private embedder: Embedder | null;
 
   constructor(private configs: VaultConfig[]) {
     const explicit = configs.find((c) => c.default);
     this.defaultVaultId = explicit?.id ?? configs[0].id;
+    this.embedder = process.env.DISABLE_EMBEDDINGS
+      ? null
+      : createLocalEmbedder();
   }
 
   async initializeAll(): Promise<void> {
@@ -92,7 +102,12 @@ export class VaultRegistry {
     });
     const searchIndex = new SearchIndex();
     const tagIndex = new TagIndex();
-    const watcher = new VaultWatcher(vault, searchIndex, tagIndex);
+    const embeddingIndex = this.embedder
+      ? new EmbeddingIndex(this.embedder, {
+          cachePath: path.join(cfg.path, ".mcp", "embeddings.json"),
+        })
+      : undefined;
+    const watcher = new VaultWatcher(vault, searchIndex, tagIndex, embeddingIndex);
     const briefMap = await loadBriefMap(cfg.path);
     const analytics = new SearchAnalytics(cfg.path);
 
@@ -106,6 +121,7 @@ export class VaultRegistry {
       vault,
       searchIndex,
       tagIndex,
+      embeddingIndex,
       watcher,
       briefMapWatcher,
       analytics,
@@ -128,6 +144,28 @@ export class VaultRegistry {
 
       ctx.ready = true;
       logger.info(`Vault "${cfg.id}" initialized in ${Date.now() - start}ms`);
+
+      // Build the semantic index in the background — the model load / first
+      // embed can be slow and must never block readiness or keyword search.
+      // The on-disk cache makes subsequent boots fast; failure (e.g. no model
+      // access) is logged and leaves semantic_search returning nothing.
+      if (embeddingIndex) {
+        void (async () => {
+          try {
+            const t0 = Date.now();
+            await embeddingIndex.loadCache();
+            await embeddingIndex.buildFromVault(allNotes);
+            await embeddingIndex.saveCache();
+            logger.info(
+              `Vault "${cfg.id}": embedded ${embeddingIndex.size} chunks in ${Date.now() - t0}ms`
+            );
+          } catch (err) {
+            logger.warn(`Vault "${cfg.id}": embedding index build failed`, {
+              error: String(err),
+            });
+          }
+        })();
+      }
     } catch (err) {
       ctx.initError = String(err);
       throw err;
