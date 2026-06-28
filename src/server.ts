@@ -4,6 +4,7 @@ import { registerReadNote } from "./tools/read-note.js";
 import { registerCreateNote } from "./tools/create-note.js";
 import { registerListNotes } from "./tools/list-notes.js";
 import { registerSearchNotes } from "./tools/search-notes.js";
+import { registerSemanticSearch } from "./tools/semantic-search.js";
 import { registerUpdateNote } from "./tools/update-note.js";
 import { registerPatchNote } from "./tools/patch-note.js";
 import { registerDeleteNote } from "./tools/delete-note.js";
@@ -34,6 +35,7 @@ export function createMcpServer(registry: VaultRegistry): McpServer {
   registerCreateNote(server, registry);
   registerListNotes(server, registry);
   registerSearchNotes(server, registry);
+  registerSemanticSearch(server, registry);
   registerUpdateNote(server, registry);
   registerPatchNote(server, registry);
   registerDeleteNote(server, registry);
