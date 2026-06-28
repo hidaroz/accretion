@@ -26,6 +26,7 @@ export function registerHybridSearch(
       try {
         const ctx = registry.resolve(vaultId);
         const wide = limit * 3;
+        const t0 = Date.now();
 
         const kw = ctx.searchIndex.search(query, { limit: wide });
         const sem = ctx.embeddingIndex
@@ -50,8 +51,10 @@ export function registerHybridSearch(
         }
 
         // Pin the canonical routed brief (if any) so fusion can't bury it.
-        const pin = routeBrief(ctx.briefMap, ctx.searchIndex, query).path;
-        const fused = rrf([kw.map((r) => r.path), semPaths], {
+        const kwPaths = kw.map((r) => r.path);
+        const route = routeBrief(ctx.briefMap, ctx.searchIndex, query);
+        const pin = route.path;
+        const fused = rrf([kwPaths, semPaths], {
           weight: (p) => (isRawSession(p) ? 0.7 : 1),
           pins: pin ? [pin] : [],
         }).slice(0, limit);
@@ -62,6 +65,30 @@ export function registerHybridSearch(
           title: meta.get(path)?.title ?? path,
           snippet: meta.get(path)?.snippet ?? "",
         }));
+
+        // Telemetry: real agent queries are the input to the next eval-case batch.
+        // rrf() only pins a brief it retrieved, so pinApplied mirrors that gate.
+        const pinApplied = pin ? new Set([...kwPaths, ...semPaths]).has(pin) : false;
+        void ctx.analytics.log({
+          timestamp: new Date().toISOString(),
+          tool: "hybrid_search",
+          query,
+          vault: ctx.id,
+          resultCount: results.length,
+          topPaths: fused.slice(0, 5),
+          limit,
+          semanticAvailable: !!ctx.embeddingIndex,
+          route: {
+            method: route.method,
+            path: route.path,
+            score: route.score,
+            marginRatio: route.marginRatio,
+          },
+          pinApplied,
+          keywordTopPaths: kwPaths.slice(0, 5),
+          semanticTopPaths: semPaths.slice(0, 5),
+          latencyMs: Date.now() - t0,
+        });
 
         return {
           content: [
