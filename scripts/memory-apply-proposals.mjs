@@ -13,7 +13,12 @@
  *   node scripts/memory-apply-proposals.mjs [--vault work] [--confidence high] [--apply]
  *
  * Requires `npm run build` (imports compiled dist/). Does NOT commit — the
- * caller (memory-weekly) commits the whole run at the end.
+ * caller commits.
+ *
+ * NOTE: As of the propose-only decision (docs ADR-007), this is a
+ * HUMAN-DRIVEN tool for applying *reviewed* proposals. It is NOT part of the
+ * unattended weekly run — the autonomous `/memory-weekly` only proposes; brief
+ * content is never edited without human review.
  */
 
 import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
