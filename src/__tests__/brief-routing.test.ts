@@ -53,9 +53,39 @@ describe("routeBrief", () => {
     expect(r.method).toBe("abstain");
   });
 
-  it("routes a single strong hit with no #2 (infinite margin)", () => {
-    const r = routeBrief({}, idx([{ path: "a/brief.md", title: "X", score: 30 }]), "q", OPTS);
-    expect(r.path).toBe("a/brief.md");
+  it("routes a single strong hit with no #2 (infinite margin) when the query shares a domain term", () => {
+    const r = routeBrief({}, idx([{ path: "a/widgets.md", title: "Widget Notes", score: 30 }]), "widget", OPTS);
+    expect(r.path).toBe("a/widgets.md");
+    expect(r.method).toBe("tag_search");
+  });
+
+  it("abstains on a strong fuzzy hit with NO domain trigger (intent mismatch)", () => {
+    // High score + huge margin, but the query shares no term with the brief —
+    // e.g. 'support phone number' should NOT land on the Observability brief.
+    const r = routeBrief(
+      { observability: "04/brief-observability.md" },
+      idx([
+        { path: "04/brief-observability.md", title: "Brief: Observability", score: 40 },
+        { path: "z/other.md", title: "Other", score: 2 },
+      ]),
+      "support phone number",
+      OPTS
+    );
+    expect(r.path).toBeNull();
+    expect(r.method).toBe("abstain");
+  });
+
+  it("routes a fuzzy hit when the query DOES carry a domain term", () => {
+    const r = routeBrief(
+      { observability: "04/brief-observability.md" },
+      idx([
+        { path: "04/brief-observability.md", title: "Brief: Observability", score: 40 },
+        { path: "z/other.md", title: "Other", score: 2 },
+      ]),
+      "weekly loop dry run",
+      OPTS
+    );
+    expect(r.path).toBe("04/brief-observability.md");
     expect(r.method).toBe("tag_search");
   });
 });

@@ -29,6 +29,18 @@ describe("rrf", () => {
     const out = rrf([["a.md"], ["b.md"]], { weight: (p) => (p === "b.md" ? 0.1 : 1) });
     expect(out[0]).toBe("a.md");
   });
+
+  it("pins a retrieved path to the front (can't be demoted out)", () => {
+    // c.md ranks last by fusion, but pinning forces it to the front
+    const out = rrf([["a.md", "b.md", "c.md"], ["a.md", "b.md"]], { pins: ["c.md"] });
+    expect(out[0]).toBe("c.md");
+    expect(out).toContain("a.md");
+  });
+
+  it("ignores pins that were not retrieved by any list", () => {
+    const out = rrf([["a.md", "b.md"]], { pins: ["zzz.md"] });
+    expect(out).toEqual(["a.md", "b.md"]);
+  });
 });
 
 describe("isRawSession", () => {

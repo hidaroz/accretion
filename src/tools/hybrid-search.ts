@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { VaultRegistry } from "../vault/vault-registry.js";
 import { rrf, isRawSession } from "../vault/hybrid.js";
+import { routeBrief } from "../vault/brief-routing.js";
 import { handleToolError } from "../utils/errors.js";
 
 export function registerHybridSearch(
@@ -48,8 +49,11 @@ export function registerHybridSearch(
           if (!semPaths.includes(r.path)) semPaths.push(r.path);
         }
 
+        // Pin the canonical routed brief (if any) so fusion can't bury it.
+        const pin = routeBrief(ctx.briefMap, ctx.searchIndex, query).path;
         const fused = rrf([kw.map((r) => r.path), semPaths], {
           weight: (p) => (isRawSession(p) ? 0.7 : 1),
+          pins: pin ? [pin] : [],
         }).slice(0, limit);
 
         const results = fused.map((path, i) => ({

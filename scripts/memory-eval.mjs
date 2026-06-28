@@ -115,11 +115,15 @@ try {
         if (!seen.has(r.path)) { seen.add(r.path); sem.push(r.path); }
       }
     }
-    const hyb = rrf([kw, sem], { weight: (p) => (isRawSession(p) ? 0.7 : 1) });
+    const route = routeBrief(briefMap, searchIndex, c.topic || c.query);
+    // Pin the canonical routed brief so fusion can't demote it out of top-k.
+    const hyb = rrf([kw, sem], {
+      weight: (p) => (isRawSession(p) ? 0.7 : 1),
+      pins: route.path ? [route.path] : [],
+    });
     const keyword = negative ? EMPTY : scoreRetrieval(kw, expectedNotes, K);
     const semantic = negative || !embeddingIndex ? EMPTY : scoreRetrieval(sem, expectedNotes, K);
     const hybrid = negative ? EMPTY : scoreRetrieval(hyb, expectedNotes, K);
-    const route = routeBrief(briefMap, searchIndex, c.topic || c.query);
     const rHit = c.negative ? route.path === null : route.path === (c.expectedBrief ?? null);
     scores.push({ id: c.id, negative, stratum: c.stratum || "untagged", keyword, semantic, hybrid, routingHit: rHit });
 

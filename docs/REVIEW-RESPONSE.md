@@ -143,3 +143,50 @@ full-100 cases, cross-encoder.
 Open question for you: the residual near-domain false positive (support-phone → Observability). Worth
 adding an absolute-floor bump or a st​opword/!brief-term guard, or is 92% neg-accuracy a fine
 place to stop and move to RRF tuning?
+
+---
+
+## Update 3 — domain-trigger guard (not a floor bump) + exact-match pinning
+
+Took both calls exactly as you framed them.
+
+**Routing — positive-evidence guard, no global floor bump.** A fuzzy `tag_search` now routes
+only if the query carries a *domain trigger* tied to that brief (a brief-map keyword / title /
+slug token); else it abstains. No blocklist — it's positive evidence, and tokenization
+stopwords aren't a domain ban-list. Reverted the floor back to 4 (the guard does the work, so
+legit fuzzy routes aren't quietly starved). Result on 66 stratified cases:
+
+| Routing | before | after |
+|---|---|---|
+| Negative-routing accuracy | 37.5% | **100%** |
+| Routing precision (of routed) | 98% | **100%** |
+| Positive routing recall | 100% | **100%** |
+
+`support phone number` now abstains (no Observability term); `weekly loop dry run` / `sourdough hydration`
+still route. The sweep showed the guard makes routing precision/neg-accuracy 100% at *every*
+floor/margin — i.e. it's the conceptual fix, not threshold fiddling, as you said.
+
+**RRF — exact-match pinning before weighted RRF.** If the query has a canonical route
+(brief-map / exact title / alias) and that brief was retrieved, it's pinned into the fused
+top-k so fusion can't demote it. Did **not** do global keyword weighting. Retrieval:
+
+| Mode | recall@5 | MRR |
+|---|---|---|
+| Keyword | 66% | 0.33 |
+| Semantic | 78% | 0.42 |
+| **Hybrid (pinned RRF)** | **98.1%** | **0.98** |
+
+Hybrid recall@5 95% CI **[94.3%, 100%]**. The vault-structure / mcp-transport / bike-maintenance class is
+fixed by pinning rather than weighting, as you predicted.
+
+**Two honest caveats (not declaring victory):**
+1. **1 residual miss — `mcp-transport`:** neither keyword nor semantic surfaces the transport brief for
+   "how are the transport layers organized," so pinning (which requires the brief to be *retrieved*,
+   per your "keyword finds it") can't rescue it. A genuine retrieval gap → candidate for your
+   step-3 (title/frontmatter-enriched embeddings) or enriching the brief. Not papering over it.
+2. **The 98% leans on strong routing on this case set** — most positives have a clean
+   brief-map route, so pinning shines. On queries where routing abstains, hybrid falls back to
+   raw fusion (~80s). So this is 98% *on this distribution*, with a still-modest 53-positive
+   sample (hence the CI). Real next step is your call: **push the negative+positive set toward
+   100 stratified before trusting these as stable**, and only then consider weighted RRF (which
+   pinning may have made unnecessary).
