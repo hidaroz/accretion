@@ -15,11 +15,15 @@ const VAULTS_CONFIG =
 const VAULT_MAP =
   process.env.PROJECT_VAULT_MAP || join(__dirname, 'project-vault-map.json');
 
-try {
-  main();
-} catch (err) {
-  console.error('[session-journal]', err.message);
-  process.exit(0);
+// Only run as a hook when executed directly. Importing the module (to test
+// redactSecrets, say) must not try to read a session off stdin.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  try {
+    main();
+  } catch (err) {
+    console.error('[session-journal]', err.message);
+    process.exit(0);
+  }
 }
 
 function main() {
@@ -42,7 +46,13 @@ function main() {
   const aiTitleEntry = lines.find(l => l.type === 'ai-title');
   const aiTitle = aiTitleEntry?.aiTitle;
   const firstUserMsg = getFirstUserMessage(lines);
-  const title = aiTitle || (firstUserMsg ? `Session: ${firstUserMsg.slice(0, 80)}` : `Session: ${session_id.slice(0, 8)}`);
+  // Redact here, not just in the note body: the title also becomes the git
+  // commit message below, which the whole-content pass never sees. A session
+  // that opens with `export NEON_API_KEY=...` would otherwise put the key in
+  // git log.
+  const title = redactSecrets(
+    aiTitle || (firstUserMsg ? `Session: ${firstUserMsg.slice(0, 80)}` : `Session: ${session_id.slice(0, 8)}`)
+  );
 
   const projectSlug = cwd ? basename(cwd) : 'unknown';
   const vaultId = resolveVault(projectSlug);
@@ -95,7 +105,9 @@ function main() {
     decisions.forEach(d => { body += `- ${d}\n`; });
   }
 
-  const content = `${frontmatter}\n\n${body}`;
+  // Redact once, over the assembled note. Doing it here rather than in each
+  // extractor means a section added later cannot quietly bypass it.
+  const content = redactSecrets(`${frontmatter}\n\n${body}`);
 
   mkdirSync(dirname(fullPath), { recursive: true });
   writeFileSync(fullPath, content, 'utf8');
@@ -108,6 +120,71 @@ function main() {
   } catch {
     // git commit failed (not a repo, nothing to commit, etc.) — that's fine
   }
+}
+
+/**
+ * Strip credentials before anything reaches the vault.
+ *
+ * Session notes copy user messages and shell commands verbatim, so a pasted
+ * token or an `export API_KEY=...` line ends up in the note — and the vault
+ * auto-commits and can be pushed. That is how a live Neon API key and a
+ * production database password reached git history (found 2026-07-28).
+ *
+ * Deliberately blunt: a false positive costs a redacted word in a note, a false
+ * negative costs a leaked credential. Order matters — specific vendor patterns
+ * run before the generic assignment rule so the label survives in the output.
+ */
+/**
+ * Values that are structurally incapable of being a leaked credential:
+ * literals opening a collection, and the placeholders documentation uses.
+ * Vendor-prefixed patterns (napi_, npg_, ...) never reach this check.
+ */
+function isPlaceholder(raw) {
+  const v = raw.replace(/^["']|["']$/g, "").trim();
+  if (v.startsWith("[") || v.startsWith("{")) return true; // array/object literal
+  if (v.length < 8) return true;                            // too short to be a key
+  return /^(\.{3}|<.*>|x{3,}|your[-_ ]|my[-_ ]|some[-_ ]|changeme|example|placeholder|redacted|\$\{|\$[A-Z_]+$)/i
+    .test(v);
+}
+
+export function redactSecrets(text) {
+  const rules = [
+    // Vendor-shaped tokens, matched on their own prefixes.
+    [/\bnapi_[A-Za-z0-9]{20,}/g, 'napi_[REDACTED]'],                 // Neon API key
+    [/\bnpg_[A-Za-z0-9]{8,}/g, 'npg_[REDACTED]'],                    // Neon role password
+    [/\bgithub_pat_[A-Za-z0-9_]{20,}/g, 'github_pat_[REDACTED]'],
+    [/\bgh[pousr]_[A-Za-z0-9]{20,}/g, 'gh?_[REDACTED]'],
+    [/\bxox[baprs]-[A-Za-z0-9-]{10,}/g, 'xox?-[REDACTED]'],          // Slack
+    [/\bsk-[A-Za-z0-9_-]{20,}/g, 'sk-[REDACTED]'],
+    [/\bAKIA[0-9A-Z]{16}\b/g, 'AKIA[REDACTED]'],                     // AWS access key id
+    [/\bASIA[0-9A-Z]{16}\b/g, 'ASIA[REDACTED]'],
+    // JWTs — three base64url segments.
+    [/\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+/g, '[REDACTED_JWT]'],
+    // Two-segment JWT fragments (truncated pastes still identify a user).
+    [/\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{5,}/g, '[REDACTED_JWT]'],
+    // A lone base64 JSON blob — a JWT header whose payload got truncated away.
+    // Not itself secret (the `kid` is published in the JWKS), but it trips
+    // every credential scan, so it is not worth keeping in a note.
+    [/\beyJ[A-Za-z0-9_+/=-]{37,}/g, '[REDACTED_JWT]'],
+    // Credentials embedded in a URL: keep scheme and host, drop user:pass.
+    [/\b([a-z][a-z0-9+.-]*:\/\/)[^\s/@:]+:[^\s/@]+@/gi, '$1[REDACTED]@'],
+    // PEM private keys.
+    [/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
+      '[REDACTED_PRIVATE_KEY]'],
+    // Generic assignments: FOO_TOKEN=..., PGPASSWORD=..., "apiKey": "..."
+    // The optional quote before the separator covers JSON/YAML keys.
+    //
+    // The value is matched via a callback rather than inline so obvious
+    // non-secrets survive. Without that, `queryKey: ['rides', id]`
+    // became `queryKey: [REDACTED]'rides', id]` — the rule ate a code
+    // example — and documented placeholders like `NEON_API_KEY="your-key"`
+    // were redacted for no benefit.
+    [/\b([A-Za-z_][A-Za-z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL)S?)(["']?\s*[:=]\s*)("[^"\n]*"|'[^'\n]*'|[^\s"';,)]+)/gi,
+      (match, name, sep, value) => (isPlaceholder(value) ? match : `${name}${sep}[REDACTED]`)],
+  ];
+  let out = String(text);
+  for (const [re, replacement] of rules) out = out.replace(re, replacement);
+  return out;
 }
 
 function extractToolCalls(lines) {
