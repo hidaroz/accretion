@@ -11,7 +11,8 @@ import { redactSecrets } from "../../hooks/session-journal.mjs";
 describe("redactSecrets", () => {
   it("redacts a Neon API key", () => {
     const out = redactSecrets(
-      "export NEON_API_KEY=napi_000000abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGH"
+      // Synthetic value — never paste a fragment of a real key into a fixture.
+      "export NEON_API_KEY=napi_0000000000000000000000000000000000000000000000000000000000000000"
     );
     expect(out).not.toMatch(/napi_[A-Za-z0-9]{20,}/);
   });
