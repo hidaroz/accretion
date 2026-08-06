@@ -53,5 +53,16 @@ notify_fail() {
     notify_fail
     exit "$status"
   fi
-  echo "=== done $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
+
+  # Postflight. A run that exits 0 having quietly done nothing is the failure
+  # mode this pipeline actually has — it went six weeks unnoticed. doctor knows
+  # what "still broken" looks like (backlog, stale index, unloaded agent), so
+  # let it, not the exit code, decide whether this run counts as healthy.
+  echo "--- doctor (postflight) ---"
+  if node "$SERVER_REPO/scripts/doctor.mjs"; then
+    echo "=== done $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
+  else
+    echo "=== run completed but doctor reports failures — see above ==="
+    osascript -e "display notification \"run finished, but doctor still reports failures — see $LOG\" with title \"memory-weekly needs attention ($VAULT)\"" >/dev/null 2>&1 || true
+  fi
 } >>"$LOG" 2>&1
