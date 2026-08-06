@@ -108,6 +108,7 @@ export function registerArchiveSessions(
         }
 
         let moved = 0;
+        const renames = new Map<string, string>();
         for (const candidate of toArchive) {
           const srcAbs = path.join(vaultRoot, candidate.relativePath);
           const archivePath = candidate.relativePath.replace(
@@ -121,21 +122,29 @@ export function registerArchiveSessions(
 
           ctx.searchIndex.remove(candidate.relativePath);
           ctx.tagIndex.removeNote(candidate.relativePath);
+          renames.set(candidate.relativePath, archivePath);
           moved++;
         }
+
+        const repointed = await repointDigests(vaultRoot, renames);
 
         logger.info("Archived session notes", {
           vault: ctx.id,
           count: moved,
+          repointedDigests: repointed,
           oldest,
           newest,
         });
+
+        const repointNote = repointed
+          ? ` Repointed source links in ${repointed} digest(s).`
+          : "";
 
         return {
           content: [
             {
               type: "text" as const,
-              text: `Archived ${moved} session note(s) to \`sessions/archive/\` (oldest: ${oldest}, newest: ${newest}).${skippedNote}`,
+              text: `Archived ${moved} session note(s) to \`sessions/archive/\` (oldest: ${oldest}, newest: ${newest}).${repointNote}${skippedNote}`,
             },
           ],
         };
@@ -144,4 +153,47 @@ export function registerArchiveSessions(
       }
     }
   );
+}
+
+/**
+ * Point every digest at where its sources now live.
+ *
+ * A digest records the exact paths it was synthesized from, in `sources`
+ * frontmatter and in its `## Source Sessions` wikilinks. Archiving used to move
+ * the files and leave those paths behind: the June 2026 run stranded 92 links
+ * across the Work vault, and nothing reported it — `validateStructure` checks
+ * dangling links in the curated layer only, and deliberately skips `sessions/`.
+ *
+ * `sources` is not decorative. `getDigestedSessionPaths` reads it to decide
+ * what is safe to archive, so a digest that has lost track of its own sources
+ * stops protecting them.
+ */
+export async function repointDigests(
+  vaultRoot: string,
+  renames: Map<string, string>
+): Promise<number> {
+  if (renames.size === 0) return 0;
+
+  const digestsDir = path.join(vaultRoot, "sessions", "digests");
+  let files: string[];
+  try {
+    files = (await fs.readdir(digestsDir)).filter((f) => f.endsWith(".md"));
+  } catch {
+    return 0;
+  }
+
+  let changed = 0;
+  for (const file of files) {
+    const full = path.join(digestsDir, file);
+    const before = await fs.readFile(full, "utf8");
+    let after = before;
+    for (const [from, to] of renames) {
+      if (after.includes(from)) after = after.split(from).join(to);
+    }
+    if (after !== before) {
+      await fs.writeFile(full, after, "utf8");
+      changed++;
+    }
+  }
+  return changed;
 }

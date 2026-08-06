@@ -17,6 +17,7 @@ import path from "node:path";
 import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
 import { findSessionNotes } from "../dist/vault/session-scan.js";
 import { getDigestedSessionPaths } from "../dist/vault/digest-candidates.js";
+import { repointDigests } from "../dist/tools/archive-sessions.js";
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -55,6 +56,7 @@ try {
   }
 
   let moved = 0;
+  const renames = new Map();
   for (const s of toArchive) {
     const srcAbs = path.join(vaultRoot, s.relativePath);
     const archivePath = s.relativePath.replace(
@@ -64,10 +66,20 @@ try {
     const destAbs = path.join(vaultRoot, archivePath);
     await fs.mkdir(path.dirname(destAbs), { recursive: true });
     await fs.rename(srcAbs, destAbs);
+    renames.set(s.relativePath, archivePath);
     moved++;
   }
 
+  // Digests record the exact paths they were built from, and archiving used to
+  // move the files out from under them — the June 2026 run stranded 92 source
+  // links. Shared with the MCP tool so the scheduled path and the interactive
+  // path cannot drift apart again.
+  const repointed = await repointDigests(vaultRoot, renames);
+
   console.log(`Archived ${moved} session(s) to sessions/archive/.`);
+  if (repointed > 0) {
+    console.log(`Repointed source links in ${repointed} digest(s).`);
+  }
   if (skippedUndigested > 0) {
     console.log(
       `Skipped ${skippedUndigested} old session(s) not yet covered by a digest.`
