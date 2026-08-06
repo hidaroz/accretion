@@ -2,8 +2,8 @@
 // SessionEnd hook: extracts session metadata from transcript JSONL
 // and writes a session note directly to the Obsidian vault.
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join, basename, dirname } from 'path';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'fs';
+import { join, basename, dirname, sep } from 'path';
 import { homedir } from 'os';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
@@ -62,13 +62,24 @@ function main() {
   const now = new Date();
   const dateDir = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const fileName = `${projectSlug}-${session_id.slice(0, 8)}.md`;
-  const notePath = `sessions/${dateDir}/${fileName}`;
+
+  // A resumed session ends more than once. Writing to today's date directory
+  // each time produced up to seven byte-identical copies of one note (found
+  // 2026-08-05), which crowded real results out of retrieval. Reuse the note
+  // this session already has, wherever it lives, and update it in place.
+  const existingPath = findExistingSessionNote(vaultPath, fileName);
+  const notePath = existingPath || `sessions/${dateDir}/${fileName}`;
   const fullPath = join(vaultPath, notePath);
+
+  // `created` stays at first capture. Digests group sessions by created-week,
+  // so bumping it would let an already-digested note hop into a later week and
+  // read as an uncovered session forever.
+  const created =
+    (existingPath && readCreated(fullPath)) || now.toISOString();
 
   const topics = extractTopics(lines);
   const filesChanged = extractFilesChanged(toolCalls);
   const commands = extractCommands(toolCalls);
-  const decisions = extractDecisions(lines);
 
   const frontmatter = [
     '---',
@@ -76,7 +87,8 @@ function main() {
     'tags:',
     '  - type/session',
     `  - project/${slugify(projectSlug)}`,
-    `created: '${now.toISOString()}'`,
+    `created: '${created}'`,
+    `updated: '${now.toISOString()}'`,
     `session_id: '${session_id}'`,
     `project: '${escapeYaml(projectSlug)}'`,
     `cwd: '${escapeYaml(cwd || '')}'`,
@@ -100,10 +112,11 @@ function main() {
     commands.forEach(c => { body += `- \`${c}\`\n`; });
   }
 
-  if (decisions.length > 0) {
-    body += '\n## Decisions\n\n';
-    decisions.forEach(d => { body += `- ${d}\n`; });
-  }
+  // No `## Decisions` section. It used to regex-grep assistant prose for
+  // "decided|chose|going with", which recorded unverified model claims as
+  // durable record — notes asserted fixes that were never committed. Digests
+  // extract decisions from the transcript with judgment; that is the right
+  // layer for it.
 
   // Redact once, over the assembled note. Doing it here rather than in each
   // extractor means a section added later cannot quietly bypass it.
@@ -264,24 +277,42 @@ function extractCommands(toolCalls) {
   return [...new Set(cmds)].slice(0, 30);
 }
 
-function extractDecisions(lines) {
-  const keywords = /\b(decided|chose|chosen|instead of|tradeoff|trade-off|approach:|going with|opted for|picked)\b/i;
-  const decisions = [];
-  for (const line of lines) {
-    if (line.type !== 'assistant') continue;
-    const content = line.message?.content;
-    if (!Array.isArray(content)) continue;
-    for (const block of content) {
-      if (block.type !== 'text') continue;
-      const sentences = block.text.split(/(?<=[.!?])\s+/);
-      for (const s of sentences) {
-        if (keywords.test(s) && s.length > 20 && s.length < 300) {
-          decisions.push(s.trim());
-        }
-      }
-    }
+/**
+ * Locate the note this session already wrote, if any.
+ *
+ * Keyed on the full `{project}-{id8}.md` filename rather than the session id
+ * alone: one Claude session run from two repos (`work` and `work-mobile-app`)
+ * is two different pieces of work and keeps two notes. Searches the archive
+ * too, so resuming a session whose note was already archived updates it in
+ * place instead of resurrecting a live duplicate.
+ */
+export function findExistingSessionNote(vaultPath, fileName) {
+  const sessionsDir = join(vaultPath, 'sessions');
+  if (!existsSync(sessionsDir)) return null;
+  let entries;
+  try {
+    entries = readdirSync(sessionsDir, { recursive: true, withFileTypes: true });
+  } catch {
+    return null;
   }
-  return [...new Set(decisions)].slice(0, 10);
+  for (const entry of entries) {
+    if (!entry.isFile() || entry.name !== fileName) continue;
+    // parentPath is absolute; make it vault-relative with forward slashes.
+    const dir = entry.parentPath || entry.path;
+    return join(dir, entry.name).slice(vaultPath.length + 1).split(sep).join('/');
+  }
+  return null;
+}
+
+/** Read `created:` out of an existing note's frontmatter, or null. */
+export function readCreated(fullPath) {
+  try {
+    const head = readFileSync(fullPath, 'utf8').slice(0, 2000);
+    const m = head.match(/^created:\s*'?([^'\n]+)'?\s*$/m);
+    return m ? m[1].trim() : null;
+  } catch {
+    return null;
+  }
 }
 
 function resolveVault(projectSlug) {
