@@ -15,5 +15,8 @@
     "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  // Tests are not part of the shipped build, and compiling them made vitest
+  // collect every suite twice — once from src/, once from dist/ — so `npm test`
+  // was half-running stale compiled copies of itself.
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
 }
