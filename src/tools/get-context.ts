@@ -5,6 +5,31 @@ import { routeBrief } from "../vault/brief-routing.js";
 import { logger } from "../utils/logger.js";
 import { handleToolError } from "../utils/errors.js";
 
+/**
+ * Cut `text` to at most `limit` characters, preferring a markdown section
+ * boundary so a brief ends on a whole idea rather than mid-sentence.
+ *
+ * Falls back to a paragraph break, then to a hard cut — a brief with no
+ * headings at all should still be trimmed rather than blowing the budget.
+ */
+export function truncateAtSection(text: string, limit: number): string {
+  if (limit <= 0) return "";
+  if (text.length <= limit) return text;
+
+  const window = text.slice(0, limit);
+  // Only accept a boundary in the back half, or a brief whose first heading is
+  // late would collapse to almost nothing.
+  const floor = Math.floor(limit / 2);
+
+  const heading = window.lastIndexOf("\n## ");
+  if (heading > floor) return text.slice(0, heading).trimEnd();
+
+  const para = window.lastIndexOf("\n\n");
+  if (para > floor) return text.slice(0, para).trimEnd();
+
+  return window.trimEnd();
+}
+
 export function registerGetContext(
   server: McpServer,
   registry: VaultRegistry
@@ -50,32 +75,57 @@ export function registerGetContext(
 
         const seenPaths = new Set<string>();
 
+        // Resolve every topic before reading anything: the budget has to be
+        // divided across the briefs that actually resolved, and that count is
+        // not known until routing has run for all of them.
+        const routed: Array<{ topic: string; briefPath: string }> = [];
         for (const topic of topics) {
           const normalized = topic.toLowerCase().trim();
           // Confidence-gated routing — abstain rather than assemble a wrong brief.
           const briefPath = routeBrief(ctx.briefMap, ctx.searchIndex, normalized).path;
 
-          if (!briefPath || seenPaths.has(briefPath)) {
-            if (!briefPath) notFound.push(topic);
+          if (!briefPath) {
+            notFound.push(topic);
             continue;
           }
+          if (seenPaths.has(briefPath)) continue;
 
           seenPaths.add(briefPath);
+          routed.push({ topic, briefPath });
+        }
+
+        // Fair-share the budget instead of first-come-first-served.
+        //
+        // Filling one shared budget in order lets the first topic starve the
+        // rest: asking for observability + cycling + structure returned the Observability
+        // brief and a "budget reached" marker, because that brief alone is
+        // larger than the default allowance. A caller naming three topics wants
+        // three topics, not the first one in full.
+        //
+        // Each brief gets an equal share of what is left, and whatever it does
+        // not use rolls forward — so small briefs subsidise large ones rather
+        // than argument order deciding who gets nothing.
+        for (let i = 0; i < routed.length; i++) {
+          const { topic, briefPath } = routed[i];
+          const allowance = Math.floor((maxChars - totalChars) / (routed.length - i));
 
           try {
             const note = await ctx.vault.read(briefPath);
-            const section = `---\n# ${note.title}\n\n${note.content}\n`;
+            const header = `---\n# ${note.title}\n\n`;
+            let body = note.content;
 
-            if (totalChars + section.length > maxChars && sections.length > 0) {
-              sections.push(
-                `\n---\n*[Truncated: token budget reached. Remaining topics: ${topics.slice(topics.indexOf(topic)).join(", ")}]*`
-              );
-              break;
+            if (header.length + body.length + 1 > allowance) {
+              const notice = `\n\n*[Truncated to fit the context budget — read \`${briefPath}\` for the rest.]*`;
+              body =
+                truncateAtSection(
+                  body,
+                  Math.max(0, allowance - header.length - notice.length - 1)
+                ) + notice;
             }
 
-            sections.push(section);
+            sections.push(`${header}${body}\n`);
             resolved.push(`${topic} → ${briefPath}`);
-            totalChars += section.length;
+            totalChars += header.length + body.length + 1;
           } catch {
             notFound.push(topic);
           }
