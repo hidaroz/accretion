@@ -5,7 +5,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'fs';
 import { join, basename, dirname, sep } from 'path';
 import { homedir } from 'os';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -125,13 +125,44 @@ function main() {
   mkdirSync(dirname(fullPath), { recursive: true });
   writeFileSync(fullPath, content, 'utf8');
 
+  // execFile, not exec: the commit message is derived from a user message, and
+  // the previous shell-string form relied on escapeShell's denylist to keep it
+  // from breaking out. An argument array involves no shell at all, so nothing
+  // in a session title can be interpreted.
+  const git = (...args) =>
+    execFileSync('git', ['-C', vaultPath, ...args], { stdio: 'ignore', timeout: 30000 });
+
   try {
-    execSync(`git -C "${vaultPath}" add "${notePath}" && git -C "${vaultPath}" commit -m "Session: ${escapeShell(title.slice(0, 60))}"`, {
-      stdio: 'ignore',
-      timeout: 10000,
-    });
+    git('add', notePath);
+    git('commit', '-m', `Session: ${title.slice(0, 60)}`);
   } catch {
-    // git commit failed (not a repo, nothing to commit, etc.) — that's fine
+    // not a repo, nothing to commit, etc. — that's fine
+    return;
+  }
+
+  // Session capture is the busiest writer in the vault, so a hook that only
+  // ever commits is the main reason the off-machine backup falls behind — it
+  // sat 61 commits and three weeks stale before 2026-08-05. Push when the vault
+  // opts in, matching what the MCP write path already does with this flag.
+  //
+  // Best-effort by design: this runs at session end, offline or on a dead
+  // network, and a failed backup must never be louder than the work it follows.
+  // The next successful push carries these commits anyway.
+  if (!getVaultAutoPush(vaultId)) return;
+  try {
+    git('push', '--quiet');
+  } catch {
+    // offline, no upstream, rejected — the next push takes it
+  }
+}
+
+/** Whether this vault opts into pushing, per the shared vault registry. */
+function getVaultAutoPush(vaultId) {
+  try {
+    const config = JSON.parse(readFileSync(VAULTS_CONFIG, 'utf8'));
+    return config.vaults.find(v => v.id === vaultId)?.gitAutoPush === true;
+  } catch {
+    return false;
   }
 }
 
@@ -342,6 +373,3 @@ function escapeYaml(str) {
   return str.replace(/'/g, "''");
 }
 
-function escapeShell(str) {
-  return str.replace(/['"\\$`!]/g, '');
-}
