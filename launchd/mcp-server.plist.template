@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>__LABEL__</string>
+
+  <!-- Wrapper sources .env (API_KEY, VAULTS_CONFIG, PORT, HOST) then runs the server. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>__WRAPPER__</string>
+  </array>
+
+  <!-- Start at login and keep the server alive if it exits. -->
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__LOGDIR__/server.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__LOGDIR__/server.err.log</string>
+</dict>
+</plist>

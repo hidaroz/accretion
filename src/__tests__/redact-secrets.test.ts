@@ -4,14 +4,17 @@ import { redactSecrets } from "../../hooks/session-journal.mjs";
 
 /**
  * Session notes copy user messages and shell commands verbatim, and the vault
- * auto-commits and can be pushed. On 2026-07-28 a live Neon API key and a
- * production database password were found in committed notes. These cases are
- * the shapes that actually leaked, plus the ones most likely to leak next.
+ * auto-commits and can be pushed — so a pasted token or an `export API_KEY=...`
+ * line reaches git unless something strips it first. Credentials have leaked
+ * this way before; these cases cover the shapes most likely to leak next.
+ *
+ * Every value below is synthetic. Never paste a fragment of a real credential
+ * into a fixture, even a revoked one — fixtures outlive the secrets they came
+ * from, and a scrubbing pass that misses one case leaves it published forever.
  */
 describe("redactSecrets", () => {
   it("redacts a Neon API key", () => {
     const out = redactSecrets(
-      // Synthetic value — never paste a fragment of a real key into a fixture.
       "export NEON_API_KEY=napi_0000000000000000000000000000000000000000000000000000000000000000"
     );
     expect(out).not.toMatch(/napi_[A-Za-z0-9]{20,}/);
@@ -19,25 +22,25 @@ describe("redactSecrets", () => {
 
   it("redacts a Neon role password and the connection string reusing it", () => {
     const out = redactSecrets(
-      'PGPASSWORD=npg_REDACTED psql "postgresql://neondb_owner:npg_REDACTED@ep-redacted-host.aws.neon.tech/neondb"'
+      'PGPASSWORD=npg_synthetic000000 psql "postgresql://neondb_owner:npg_synthetic000000@ep-quiet-meadow-a0000000.aws.neon.tech/neondb"'
     );
-    expect(out).not.toContain("npg_REDACTED");
+    expect(out).not.toContain("npg_synthetic000000");
     // The host stays — it identifies which branch was touched, and is not secret.
-    expect(out).toContain("ep-redacted-host");
+    expect(out).toContain("ep-quiet-meadow-a0000000");
   });
 
   it("redacts credentials embedded in any URL", () => {
     const out = redactSecrets(
-      "postgresql://postgres:REDACTED@db.example-host-0001.example.com:5432/postgres"
+      "postgresql://postgres:synthetic0000000@db.example-host-0000.example.com:5432/postgres"
     );
-    expect(out).not.toContain("REDACTED");
+    expect(out).not.toContain("synthetic0000000");
   });
 
   it("redacts full JWTs and truncated fragments alike", () => {
     // A fragment still carries the header/payload and identifies a user.
     for (const jwt of [
       "eyJraWQiOiI5In0.eyJzdWIiOiJhYmMifQ.sig123",
-      "REDACTED_JWT_HEADER.eyJzdWIi",
+      "eyJraWQiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBPSIsImFsZyI6IlJTMjU2In0.eyJzdWIi",
     ]) {
       expect(redactSecrets(jwt)).toBe("[REDACTED_JWT]");
     }
@@ -57,13 +60,13 @@ describe("redactSecrets", () => {
   });
 
   it("does not eat code examples or documented placeholders", () => {
-    // Regressions found while scrubbing the vault: the generic rule matched any
+    // Regressions found while scrubbing a vault: the generic rule matched any
     // identifier ending in "Key", so it mangled `queryKey: [...]` into
     // `queryKey: [REDACTED]...` and redacted placeholders that are not secrets.
     for (const safe of [
-      "useQuery({ queryKey: ['rides', riderId, date], queryFn })",
+      "useQuery({ queryKey: ['orders', customerId, date], queryFn })",
       'export NEON_API_KEY="your-key"',
-      "EXPO_PUBLIC_APP_PUBLISHABLE_KEY=... (same as production)",
+      "PUBLIC_APP_PUBLISHABLE_KEY=... (same as production)",
       "const cacheKey = {a:1}",
       "API_TOKEN=${MY_VAR}",
     ]) {
@@ -76,8 +79,8 @@ describe("redactSecrets", () => {
     for (const safe of [
       "npm run build && git push origin feat/ui-ux-overhaul",
       "rotate the key in the Neon console under Account Settings",
-      "postgresql://ep-redacted-host.aws.neon.tech/neondb?sslmode=require",
-      "set NEON_DATABASE_URL_SANDBOX before running migrate",
+      "postgresql://ep-calm-harbor-b0000000.aws.neon.tech/neondb?sslmode=require",
+      "set DATABASE_URL_SANDBOX before running migrate",
     ]) {
       expect(redactSecrets(safe)).toBe(safe);
     }
