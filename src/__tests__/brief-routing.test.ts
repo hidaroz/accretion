@@ -61,11 +61,11 @@ describe("routeBrief", () => {
 
   it("abstains on a strong fuzzy hit with NO domain trigger (intent mismatch)", () => {
     // High score + huge margin, but the query shares no term with the brief —
-    // e.g. 'support phone number' should NOT land on the Observability brief.
+    // e.g. 'support phone number' should NOT land on the security brief.
     const r = routeBrief(
-      { observability: "04/brief-observability.md" },
+      { security: "07/brief-security.md" },
       idx([
-        { path: "04/brief-observability.md", title: "Brief: Observability", score: 40 },
+        { path: "07/brief-security.md", title: "Brief: Security Model", score: 40 },
         { path: "z/other.md", title: "Other", score: 2 },
       ]),
       "support phone number",
@@ -77,15 +77,15 @@ describe("routeBrief", () => {
 
   it("routes a fuzzy hit when the query DOES carry a domain term", () => {
     const r = routeBrief(
-      { observability: "04/brief-observability.md" },
+      { security: "07/brief-security.md" },
       idx([
-        { path: "04/brief-observability.md", title: "Brief: Observability", score: 40 },
+        { path: "07/brief-security.md", title: "Brief: Security Model", score: 40 },
         { path: "z/other.md", title: "Other", score: 2 },
       ]),
-      "weekly loop dry run",
+      "security authorization model",
       OPTS
     );
-    expect(r.path).toBe("04/brief-observability.md");
+    expect(r.path).toBe("07/brief-security.md");
     expect(r.method).toBe("tag_search");
   });
 });

@@ -23,16 +23,26 @@ What it does (idempotent — safe to re-run):
 
 ## Verify
 
-1. Work in a directory matching a routed slug; end the session → a note appears at `<vault>/sessions/<date>/<slug>-<hash>.md`.
+1. Work in a directory matching a routed slug; end the session → a note appears at `<vault>/sessions/<YYYY>/<MM-DD>/<slug>-<hash>.md`.
 2. Supervised first autonomous run: `bin/memory-weekly-run.sh <id>` (watch `~/Library/Logs/memory-weekly/<id>/`).
 3. Schedule it: `cp launchd/com.memory-weekly.<id>.plist ~/Library/LaunchAgents/ && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.memory-weekly.<id>.plist`.
 
-## Acme / IP-sensitive contexts
+## Client work and IP-sensitive contexts
 
-- **Keep `--push` off** until the remote is the **org** GitHub repo (not personal). Then enable per vault in `vaults.json`.
-- **Anthropic via the org's tokens/endpoint.** Point Claude Code at their credentials (direct API key, or Bedrock via `CLAUDE_CODE_USE_BEDROCK=1` + AWS creds, or a gateway base URL). The launchd wrapper inherits the environment, so set these where it can see them.
-- **Local embeddings** download a model from HuggingFace on first use. On a locked-down network, pre-seed it (`TRANSFORMERS_CACHE` / `EMBEDDING_MODEL` → a vendored path) or run with `DISABLE_EMBEDDINGS=1` until sorted.
-- **git-crypt is optional** — a private org repo + their access controls is usually enough; don't carry over personal-vault encryption blindly.
+If the vault holds someone else's intellectual property, a few defaults are worth revisiting.
+
+- **Keep `--push` off** until the remote is the client's or employer's repo rather than a
+  personal one. Then enable it per vault in `vaults.json`. Pushing a vault to the wrong
+  remote is not an undoable mistake.
+- **Route the model through their credentials**, not yours — a direct API key, Bedrock
+  (`CLAUDE_CODE_USE_BEDROCK=1` plus AWS creds), or a gateway base URL. The launchd wrapper
+  inherits its environment, so set these somewhere it can see them.
+- **Local embeddings** download a model from HuggingFace on first use. On a locked-down
+  network, pre-seed the cache (`TRANSFORMERS_CACHE`, or `EMBEDDING_MODEL` pointing at a
+  vendored path) or run with `DISABLE_EMBEDDINGS=1` until that is sorted.
+- **Encryption at rest is a separate decision.** A private repo plus the org's access
+  controls is often sufficient; git-crypt is available if not. Don't carry a personal
+  vault's setup across without asking whether it fits.
 
 ## Fresh-machine setup
 

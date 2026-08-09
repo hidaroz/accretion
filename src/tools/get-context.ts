@@ -97,10 +97,10 @@ export function registerGetContext(
         // Fair-share the budget instead of first-come-first-served.
         //
         // Filling one shared budget in order lets the first topic starve the
-        // rest: asking for observability + cycling + structure returned the Observability
-        // brief and a "budget reached" marker, because that brief alone is
-        // larger than the default allowance. A caller naming three topics wants
-        // three topics, not the first one in full.
+        // rest: asking for three topics returned the first brief in full and a
+        // "budget reached" marker, because that brief alone was larger than the
+        // default allowance. A caller naming three topics wants three topics,
+        // not the first one in full.
         //
         // Each brief gets an equal share of what is left, and whatever it does
         // not use rolls forward — so small briefs subsidise large ones rather

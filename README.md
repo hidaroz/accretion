@@ -44,12 +44,14 @@ cp .env.example .env
 | Var | Default | Purpose |
 |---|---|---|
 | `API_KEY` | *(required)* | Bearer token every `/mcp` request must send |
-| `VAULTS_CONFIG` | `~/.config/accretion/vaults.json` | Path to the multi-vault registry |
+| `VAULTS_CONFIG` | *(required)* | Path to the multi-vault registry. `setup-vault` writes `~/.config/accretion/vaults.json`; the server does **not** assume it — point `.env` at the file. A leading `~` is expanded. |
 | `VAULT_PATH` | — | Legacy single-vault mode (used only if `VAULTS_CONFIG` is unset) |
 | `HOST` | `127.0.0.1` | Bind address (localhost-only by default; `0.0.0.0` to expose) |
 | `PORT` | `3001` | Listen port |
 | `DISABLE_EMBEDDINGS` | — | Set to `1` to skip the semantic model (keyword + routing only) |
 | `TRANSFORMERS_CACHE` | OS cache dir | Where the embedding model weights are cached |
+| `EMBEDDING_MODEL` | `Xenova/all-MiniLM-L6-v2` | Override the sentence-embedding model |
+| `LOG_LEVEL` | `info` | `error` silences the info-level startup lines |
 
 **2. Register a vault** — this creates the vault skeleton and the registry entry:
 
@@ -130,8 +132,29 @@ bearer_token_env_var = "API_KEY"
 
 ## Fresh machine
 
-One command wires the per-machine pieces (build, the SessionEnd capture hook, and the
-`~/.claude/settings.json` entry). It's idempotent and backs up `settings.json` before editing:
+One command wires the per-machine pieces: build, the SessionEnd capture hook, the
+`/memory-weekly` command, and the `~/.claude/settings.json` entry. It's idempotent and backs
+up anything it overwrites.
+
+> ### What the capture hook records — read this before running bootstrap
+>
+> The hook is installed **globally**, into `~/.claude/settings.json`. It has to be, or it
+> would never fire. That means it runs at the end of **every** Claude Code session, in every
+> project you open.
+>
+> For a project you have mapped to a vault, it writes a note containing the session's
+> **topics, the files you changed, and the shell commands you ran**, then `git commit`s it.
+>
+> **Capture is opt-in.** `_default: null` in `~/.claude/hooks/project-vault-map.json` means
+> unmapped projects record *nothing*. Add a mapping (or run `setup-vault --project <slug>`)
+> to turn capture on for a project. Setting `_default` to a vault id captures everything —
+> that's a deliberate choice, not the default.
+>
+> Credentials are stripped before anything is written (vendor tokens, JWTs, URL-embedded
+> passwords, `FOO_SECRET=` assignments). It is deliberately blunt and it is **not a
+> guarantee** — assume a vault contains whatever you pasted into a session.
+>
+> `gitAutoPush` defaults to **false**. Nothing leaves your machine unless you enable it.
 
 ```bash
 node scripts/bootstrap.mjs            # add --server-autostart to also install the launchd agent
@@ -158,10 +181,13 @@ weekly memory-maintenance job has its own agent — see [`launchd/`](launchd/).
 ```
 src/            MCP server (tools, vault indexing, hybrid retrieval, brief routing)
 scripts/        CLI: setup-vault, bootstrap, doctor, memory-* maintenance, memory-eval (the eval harness)
+bin/            launchd wrappers (server, weekly maintenance run)
 hooks/          session-journal capture hook (copied into ~/.claude/hooks/)
-launchd/  launchd templates (server + weekly maintenance)
-evals/          eval cases + scorecards (see docs/2026-06-28-eval-parity-split.md)
-docs/           DESIGN, NEW-PROJECT, REVIEW-RESPONSE, HANDOFF
+commands/       /memory-weekly slash command (copied into ~/.claude/commands/)
+launchd/        launchd templates (server + weekly maintenance)
+demo-vault/     example vault documenting this system; the eval fixture
+evals/          eval cases + scorecards (evals/results/)
+docs/           DESIGN, NEW-PROJECT, REVIEW-RESPONSE
 ```
 
 ## Troubleshooting
@@ -182,4 +208,9 @@ npm test         # vitest
 npm run build    # tsc → dist/
 ```
 
-Maintained by Hidar Elhassan. Private repository.
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the things that will bite you, and
+[`SECURITY.md`](SECURITY.md) for what this software does to your machine.
+
+Maintained by Hidar Elhassan. MIT licensed.

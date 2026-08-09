@@ -15,7 +15,7 @@
  * Requires `npm run build` (imports compiled dist/). Does NOT commit — the
  * caller commits.
  *
- * NOTE: As of the propose-only decision (docs ADR-007), this is a
+ * NOTE: Under the propose-only rule (see docs/DESIGN.md), this is a
  * HUMAN-DRIVEN tool for applying *reviewed* proposals. It is NOT part of the
  * unattended weekly run — the autonomous `/memory-weekly` only proposes; brief
  * content is never edited without human review.

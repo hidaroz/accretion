@@ -13,8 +13,8 @@ Coding agents are stateless across sessions. The "memory" products (Mem0, Zep, L
 solve this by auto-extracting facts into a vector/graph store the agent owns and the human
 never reads. That works for a product adding memory via an API. It doesn't fit what I
 actually wanted: a **legible, owned, version-controlled knowledge base that compounds**,
-that *I* curate and my agents both read and maintain — for real production work (a
-client platform, and soon a contract role where IP locality matters).
+that *I* curate and my agents both read and maintain — under the constraints of real
+client work, where the notes themselves are often the sensitive asset.
 
 ## Thesis
 
@@ -122,11 +122,11 @@ memory-quality loop.* Changes made in response:
    auto-apply was removed. The weekly run now **proposes** every brief change; a human
    reviews and applies (`apply_brief_proposal`). `confidence` is a triage hint, not a
    trigger. Deterministic housekeeping (digests, `last_reviewed` stamps, archive) stays
-   automatic. (docs ADR-007.)
+   automatic.
 2. **A measurable loop.** Added a deterministic eval harness (`evals/`, `scripts/memory-eval.mjs`):
    precision/recall@k for keyword + semantic retrieval and brief-routing accuracy against
    known-answer cases, with committed scorecards. First run already surfaced that NL queries
-   under keyword search bury briefs (routing recovers them). (docs ADR-008.)
+   under keyword search bury briefs (routing recovers them).
 3. **Deferred deliberately:** LLM-judge answer quality; a *re-introduced* narrow,
    kind+invariant, **eval-gated** auto-apply lane (earn autonomy back with measurement);
    a run ledger before any multi-writer use; ANN indexing (~50k chunks).

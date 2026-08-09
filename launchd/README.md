@@ -5,7 +5,7 @@ macOS launchd agent. It synthesizes digests, **proposes** brief updates, archive
 digest-covered sessions, commits, writes a run report, and fires a notification.
 
 The run never edits brief content. Brief edits are semantic judgments, so
-confidence-gated unattended auto-apply was removed (docs ADR-007, see
+confidence-gated unattended auto-apply was removed (see
 `docs/DESIGN.md` → "Review outcome"). Proposals land in
 `proposals/brief-updates/` and a human applies them with
 `scripts/memory-apply-proposals.mjs --apply`. Deterministic housekeeping —

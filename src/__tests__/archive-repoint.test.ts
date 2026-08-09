@@ -6,9 +6,9 @@ import { repointDigests } from "../tools/archive-sessions.js";
 
 /**
  * Archiving moved session files and left every digest pointing at where they
- * used to be. The June 2026 run stranded 92 source links across a production vault
- * and nothing reported it — validateStructure checks dangling links in the
- * curated layer only, and deliberately skips sessions/.
+ * used to be. One run stranded dozens of source links across a vault and nothing
+ * reported it — validateStructure checks dangling links in the curated layer
+ * only, and deliberately skips sessions/.
  *
  * The damage is not cosmetic: getDigestedSessionPaths reads `sources` to decide
  * what is safe to archive, so a digest that has lost track of its own sources

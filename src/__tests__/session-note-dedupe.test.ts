@@ -7,10 +7,10 @@ import { findExistingSessionNote, readCreated } from "../../hooks/session-journa
 
 /**
  * A resumed session ends more than once, and the hook used to write to that
- * day's date directory every time. `atlas-mobile-app-7350c33b.md` ended up
- * existing seven times over twelve days, byte-identical but for `created:`
- * (found 2026-08-05). Retrieval degraded accordingly: one semantic query
- * returned four copies of the same note as four of its five hits.
+ * day's date directory every time, so one note could end up existing several
+ * times over, byte-identical but for `created:`. Retrieval degraded
+ * accordingly — a single semantic query could return four copies of the same
+ * note as four of its five hits.
  *
  * The fix is to find the note this session already owns and update it there.
  */

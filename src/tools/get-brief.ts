@@ -19,7 +19,7 @@ export function registerGetBrief(
         topic: z
           .string()
           .describe(
-            "Topic keyword (e.g., 'roasting', 'cycling', 'auth', 'schema', 'mobile', 'observability')"
+            "Topic keyword (e.g., 'routing', 'retrieval', 'auth', 'schema', 'capture', 'onboarding')"
           ),
       },
       annotations: {

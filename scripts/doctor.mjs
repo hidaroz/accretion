@@ -117,10 +117,10 @@ try {
 // 7. Pipeline liveness.
 //
 // Everything above answers "is this installed?". None of it answers "is it
-// still running?" — and that is how this pipeline has died, twice, in silence:
-// once when the capture hook vanished (2026-07-28), once when the weekly agent
-// was generated but never loaded (unnoticed for six weeks, found 2026-08-05).
-// Nothing broke loudly either time. These checks are the alarm.
+// still running?" — and that is how this pipeline has died in silence more than
+// once: a capture hook that vanished, and a weekly agent that was generated but
+// never loaded. Neither broke loudly, and both went unnoticed for weeks. These
+// checks are the alarm.
 console.log("");
 
 // 7a. The command the wrapper invokes.
@@ -243,7 +243,7 @@ for (const v of vaults ?? []) {
 
   // 7f. Brief size. get_context concatenates whole briefs under a token budget,
   // so one oversized brief starves every other topic in an assembled context.
-  // brief-observability.md reached 78 KB — more than the 20k-token ceiling
+  // A single brief has reached 78 KB in practice — more than the 20k-token ceiling
   // the tool allows in total.
   for (const n of notes) {
     if (!path.basename(n).startsWith("brief-")) continue;

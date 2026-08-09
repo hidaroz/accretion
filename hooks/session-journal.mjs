@@ -77,9 +77,9 @@ function main() {
   const fileName = `${projectSlug}-${session_id.slice(0, 8)}.md`;
 
   // A resumed session ends more than once. Writing to today's date directory
-  // each time produced up to seven byte-identical copies of one note (found
-  // 2026-08-05), which crowded real results out of retrieval. Reuse the note
-  // this session already has, wherever it lives, and update it in place.
+  // each time produces byte-identical copies of one note, which crowd real
+  // results out of retrieval. Reuse the note this session already has,
+  // wherever it lives, and update it in place.
   const existingPath = findExistingSessionNote(vaultPath, fileName);
   const notePath = existingPath || `sessions/${dateDir}/${fileName}`;
   const fullPath = join(vaultPath, notePath);
@@ -154,8 +154,8 @@ function main() {
   }
 
   // Session capture is the busiest writer in the vault, so a hook that only
-  // ever commits is the main reason the off-machine backup falls behind — it
-  // sat 61 commits and three weeks stale before 2026-08-05. Push when the vault
+  // ever commits is the main reason an off-machine backup falls behind — it can
+  // sit dozens of commits stale without anything saying so. Push when the vault
   // opts in, matching what the MCP write path already does with this flag.
   //
   // Best-effort by design: this runs at session end, offline or on a dead
@@ -184,8 +184,8 @@ function getVaultAutoPush(vaultId) {
  *
  * Session notes copy user messages and shell commands verbatim, so a pasted
  * token or an `export API_KEY=...` line ends up in the note — and the vault
- * auto-commits and can be pushed. That is how a live Neon API key and a
- * production database password reached git history (found 2026-07-28).
+ * auto-commits and can be pushed. Live API keys and database passwords have
+ * reached git history exactly this way.
  *
  * Deliberately blunt: a false positive costs a redacted word in a note, a false
  * negative costs a leaked credential. Order matters — specific vendor patterns

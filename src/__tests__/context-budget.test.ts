@@ -4,7 +4,7 @@ import { truncateAtSection } from "../tools/get-context.js";
 /**
  * get_context concatenates whole briefs under a shared token budget, in the
  * order the caller listed topics. That let one oversized brief starve the rest:
- * asking for observability + cycling + structure returned only the Observability brief and a
+ * asking for three topics returned only the first brief and a
  * "budget reached" marker, because that brief alone exceeded the default 8k
  * allowance. Each brief now gets a share of the budget and is cut to fit.
  *

@@ -36,12 +36,12 @@ export interface RouteOptions {
   marginRatio?: number;
 }
 
-// Calibrated on the demo eval (see evals/results + ADR-010). MiniSearch scores
+// Calibrated against demo-vault/ (see evals/results/). MiniSearch scores
 // are vault-relative, so these may need per-vault tuning; the eval is the tool.
 // A modest floor + margin keep obviously-weak/ambiguous matches out; the
 // domain-trigger guard (below) does the real precision work, so we deliberately
 // DON'T crank the global floor (which would quietly kill legitimate fuzzy routes).
-// See ADR-010/011 / evals/results for calibration.
+// Run `memory-eval.mjs --sweep-routing` against your own vault to re-derive these.
 export const DEFAULT_FLOOR = 4;
 export const DEFAULT_MARGIN_RATIO = 1.3;
 
@@ -130,7 +130,7 @@ export function routeBrief(
   // 3. Fuzzy tag_search — needs floor AND margin AND a domain trigger. The
   // trigger is the key guard: route only if the query carries evidence tied to
   // THIS brief (a map keyword / title / slug token), so "support phone number"
-  // never lands on the Observability brief just because it's nearby in vector/keyword
+  // never lands on the security brief just because it's nearby in vector/keyword
   // space. Intent over proximity.
   const second = hits[1]?.score ?? 0;
   const ratio = second > 0 ? top.score / second : Infinity;
