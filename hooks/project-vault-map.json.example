@@ -1,4 +1,5 @@
 {
-  "devprojects": "brain",
-  "_default": "general"
+  "_comment": "Maps a project directory's basename to a vault id. Capture is opt-in: with _default null, sessions from unmapped projects are not recorded at all. Set _default to a vault id to capture everything instead.",
+  "my-project": "work",
+  "_default": null
 }

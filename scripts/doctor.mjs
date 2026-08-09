@@ -15,6 +15,7 @@ import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { hasSessionJournalHook } from "./lib/settings-merge.mjs";
+import { expandHome } from "./lib/expand-home.mjs";
 
 // Script-relative by default, which is right for every normal invocation.
 // ACCRETION_HOME overrides it for callers that are not running from a checkout
@@ -23,9 +24,13 @@ import { hasSessionJournalHook } from "./lib/settings-merge.mjs";
 const REPO =
   process.env.ACCRETION_HOME ||
   path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CLAUDE_HOME = process.env.CLAUDE_HOME || path.join(os.homedir(), ".claude");
-const VAULTS_CONFIG =
-  process.env.VAULTS_CONFIG || path.join(os.homedir(), ".config", "accretion", "vaults.json");
+const CLAUDE_HOME = expandHome(
+  process.env.CLAUDE_HOME || path.join(os.homedir(), ".claude")
+);
+const VAULTS_CONFIG = expandHome(
+  process.env.VAULTS_CONFIG ||
+    path.join(os.homedir(), ".config", "accretion", "vaults.json")
+);
 const PORT = process.env.PORT || "3001";
 const HOST = process.env.HOST || "127.0.0.1";
 const MIN_NODE_MAJOR = 20;
@@ -118,14 +123,33 @@ try {
 // Nothing broke loudly either time. These checks are the alarm.
 console.log("");
 
-// 7a. The command the wrapper invokes. bootstrap.mjs does not install it, so a
-// fresh machine has a scheduled job calling a slash command that does not exist.
+// 7a. The command the wrapper invokes.
+//
+// Missing only matters if something is actually scheduled to call it. On a
+// fresh install nothing is, and failing there would make the documented final
+// verification step red for every new user — the same trap 7b avoids below.
+// "In use" means a run has actually happened, not that the directory exists —
+// setup-vault creates the whole skeleton up front, so an empty _runs/ proves
+// nothing. Same definition as `managed` in 7b below; they must agree, or doctor
+// contradicts itself in adjacent lines.
+const hasRuns = (v) => {
+  const dir = path.join(v.path, "sessions", "digests", "_runs");
+  return (
+    fs.existsSync(dir) && fs.readdirSync(dir).some((f) => f.endsWith(".md"))
+  );
+};
+const weeklyInUse = (vaults ?? []).some((v) => v.path && hasRuns(v));
 const commandPath = path.join(CLAUDE_HOME, "commands", "memory-weekly.md");
 if (fs.existsSync(commandPath)) pass("/memory-weekly command installed");
-else
+else if (weeklyInUse)
   fail(
-    "/memory-weekly command missing",
-    `create ${commandPath} — the launchd wrapper runs \`claude -p "/memory-weekly …"\` and fails without it`
+    "/memory-weekly command missing, but a vault is curated",
+    `run \`node scripts/bootstrap.mjs\` to install it — the launchd wrapper runs \`claude -p "/memory-weekly …"\` and fails without it`
+  );
+else
+  warn(
+    "/memory-weekly command not installed (weekly loop not in use)",
+    "run `node scripts/bootstrap.mjs` to enable the weekly loop, or ignore this if you only want the server"
   );
 
 for (const v of vaults ?? []) {

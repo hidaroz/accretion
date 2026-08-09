@@ -58,11 +58,13 @@ describe("upsertVault", () => {
 });
 
 describe("upsertProjectMap", () => {
-  it("maps each slug to the vault id and ensures _default", () => {
+  it("maps each slug to the vault id without opting the user into catch-all capture", () => {
     const out = upsertProjectMap({}, ["acme-foo", "acme-bar"], "beta");
     expect(out["acme-foo"]).toBe("beta");
     expect(out["acme-bar"]).toBe("beta");
-    expect(out._default).toBe("general");
+    // Onboarding one vault must not start recording every other project the
+    // user opens. A null _default means the hook skips unmapped projects.
+    expect(out._default).toBeNull();
   });
 
   it("preserves existing mappings and overrides only the given slugs", () => {

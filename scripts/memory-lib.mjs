@@ -4,15 +4,21 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
+import { expandHome } from "./lib/expand-home.mjs";
 
 // Keep stdout pure JSON: the dist/ logger writes info-level lines to
 // stdout. This module must stay the FIRST import in every memory-* script
 // so the level is set before the logger module is evaluated.
 process.env.LOG_LEVEL = process.env.LOG_LEVEL || "error";
 
-const VAULTS_CONFIG =
+// os.homedir() rather than process.env.HOME: under launchd and in containers
+// HOME is often unset, and joining from "" yields a *relative* path that
+// resolves against whatever cwd the caller happened to have.
+const VAULTS_CONFIG = expandHome(
   process.env.VAULTS_CONFIG ||
-  path.join(process.env.HOME || "", ".config", "accretion", "vaults.json");
+    path.join(os.homedir(), ".config", "accretion", "vaults.json")
+);
 
 export function parseArgs(argv) {
   const args = {};

@@ -19,9 +19,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { homedir } from "node:os";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "./memory-lib.mjs";
+import { expandHome } from "./lib/expand-home.mjs";
 import {
   upsertVault,
   upsertProjectMap,
@@ -36,9 +37,6 @@ const args = parseArgs(process.argv.slice(2));
 function fail(msg) {
   console.error(`Error: ${msg}`);
   process.exit(1);
-}
-function expandHome(p) {
-  return p.replace(/^~(?=$|\/)/, homedir());
 }
 function readJson(p, fallback) {
   try {
@@ -67,13 +65,15 @@ let slugs =
     : [];
 if (slugs.length === 0) slugs = [path.basename(vaultPath)];
 
-const VAULTS_CONFIG =
+const VAULTS_CONFIG = expandHome(
   process.env.VAULTS_CONFIG ||
-  path.join(homedir(), ".config", "accretion", "vaults.json");
-const MAP_PATH =
+    path.join(homedir(), ".config", "accretion", "vaults.json")
+);
+const MAP_PATH = expandHome(
   typeof args.map === "string"
     ? args.map
-    : path.join(homedir(), ".claude", "hooks", "project-vault-map.json");
+    : path.join(homedir(), ".claude", "hooks", "project-vault-map.json")
+);
 
 // 1. Skeleton
 for (const d of SKELETON_DIRS) {
@@ -108,15 +108,38 @@ writeJson(VAULTS_CONFIG, cfg);
 writeJson(MAP_PATH, upsertProjectMap(readJson(MAP_PATH, {}), slugs, id));
 
 // 5. Optional git init (never pushes)
+//
+// `add -A && commit` is safe in a repo this script just created, and reckless
+// in one it did not: --path can legitimately point at an existing repo, since
+// onboarding is advertised as idempotent and re-runnable. Committing there
+// would sweep up every unstaged change the user had in flight, under a message
+// about initializing a memory vault. So: only auto-commit a clean tree.
 if (args.git === true) {
+  // execFileSync, not execSync: displayName and vaultPath come from argv and
+  // would otherwise be interpolated into a shell string, where a quote or a
+  // backtick in either turns a commit message into arbitrary execution.
+  const git = (gitArgs, opts = {}) =>
+    execFileSync("git", ["-C", vaultPath, ...gitArgs], { stdio: "ignore", ...opts });
+
   try {
-    if (!fs.existsSync(path.join(vaultPath, ".git"))) {
-      execSync(`git -C "${vaultPath}" init -q`, { stdio: "ignore" });
+    const preexisting = fs.existsSync(path.join(vaultPath, ".git"));
+    if (!preexisting) git(["init", "-q"]);
+
+    const dirty = git(["status", "--porcelain"], {
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf8",
+    }).trim();
+
+    if (preexisting && dirty) {
+      console.error(
+        `git commit skipped: ${vaultPath} is an existing repo with uncommitted changes.\n` +
+          `  Commit or stash them yourself — refusing to sweep unrelated work into ` +
+          `"chore: initialize ${displayName} memory vault".`
+      );
+    } else if (dirty) {
+      git(["add", "-A"]);
+      git(["commit", "-q", "-m", `chore: initialize ${displayName} memory vault`]);
     }
-    execSync(
-      `git -C "${vaultPath}" add -A && git -C "${vaultPath}" commit -q -m "chore: initialize ${displayName} memory vault" || true`,
-      { stdio: "ignore" }
-    );
   } catch (err) {
     console.error(`git init/commit skipped: ${err.message}`);
   }
@@ -129,7 +152,7 @@ if (args.launchd === true) {
   const logDir = path.join(homedir(), "Library", "Logs", "memory-weekly", id);
   fs.mkdirSync(logDir, { recursive: true });
   const tmpl = fs.readFileSync(
-    path.join(REPO, "infra", "launchd", "memory-weekly.plist.template"),
+    path.join(REPO, "launchd", "memory-weekly.plist.template"),
     "utf8"
   );
   const filled = tmpl
@@ -137,7 +160,7 @@ if (args.launchd === true) {
     .replaceAll("__WRAPPER__", path.join(REPO, "bin", "memory-weekly-run.sh"))
     .replaceAll("__VAULT__", id)
     .replaceAll("__LOGDIR__", logDir);
-  plistOut = path.join(REPO, "infra", "launchd", `${label}.plist`);
+  plistOut = path.join(REPO, "launchd", `${label}.plist`);
   fs.writeFileSync(plistOut, filled);
 }
 

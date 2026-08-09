@@ -39,19 +39,23 @@ export function upsertVault(
 }
 
 /**
- * Map each project slug to the vault id (idempotent) and guarantee a
- * `_default` entry. An existing `_default` is preserved.
+ * Map each project slug to the vault id (idempotent).
+ *
+ * Deliberately does NOT invent a `_default`. Setting one turns on capture for
+ * every project the user opens, including ones they never registered — that is
+ * their call to make, not a side effect of onboarding one vault. An existing
+ * `_default` is preserved.
  */
 export function upsertProjectMap(
-  map: Record<string, string>,
+  map: Record<string, string | null>,
   slugs: string[],
   vaultId: string
-): Record<string, string> {
+): Record<string, string | null> {
   const next = { ...map };
   for (const slug of slugs) {
     if (slug && slug !== "_default") next[slug] = vaultId;
   }
-  if (!next._default) next._default = "general";
+  if (!("_default" in next)) next._default = null;
   return next;
 }
 

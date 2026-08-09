@@ -61,11 +61,21 @@ if (SKIP_INSTALL) {
 // 3. capture hook
 const hooksDir = path.join(CLAUDE_HOME, "hooks");
 fs.mkdirSync(hooksDir, { recursive: true });
-fs.copyFileSync(
-  path.join(REPO, "hooks", "session-journal.mjs"),
-  path.join(hooksDir, "session-journal.mjs")
-);
-ok(`installed capture hook → ${path.join(hooksDir, "session-journal.mjs")}`);
+const hookDest = path.join(hooksDir, "session-journal.mjs");
+// Back up before clobbering, the same as settings.json below. This path is not
+// namespaced to us — a user may have their own session-journal.mjs there, and
+// an idempotent installer must not be the thing that destroys it.
+if (fs.existsSync(hookDest)) {
+  const current = fs.readFileSync(hookDest);
+  const incoming = fs.readFileSync(path.join(REPO, "hooks", "session-journal.mjs"));
+  if (!current.equals(incoming)) {
+    const backup = `${hookDest}.bak-${Date.now()}`;
+    fs.copyFileSync(hookDest, backup);
+    info(`backed up existing capture hook → ${path.basename(backup)}`);
+  }
+}
+fs.copyFileSync(path.join(REPO, "hooks", "session-journal.mjs"), hookDest);
+ok(`installed capture hook → ${hookDest}`);
 
 const mapDest = path.join(hooksDir, "project-vault-map.json");
 if (!fs.existsSync(mapDest)) {
@@ -106,7 +116,7 @@ if (SERVER_AUTOSTART) {
     info("--server-autostart is macOS-only; skipped");
   } else {
     const template = fs.readFileSync(
-      path.join(REPO, "infra", "launchd", "mcp-server.plist.template"),
+      path.join(REPO, "launchd", "mcp-server.plist.template"),
       "utf8"
     );
     const label = "com.accretion.server";

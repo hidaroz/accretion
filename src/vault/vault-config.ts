@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { logger } from "../utils/logger.js";
+import { expandHome } from "../utils/path-safety.js";
 
 export interface VaultConfig {
   id: string;
@@ -20,16 +21,19 @@ export async function loadVaultsConfig(): Promise<VaultConfig[]> {
   const legacyVaultPath = process.env.VAULT_PATH;
 
   if (configPath) {
-    const resolved = path.resolve(configPath);
+    const resolved = path.resolve(expandHome(configPath));
     const raw = await fs.readFile(resolved, "utf-8");
     const parsed = JSON.parse(raw) as VaultsConfigFile;
     validate(parsed.vaults);
+    // Vault paths are hand-editable, so they get the same treatment as the
+    // registry path itself — a `~` in vaults.json is a typo waiting to happen.
+    for (const v of parsed.vaults) v.path = path.resolve(expandHome(v.path));
     logger.info(`Loaded ${parsed.vaults.length} vault(s) from ${resolved}`);
     return parsed.vaults;
   }
 
   if (legacyVaultPath) {
-    const abs = path.resolve(legacyVaultPath);
+    const abs = path.resolve(expandHome(legacyVaultPath));
     logger.info(`Single-vault mode: ${abs}`);
     return [
       {

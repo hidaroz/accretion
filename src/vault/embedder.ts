@@ -1,6 +1,7 @@
 import { pipeline, env } from "@xenova/transformers";
 import type { Embedder } from "./embedding-index.js";
 import { logger } from "../utils/logger.js";
+import { expandHome } from "../utils/path-safety.js";
 
 // All inference is local. Model weights download once from the HF hub and are
 // cached on disk; nothing leaves the machine at query time. For locked-down
@@ -8,7 +9,9 @@ import { logger } from "../utils/logger.js";
 // path, or point EMBEDDING_MODEL at a vendored model directory.
 const MODEL = process.env.EMBEDDING_MODEL || "Xenova/all-MiniLM-L6-v2";
 if (process.env.TRANSFORMERS_CACHE) {
-  env.cacheDir = process.env.TRANSFORMERS_CACHE;
+  // Unexpanded, a leading `~` here creates a literal `~` directory in cwd and
+  // silently re-downloads the model on every run from a different directory.
+  env.cacheDir = expandHome(process.env.TRANSFORMERS_CACHE);
 }
 
 /**

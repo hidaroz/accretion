@@ -11,7 +11,10 @@ SERVER_REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$SERVER_REPO"
 
 # launchd hands processes a minimal PATH — make node resolvable.
-export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
+for d in /opt/homebrew/bin /usr/local/bin "$HOME/.local/bin" "$HOME/.npm-global/bin"; do
+  [ -d "$d" ] && case ":$PATH:" in *":$d:"*) ;; *) PATH="$d:$PATH" ;; esac
+done
+export PATH
 
 # Load .env if present (node also loads it via dotenv, but exporting here makes
 # the config visible to anything the wrapper does before node starts).

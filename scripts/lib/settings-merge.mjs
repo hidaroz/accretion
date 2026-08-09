@@ -3,9 +3,15 @@
 // and the unit test exercises these directly. Plain ESM (no build step) so it
 // can be imported on a fresh machine before `npm run build`.
 
-/** The command a SessionEnd hook runs to capture a session into the vault. */
+/**
+ * The command a SessionEnd hook runs to capture a session into the vault.
+ *
+ * The path is quoted: it is interpolated into a shell command, and a home
+ * directory containing a space (`/Users/First Last/...`) would otherwise write
+ * a hook that silently fails on every session.
+ */
 export function sessionJournalCommand(hooksDir) {
-  return `node ${hooksDir.replace(/\/$/, "")}/session-journal.mjs`;
+  return `node "${hooksDir.replace(/\/$/, "")}/session-journal.mjs"`;
 }
 
 /** True if any SessionEnd group already runs the session-journal capture hook. */

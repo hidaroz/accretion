@@ -9,11 +9,23 @@ import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Deliberately duplicated from scripts/lib/expand-home.mjs rather than
+// imported: this file is copied standalone into ~/.claude/hooks/, where the
+// rest of the repo is not on disk. It must have no local imports.
+function expandHome(p) {
+  if (p === '~') return homedir();
+  if (p.startsWith('~/')) return join(homedir(), p.slice(2));
+  return p;
+}
+
 // Machine-agnostic: honor VAULTS_CONFIG, else ~/.config/accretion/vaults.json.
-const VAULTS_CONFIG =
-  process.env.VAULTS_CONFIG || join(homedir(), '.config', 'accretion', 'vaults.json');
-const VAULT_MAP =
-  process.env.PROJECT_VAULT_MAP || join(__dirname, 'project-vault-map.json');
+const VAULTS_CONFIG = expandHome(
+  process.env.VAULTS_CONFIG || join(homedir(), '.config', 'accretion', 'vaults.json')
+);
+const VAULT_MAP = expandHome(
+  process.env.PROJECT_VAULT_MAP || join(__dirname, 'project-vault-map.json')
+);
 
 // Only run as a hook when executed directly. Importing the module (to test
 // redactSecrets, say) must not try to read a session off stdin.
@@ -56,6 +68,7 @@ function main() {
 
   const projectSlug = cwd ? basename(cwd) : 'unknown';
   const vaultId = resolveVault(projectSlug);
+  if (!vaultId) return; // unmapped project, and capture is opt-in
   const vaultPath = getVaultPath(vaultId);
   if (!vaultPath) return;
 
@@ -346,12 +359,23 @@ export function readCreated(fullPath) {
   }
 }
 
-function resolveVault(projectSlug) {
+/**
+ * Which vault should this project's sessions go to, if any.
+ *
+ * Returns null when the project is unmapped and no `_default` is set, and the
+ * caller then writes nothing. Capture is opt-in by design: this hook is
+ * installed globally and fires in *every* project the user opens, recording
+ * prompts, changed files, and executed shell commands. Defaulting that on for
+ * directories the user never named is not a reasonable thing to do to someone.
+ *
+ * Set `_default` to a vault id to capture everything instead.
+ */
+export function resolveVault(projectSlug, mapPath = VAULT_MAP) {
   try {
-    const map = JSON.parse(readFileSync(VAULT_MAP, 'utf8'));
-    return map[projectSlug] || map._default || 'general';
+    const map = JSON.parse(readFileSync(mapPath, 'utf8'));
+    return map[projectSlug] || map._default || null;
   } catch {
-    return 'general';
+    return null;
   }
 }
 

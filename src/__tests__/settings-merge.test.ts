@@ -2,12 +2,20 @@ import { describe, it, expect } from "vitest";
 // @ts-expect-error — plain ESM helper, no types (kept build-free for fresh-machine bootstrap)
 import { mergeSessionEndHook, hasSessionJournalHook, sessionJournalCommand } from "../../scripts/lib/settings-merge.mjs";
 
-const CMD = "node /home/u/.claude/hooks/session-journal.mjs";
+const CMD = 'node "/home/u/.claude/hooks/session-journal.mjs"';
 
 describe("sessionJournalCommand", () => {
   it("builds the command from a hooks dir, trimming a trailing slash", () => {
     expect(sessionJournalCommand("/home/u/.claude/hooks")).toBe(CMD);
     expect(sessionJournalCommand("/home/u/.claude/hooks/")).toBe(CMD);
+  });
+
+  it("quotes the path so a home directory with a space still works", () => {
+    // Unquoted, `/Users/First Last/...` writes a hook that fails on every
+    // session — silently, since nothing surfaces a hook's exit status.
+    expect(sessionJournalCommand("/Users/First Last/.claude/hooks")).toBe(
+      'node "/Users/First Last/.claude/hooks/session-journal.mjs"'
+    );
   });
 });
 
