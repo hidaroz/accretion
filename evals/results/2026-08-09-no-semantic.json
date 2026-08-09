@@ -1,0 +1,3776 @@
+{
+  "stamp": "2026-08-09T20:52:41.141Z",
+  "vault": "demo",
+  "k": 5,
+  "mode": "no-semantic",
+  "faithful": false,
+  "evalEpoch": "2026-08-01T00:00:00.000Z",
+  "aggregate": {
+    "count": 90,
+    "positives": 77,
+    "negatives": 13,
+    "keyword": {
+      "recall": 0.974025974025974,
+      "success": 0.974025974025974,
+      "mrr": 0.8322510822510824,
+      "precision": 0.23008658008657984
+    },
+    "semantic": {
+      "recall": 0,
+      "success": 0,
+      "mrr": 0,
+      "precision": 0
+    },
+    "hybridRaw": {
+      "recall": 0.974025974025974,
+      "success": 0.974025974025974,
+      "mrr": 0.8322510822510824,
+      "precision": 0.23008658008657984
+    },
+    "hybridQueryPin": {
+      "recall": 0.974025974025974,
+      "success": 0.974025974025974,
+      "mrr": 0.8322510822510824,
+      "precision": 0.23008658008657984
+    },
+    "hybridTopicPin": {
+      "recall": 0.987012987012987,
+      "success": 0.987012987012987,
+      "mrr": 0.987012987012987,
+      "precision": 0.23268398268398247
+    },
+    "routingAccuracy": 1,
+    "negativeRoutingAccuracy": 0.9230769230769231
+  },
+  "routing": {
+    "topic": {
+      "precision": 0.9871794871794872,
+      "recall": 1,
+      "abstention": 0.13333333333333333,
+      "negAccuracy": 0.9230769230769231,
+      "wrongRoutes": 1,
+      "wrongRouteIds": [
+        "nneg-finetune"
+      ]
+    },
+    "query": {
+      "precision": 0.92,
+      "recall": 0.2987012987012987,
+      "abstention": 0.7222222222222222,
+      "negAccuracy": 1,
+      "wrongRoutes": 2,
+      "wrongRouteIds": [
+        "retr-two-indexes",
+        "dig-archive-rule"
+      ]
+    }
+  },
+  "pinAnalysis": {
+    "wrongRoutes": 2,
+    "wrongRouteIds": [
+      "retr-two-indexes",
+      "dig-archive-rule"
+    ],
+    "appliedWrongPins": null,
+    "appliedWrongPinIds": null,
+    "pinRegressions": null,
+    "severeRegressionIds": null,
+    "rankingRegressionIds": null
+  },
+  "hybRecallCI": [
+    0.935064935064935,
+    1
+  ],
+  "scores": [
+    {
+      "id": "retr-hybrid",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "retr-rrf-nl",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "retr-two-indexes",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "retr-pinning",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "retr-sessions-demoted",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "route-gates",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "route-abstain",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "route-trigger",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "route-floor",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "route-calibrate",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "embed-local",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "embed-model",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "embed-scope",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "embed-offline",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "embed-disable",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "search-weights",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "search-recency",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "search-tags",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "cap-what",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "cap-optin",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.25
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.25
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.25
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "cap-secrets",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "cap-dupes",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "cap-falsepos",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "dig-why",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "dig-archive-rule",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "dig-links",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "dig-openthreads",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "prop-why",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "prop-confidence",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "prop-limits",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "prop-apply",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "loop-what",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "loop-dryrun",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "loop-memory",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "loop-silent",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "trans-http",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "trans-auth",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "trans-bind",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "trans-restart",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "struct-folders",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "struct-why-md",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "struct-fm",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "struct-briefmap",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "path-escape",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "path-symlink",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "path-tilde",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "vault-multi",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "vault-registry",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "vault-push",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "onboard-first",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "onboard-safe",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "onboard-newvault",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "obs-liveness",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "obs-severity",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "obs-briefsize",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "eval-metrics",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "eval-strata",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "eval-clock",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "eval-ci",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.5
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "coffee-crack",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "coffee-rest",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "bread-temp",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "bread-starter",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "bike-chain",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "bike-shift",
+      "negative": false,
+      "stratum": "nl",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "dn-routing",
+      "negative": false,
+      "stratum": "direct-name",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "dn-hybrid",
+      "negative": false,
+      "stratum": "direct-name",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "dn-capture",
+      "negative": false,
+      "stratum": "direct-name",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "dn-observability",
+      "negative": false,
+      "stratum": "direct-name",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "acr-rrf",
+      "negative": false,
+      "stratum": "terse-acronym",
+      "keyword": {
+        "precision": 0.3333333333333333,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.3333333333333333,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.3333333333333333,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.3333333333333333,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "acr-mrr",
+      "negative": false,
+      "stratum": "terse-acronym",
+      "keyword": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "acr-mcp",
+      "negative": false,
+      "stratum": "terse-acronym",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "acr-minilm",
+      "negative": false,
+      "stratum": "terse-acronym",
+      "keyword": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "acr-minisearch",
+      "negative": false,
+      "stratum": "terse-acronym",
+      "keyword": {
+        "precision": 0.25,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.25,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridQueryPin": {
+        "precision": 0.25,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridTopicPin": {
+        "precision": 0.25,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "acr-gitautopush",
+      "negative": false,
+      "stratum": "terse-acronym",
+      "keyword": {
+        "precision": 0.3333333333333333,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.3333333333333333,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 0.3333333333333333,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 0.3333333333333333,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "acr-launchd",
+      "negative": false,
+      "stratum": "terse-acronym",
+      "keyword": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridQueryPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 0.3333333333333333
+      },
+      "hybridTopicPin": {
+        "precision": 0.2,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "acr-realpath",
+      "negative": false,
+      "stratum": "terse-acronym",
+      "keyword": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridQueryPin": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "hybridTopicPin": {
+        "precision": 1,
+        "recall": 1,
+        "hits": 1,
+        "success": true,
+        "rr": 1
+      },
+      "routingHit": true
+    },
+    {
+      "id": "neg-weather",
+      "negative": true,
+      "stratum": "off-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "neg-poem",
+      "negative": true,
+      "stratum": "off-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "neg-css",
+      "negative": true,
+      "stratum": "off-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "neg-taxes",
+      "negative": true,
+      "stratum": "off-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "neg-marathon",
+      "negative": true,
+      "stratum": "off-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "neg-guitar",
+      "negative": true,
+      "stratum": "off-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "neg-spanish",
+      "negative": true,
+      "stratum": "off-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "neg-plants",
+      "negative": true,
+      "stratum": "off-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "nneg-sharding",
+      "negative": true,
+      "stratum": "near-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "nneg-chunking",
+      "negative": true,
+      "stratum": "near-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "nneg-finetune",
+      "negative": true,
+      "stratum": "near-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": false
+    },
+    {
+      "id": "nneg-promptcache",
+      "negative": true,
+      "stratum": "near-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    },
+    {
+      "id": "nneg-graphql",
+      "negative": true,
+      "stratum": "near-domain-neg",
+      "keyword": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "semantic": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridRaw": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridQueryPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "hybridTopicPin": {
+        "precision": 0,
+        "recall": 0,
+        "hits": 0,
+        "success": false,
+        "rr": 0
+      },
+      "routingHit": true
+    }
+  ]
+}
