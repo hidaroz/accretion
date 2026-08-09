@@ -1,0 +1,4 @@
+# Derived, machine-local state — rebuilt on demand.
+.mcp/embeddings.json
+.obsidian/workspace*
+.DS_Store

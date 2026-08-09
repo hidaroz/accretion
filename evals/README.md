@@ -60,6 +60,6 @@ Routing prefers **"no brief" over a plausible-but-wrong one**. The fuzzy `tag_se
 
 ## How to use it
 
-- **Expand the seed**: ~12 cases ship here; grow to 20–50 covering your real recurring questions, with the notes you'd expect a good answer to cite.
+- **Expand the seed**: 90 cases ship here, written against `demo-vault/`. For your own vault, replace them — grow to 50+ covering the questions you actually ask, with the notes you'd expect a good answer to cite. Keep the negative strata; they are what stops you tuning yourself into a system that always answers and is sometimes confidently wrong.
 - **Re-run after any change** to retrieval, conventions, brief-map, or chunking. **A drop is a regression** — treat the committed scorecards as a baseline.
 - **Gate autonomy on it**: per the review, any future move to re-enable narrow auto-apply should be justified by measured behavior here, not confidence labels.

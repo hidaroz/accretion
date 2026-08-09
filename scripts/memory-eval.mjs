@@ -43,7 +43,11 @@ const EMPTY = { precision: 0, recall: 0, hits: 0, success: false, rr: 0 };
 // boosts off the wall clock, so without this the scorecard drifts as notes age
 // past the 7/30-day thresholds. Fix it to the snapshot the eval is calibrated
 // against so re-running yields identical numbers. Production still uses Date.now.
-const EVAL_EPOCH = Date.parse("2026-06-28T00:00:00Z");
+//
+// Overridable so a fixture with different note dates can pin its own epoch —
+// the docs described this as a re-pinnable knob long before it actually was.
+const EVAL_EPOCH = Date.parse(process.env.EVAL_EPOCH || "2026-08-01T00:00:00Z");
+if (Number.isNaN(EVAL_EPOCH)) fail(`EVAL_EPOCH is not a parseable date: ${process.env.EVAL_EPOCH}`);
 
 /**
  * Routing precision/recall/abstention for a given (floor,marginRatio). `keyOf`
