@@ -14,7 +14,7 @@ export function registerListTags(server: McpServer, registry: VaultRegistry): vo
         prefix: z
           .string()
           .optional()
-          .describe("Filter to tags starting with this prefix (e.g., 'project' to find 'project-work', 'project-mobile')"),
+          .describe("Filter to tags starting with this prefix (e.g., 'project' to find 'project-atlas', 'project-mobile')"),
       },
       annotations: {
         readOnlyHint: true,

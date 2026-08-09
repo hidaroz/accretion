@@ -6,8 +6,8 @@
  * Deterministic, no LLM. The measurable loop that gates autonomy.
  *
  * Usage:
- *   node scripts/memory-eval.mjs --vault work [--k 5] [--no-semantic] [--faithful] [--cases path]
- *   node scripts/memory-eval.mjs --vault work --sweep-routing   # grid for floor/marginRatio
+ *   node scripts/memory-eval.mjs --vault demo [--k 5] [--no-semantic] [--faithful] [--cases path]
+ *   node scripts/memory-eval.mjs --vault demo --sweep-routing   # grid for floor/marginRatio
  *
  * Case: { id, query, topic?, expectedNotes:[], expectedBrief: path|null, negative?, stratum? }
  * Requires `npm run build`.

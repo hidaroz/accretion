@@ -9,8 +9,8 @@ known-answer cases.
 
 ```bash
 npm run build                                   # scripts import dist/
-node scripts/memory-eval.mjs --vault work        # full (builds the embedding model once)
-node scripts/memory-eval.mjs --vault work --no-semantic   # fast: keyword + routing only
+node scripts/memory-eval.mjs --vault demo        # full (builds the embedding model once)
+node scripts/memory-eval.mjs --vault demo --no-semantic   # fast: keyword + routing only
 # flags: --k 5 (cutoff), --cases evals/cases.jsonl
 ```
 
@@ -49,7 +49,7 @@ Negative cases: `{ "id", "query", "topic", "expectedNotes": [], "expectedBrief":
 
 Routing prefers **"no brief" over a plausible-but-wrong one**. The fuzzy `tag_search` fallback must clear a score `floor` AND beat #2 by a `marginRatio`, else it abstains (`src/vault/brief-routing.ts`). `direct_map` and exact-title routes bypass the gate.
 
-- **Calibrate:** `node scripts/memory-eval.mjs --vault work --sweep-routing` prints precision/recall/abstention/neg-accuracy across a `(floor, marginRatio)` grid. Pick the conservative high-precision point by inspection; bake into `DEFAULT_FLOOR` / `DEFAULT_MARGIN_RATIO`. (Scores are MiniSearch-relative → may need per-vault tuning.)
+- **Calibrate:** `node scripts/memory-eval.mjs --vault demo --sweep-routing` prints precision/recall/abstention/neg-accuracy across a `(floor, marginRatio)` grid. Pick the conservative high-precision point by inspection; bake into `DEFAULT_FLOOR` / `DEFAULT_MARGIN_RATIO`. (Scores are MiniSearch-relative → may need per-vault tuning.)
 - **Routing precision** (of routed) is the headline; **negative-routing accuracy** is the false-positive guard. Goal: high precision without crushing positive routing recall.
 
 ## Strata, CIs, and the two-tier eval

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Launchd wrapper that starts the obsidian-mcp HTTP server. Sources the repo's
+# Launchd wrapper that starts the accretion HTTP server. Sources the repo's
 # .env (API_KEY, VAULTS_CONFIG, PORT, HOST) so the launchd-spawned process has
 # the same config as `npm start`. Installed by `bootstrap.mjs --server-autostart`.
 #

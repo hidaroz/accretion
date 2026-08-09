@@ -7,7 +7,7 @@ import { findExistingSessionNote, readCreated } from "../../hooks/session-journa
 
 /**
  * A resumed session ends more than once, and the hook used to write to that
- * day's date directory every time. `work-mobile-app-7350c33b.md` ended up
+ * day's date directory every time. `atlas-mobile-app-7350c33b.md` ended up
  * existing seven times over twelve days, byte-identical but for `created:`
  * (found 2026-08-05). Retrieval degraded accordingly: one semantic query
  * returned four copies of the same note as four of its five hits.
@@ -32,44 +32,44 @@ describe("findExistingSessionNote", () => {
   };
 
   it("returns null when the session has no note yet", () => {
-    write("sessions/2026/06-14/work-web-app-11111111.md", "x");
-    expect(findExistingSessionNote(vault, "work-web-app-99999999.md")).toBeNull();
+    write("sessions/2026/06-14/atlas-web-app-11111111.md", "x");
+    expect(findExistingSessionNote(vault, "atlas-web-app-99999999.md")).toBeNull();
   });
 
   it("returns null when there is no sessions/ directory at all", () => {
-    expect(findExistingSessionNote(vault, "work-web-app-11111111.md")).toBeNull();
+    expect(findExistingSessionNote(vault, "atlas-web-app-11111111.md")).toBeNull();
   });
 
   it("finds a note written under an earlier date directory", () => {
-    write("sessions/2026/06-14/work-mobile-app-7350c33b.md", "x");
-    expect(findExistingSessionNote(vault, "work-mobile-app-7350c33b.md")).toBe(
-      "sessions/2026/06-14/work-mobile-app-7350c33b.md"
+    write("sessions/2026/06-14/atlas-mobile-app-7350c33b.md", "x");
+    expect(findExistingSessionNote(vault, "atlas-mobile-app-7350c33b.md")).toBe(
+      "sessions/2026/06-14/atlas-mobile-app-7350c33b.md"
     );
   });
 
   it("finds a note that has already been archived", () => {
-    write("sessions/archive/2026/05-24/work-web-app-85f70f37.md", "x");
-    expect(findExistingSessionNote(vault, "work-web-app-85f70f37.md")).toBe(
-      "sessions/archive/2026/05-24/work-web-app-85f70f37.md"
+    write("sessions/archive/2026/05-24/atlas-web-app-85f70f37.md", "x");
+    expect(findExistingSessionNote(vault, "atlas-web-app-85f70f37.md")).toBe(
+      "sessions/archive/2026/05-24/atlas-web-app-85f70f37.md"
     );
   });
 
   it("keys on project too, so one session run from two repos keeps two notes", () => {
     // e6e38ce4 really did run from both the repo root and the mobile app.
-    write("sessions/2026/08-02/work-e6e38ce4.md", "root");
-    write("sessions/2026/08-02/work-mobile-app-e6e38ce4.md", "mobile");
+    write("sessions/2026/08-02/atlas-e6e38ce4.md", "root");
+    write("sessions/2026/08-02/atlas-mobile-app-e6e38ce4.md", "mobile");
 
-    expect(findExistingSessionNote(vault, "work-e6e38ce4.md")).toBe(
-      "sessions/2026/08-02/work-e6e38ce4.md"
+    expect(findExistingSessionNote(vault, "atlas-e6e38ce4.md")).toBe(
+      "sessions/2026/08-02/atlas-e6e38ce4.md"
     );
-    expect(findExistingSessionNote(vault, "work-mobile-app-e6e38ce4.md")).toBe(
-      "sessions/2026/08-02/work-mobile-app-e6e38ce4.md"
+    expect(findExistingSessionNote(vault, "atlas-mobile-app-e6e38ce4.md")).toBe(
+      "sessions/2026/08-02/atlas-mobile-app-e6e38ce4.md"
     );
   });
 
   it("does not match a digest that happens to share the name", () => {
-    write("sessions/digests/2026-W30-work.md", "digest");
-    expect(findExistingSessionNote(vault, "work-web-app-7350c33b.md")).toBeNull();
+    write("sessions/digests/2026-W30-atlas.md", "digest");
+    expect(findExistingSessionNote(vault, "atlas-web-app-7350c33b.md")).toBeNull();
   });
 });
 

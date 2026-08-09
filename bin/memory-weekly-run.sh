@@ -18,7 +18,7 @@ fi
 
 # Derive the repo from this script's own location — no hardcoded machine path.
 SERVER_REPO="$(cd "$(dirname "$0")/.." && pwd)"
-export OBSIDIAN_MCP_HOME="$SERVER_REPO"
+export ACCRETION_HOME="$SERVER_REPO"
 LOG_DIR="$HOME/Library/Logs/memory-weekly/$VAULT"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/$(date +%Y-%m-%d).log"

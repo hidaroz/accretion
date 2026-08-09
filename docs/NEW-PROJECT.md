@@ -16,16 +16,16 @@ node scripts/setup-vault.mjs \
 
 What it does (idempotent — safe to re-run):
 - Creates the standard vault skeleton (`sessions/`, `proposals/brief-updates/`, `MOCs/`, `Knowledge/`, `00-Index/`, `.mcp/`) + seeds `Home.md`, `.mcp/brief-map.json`, `.gitignore`.
-- Registers the vault in `~/.config/obsidian-mcp/vaults.json` (**gitAutoCommit: true, gitAutoPush: false** by default — add `--push` only once a sanctioned remote is set).
+- Registers the vault in `~/.config/accretion/vaults.json` (**gitAutoCommit: true, gitAutoPush: false** by default — add `--push` only once a sanctioned remote is set).
 - Routes the project slug(s) → this vault in `~/.claude/hooks/project-vault-map.json`. The slug is the **working directory's basename**, so working in `~/work/acme-foo` writes sessions to the `acme` vault.
 - `--git`: `git init` + initial commit (never pushes).
-- `--launchd`: generates `infra/launchd/com.memory-weekly.<id>.plist` and prints the install command for the weekly autonomous run.
+- `--launchd`: generates `launchd/com.memory-weekly.<id>.plist` and prints the install command for the weekly autonomous run.
 
 ## Verify
 
 1. Work in a directory matching a routed slug; end the session → a note appears at `<vault>/sessions/<date>/<slug>-<hash>.md`.
 2. Supervised first autonomous run: `bin/memory-weekly-run.sh <id>` (watch `~/Library/Logs/memory-weekly/<id>/`).
-3. Schedule it: `cp infra/launchd/com.memory-weekly.<id>.plist ~/Library/LaunchAgents/ && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.memory-weekly.<id>.plist`.
+3. Schedule it: `cp launchd/com.memory-weekly.<id>.plist ~/Library/LaunchAgents/ && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.memory-weekly.<id>.plist`.
 
 ## Acme / IP-sensitive contexts
 
@@ -40,7 +40,7 @@ On a brand-new machine, run the bootstrap once — it builds, installs the captu
 the `SessionEnd` hook into `~/.claude/settings.json` (idempotent, backs up settings first):
 
 ```bash
-git clone https://github.com/hidaroz/obsidian-mcp-server.git && cd obsidian-mcp-server
+git clone https://github.com/hidaroz/accretion.git && cd accretion
 node scripts/bootstrap.mjs            # add --server-autostart to install the launchd agent (macOS)
 ```
 
@@ -52,7 +52,7 @@ cp .env.example .env                                                    # set AP
 node scripts/doctor.mjs                                                 # health check
 ```
 
-The hook resolves `vaults.json` via `$VAULTS_CONFIG` or `~/.config/obsidian-mcp/vaults.json`, the
-repo path via `$OBSIDIAN_MCP_HOME`, and the project map via `$PROJECT_VAULT_MAP` — nothing is
+The hook resolves `vaults.json` via `$VAULTS_CONFIG` or `~/.config/accretion/vaults.json`, the
+repo path via `$ACCRETION_HOME`, and the project map via `$PROJECT_VAULT_MAP` — nothing is
 hardcoded to a user or machine. `bootstrap`/`doctor` also honor `$CLAUDE_HOME` (default `~/.claude`).
 See the root [`README.md`](../README.md) for running the server and registering MCP clients.

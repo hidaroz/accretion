@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Read-only health check for an obsidian-mcp-server install. Verifies the pieces
+ * Read-only health check for an accretion install. Verifies the pieces
  * a fresh machine needs and prints a PASS / WARN / FAIL checklist with a fix hint
  * for anything that isn't right. Exits non-zero if any hard check FAILs.
  * Built-ins only. Honors CLAUDE_HOME and VAULTS_CONFIG.
@@ -16,10 +16,16 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { hasSessionJournalHook } from "./lib/settings-merge.mjs";
 
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// Script-relative by default, which is right for every normal invocation.
+// ACCRETION_HOME overrides it for callers that are not running from a checkout
+// — the weekly loop hands the scheduled agent a repo path it cannot otherwise
+// infer, and that agent shells out to these scripts.
+const REPO =
+  process.env.ACCRETION_HOME ||
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLAUDE_HOME = process.env.CLAUDE_HOME || path.join(os.homedir(), ".claude");
 const VAULTS_CONFIG =
-  process.env.VAULTS_CONFIG || path.join(os.homedir(), ".config", "obsidian-mcp", "vaults.json");
+  process.env.VAULTS_CONFIG || path.join(os.homedir(), ".config", "accretion", "vaults.json");
 const PORT = process.env.PORT || "3001";
 const HOST = process.env.HOST || "127.0.0.1";
 const MIN_NODE_MAJOR = 20;
@@ -36,7 +42,7 @@ const pass = (m) => console.log(`  ✓ ${m}`);
 const warn = (m, hint) => console.log(`  ! ${m}${hint ? `\n      ↳ ${hint}` : ""}`);
 const fail = (m, hint) => { failures++; console.log(`  ✗ ${m}${hint ? `\n      ↳ ${hint}` : ""}`); };
 
-console.log(`obsidian-mcp-server doctor\n  repo: ${REPO}\n  CLAUDE_HOME: ${CLAUDE_HOME}\n  vaults.json: ${VAULTS_CONFIG}\n`);
+console.log(`accretion doctor\n  repo: ${REPO}\n  CLAUDE_HOME: ${CLAUDE_HOME}\n  vaults.json: ${VAULTS_CONFIG}\n`);
 
 // 1. Node version
 const major = Number(process.versions.node.split(".")[0]);

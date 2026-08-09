@@ -6,7 +6,7 @@ import { repointDigests } from "../tools/archive-sessions.js";
 
 /**
  * Archiving moved session files and left every digest pointing at where they
- * used to be. The June 2026 run stranded 92 source links across the Work vault
+ * used to be. The June 2026 run stranded 92 source links across a production vault
  * and nothing reported it — validateStructure checks dangling links in the
  * curated layer only, and deliberately skips sessions/.
  *
@@ -33,16 +33,16 @@ describe("repointDigests", () => {
 
   it("rewrites both sources frontmatter and Source Sessions wikilinks", async () => {
     digest(
-      "2026-W21-work-web-app.md",
+      "2026-W21-atlas-web-app.md",
       [
         "---",
         "sources:",
-        "  - sessions/2026/05-20/work-web-app-bbc873c4.md",
+        "  - sessions/2026/05-20/atlas-web-app-bbc873c4.md",
         "---",
         "",
         "## Source Sessions",
         "",
-        "- [[sessions/2026/05-20/work-web-app-bbc873c4.md|Some work]] (2026-05-20)",
+        "- [[sessions/2026/05-20/atlas-web-app-bbc873c4.md|Some work]] (2026-05-20)",
         "",
       ].join("\n")
     );
@@ -51,22 +51,22 @@ describe("repointDigests", () => {
       vault,
       new Map([
         [
-          "sessions/2026/05-20/work-web-app-bbc873c4.md",
-          "sessions/archive/2026/05-20/work-web-app-bbc873c4.md",
+          "sessions/2026/05-20/atlas-web-app-bbc873c4.md",
+          "sessions/archive/2026/05-20/atlas-web-app-bbc873c4.md",
         ],
       ])
     );
 
     expect(changed).toBe(1);
-    const out = read("2026-W21-work-web-app.md");
-    expect(out).toContain("  - sessions/archive/2026/05-20/work-web-app-bbc873c4.md");
-    expect(out).toContain("[[sessions/archive/2026/05-20/work-web-app-bbc873c4.md|Some work]]");
+    const out = read("2026-W21-atlas-web-app.md");
+    expect(out).toContain("  - sessions/archive/2026/05-20/atlas-web-app-bbc873c4.md");
+    expect(out).toContain("[[sessions/archive/2026/05-20/atlas-web-app-bbc873c4.md|Some work]]");
     expect(out).not.toMatch(/- sessions\/2026\//);
   });
 
   it("leaves digests that reference nothing archived untouched", async () => {
-    const before = "---\nsources:\n  - sessions/2026/07-24/work-d1c57dd1.md\n---\n";
-    digest("2026-W30-work.md", before);
+    const before = "---\nsources:\n  - sessions/2026/07-24/atlas-d1c57dd1.md\n---\n";
+    digest("2026-W30-atlas.md", before);
 
     const changed = await repointDigests(
       vault,
@@ -74,7 +74,7 @@ describe("repointDigests", () => {
     );
 
     expect(changed).toBe(0);
-    expect(read("2026-W30-work.md")).toBe(before);
+    expect(read("2026-W30-atlas.md")).toBe(before);
   });
 
   it("is idempotent — a second archive run must not double-prefix", async () => {

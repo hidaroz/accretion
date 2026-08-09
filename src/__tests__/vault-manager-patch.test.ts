@@ -25,7 +25,7 @@ async function readRaw(relativePath: string): Promise<string> {
 beforeEach(async () => {
   // macOS tmpdir is symlinked (/var → /private/var); resolveSafePath compares
   // against realpath, so realpath the root up front to keep path checks consistent.
-  const raw = await fs.mkdtemp(path.join(os.tmpdir(), "obsidian-mcp-patch-"));
+  const raw = await fs.mkdtemp(path.join(os.tmpdir(), "accretion-patch-"));
   tmpRoot = await fs.realpath(raw);
   vault = new VaultManager(tmpRoot);
 });

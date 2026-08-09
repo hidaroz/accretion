@@ -27,7 +27,7 @@ export function registerGetDigestCandidates(
           .string()
           .optional()
           .describe(
-            "Filter to specific project slug (e.g., 'work-web-app'). Omit for all projects."
+            "Filter to specific project slug (e.g., 'atlas-web-app'). Omit for all projects."
           ),
         min_sessions: z.coerce
           .number()

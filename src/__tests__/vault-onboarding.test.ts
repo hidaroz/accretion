@@ -9,20 +9,20 @@ import {
 describe("upsertVault", () => {
   it("appends a new vault entry", () => {
     const out = upsertVault([], {
-      id: "acme",
+      id: "beta",
       path: "/abs/acme",
       displayName: "Acme",
     });
     expect(out).toHaveLength(1);
-    expect(out[0].id).toBe("acme");
+    expect(out[0].id).toBe("beta");
   });
 
   it("replaces an existing entry by id (idempotent)", () => {
     const existing: VaultConfigEntry[] = [
-      { id: "acme", path: "/old", displayName: "Old" },
+      { id: "beta", path: "/old", displayName: "Old" },
     ];
     const out = upsertVault(existing, {
-      id: "acme",
+      id: "beta",
       path: "/new",
       displayName: "Acme",
     });
@@ -35,13 +35,13 @@ describe("upsertVault", () => {
       { id: "work", path: "/work", displayName: "Work", default: true },
     ];
     const out = upsertVault(existing, {
-      id: "acme",
+      id: "beta",
       path: "/acme",
       displayName: "Acme",
       default: true,
     });
     expect(out.find((v) => v.id === "work")!.default).toBeFalsy();
-    expect(out.find((v) => v.id === "acme")!.default).toBe(true);
+    expect(out.find((v) => v.id === "beta")!.default).toBe(true);
   });
 
   it("leaves other defaults untouched when the new entry is not default", () => {
@@ -49,7 +49,7 @@ describe("upsertVault", () => {
       { id: "work", path: "/work", displayName: "Work", default: true },
     ];
     const out = upsertVault(existing, {
-      id: "acme",
+      id: "beta",
       path: "/acme",
       displayName: "Acme",
     });
@@ -59,25 +59,25 @@ describe("upsertVault", () => {
 
 describe("upsertProjectMap", () => {
   it("maps each slug to the vault id and ensures _default", () => {
-    const out = upsertProjectMap({}, ["acme-foo", "acme-bar"], "acme");
-    expect(out["acme-foo"]).toBe("acme");
-    expect(out["acme-bar"]).toBe("acme");
+    const out = upsertProjectMap({}, ["acme-foo", "acme-bar"], "beta");
+    expect(out["acme-foo"]).toBe("beta");
+    expect(out["acme-bar"]).toBe("beta");
     expect(out._default).toBe("general");
   });
 
   it("preserves existing mappings and overrides only the given slugs", () => {
     const out = upsertProjectMap(
-      { "work-web-app": "work", _default: "general" },
+      { "atlas-web-app": "work", _default: "general" },
       ["acme-foo"],
-      "acme"
+      "beta"
     );
-    expect(out["work-web-app"]).toBe("work");
-    expect(out["acme-foo"]).toBe("acme");
+    expect(out["atlas-web-app"]).toBe("work");
+    expect(out["acme-foo"]).toBe("beta");
     expect(out._default).toBe("general");
   });
 
   it("does not clobber an existing _default", () => {
-    const out = upsertProjectMap({ _default: "work" }, ["x"], "acme");
+    const out = upsertProjectMap({ _default: "work" }, ["x"], "beta");
     expect(out._default).toBe("work");
   });
 });

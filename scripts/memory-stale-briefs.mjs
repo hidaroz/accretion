@@ -5,7 +5,7 @@
  * session activity since their review date, as JSON.
  *
  * Usage:
- *   node scripts/memory-stale-briefs.mjs [--vault work] [--stale-days 21]
+ *   node scripts/memory-stale-briefs.mjs [--vault demo] [--stale-days 21]
  *
  * Requires `npm run build` (imports compiled dist/).
  */

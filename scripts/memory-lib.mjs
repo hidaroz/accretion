@@ -12,7 +12,7 @@ process.env.LOG_LEVEL = process.env.LOG_LEVEL || "error";
 
 const VAULTS_CONFIG =
   process.env.VAULTS_CONFIG ||
-  path.join(process.env.HOME || "", ".config", "obsidian-mcp", "vaults.json");
+  path.join(process.env.HOME || "", ".config", "accretion", "vaults.json");
 
 export function parseArgs(argv) {
   const args = {};

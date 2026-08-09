@@ -9,9 +9,9 @@ import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// Machine-agnostic: honor VAULTS_CONFIG, else ~/.config/obsidian-mcp/vaults.json.
+// Machine-agnostic: honor VAULTS_CONFIG, else ~/.config/accretion/vaults.json.
 const VAULTS_CONFIG =
-  process.env.VAULTS_CONFIG || join(homedir(), '.config', 'obsidian-mcp', 'vaults.json');
+  process.env.VAULTS_CONFIG || join(homedir(), '.config', 'accretion', 'vaults.json');
 const VAULT_MAP =
   process.env.PROJECT_VAULT_MAP || join(__dirname, 'project-vault-map.json');
 
@@ -312,7 +312,7 @@ function extractCommands(toolCalls) {
  * Locate the note this session already wrote, if any.
  *
  * Keyed on the full `{project}-{id8}.md` filename rather than the session id
- * alone: one Claude session run from two repos (`work` and `work-mobile-app`)
+ * alone: one Claude session run from two repos (`work` and `atlas-mobile-app`)
  * is two different pieces of work and keeps two notes. Searches the archive
  * too, so resuming a session whose note was already archived updates it in
  * place instead of resurrecting a live duplicate.

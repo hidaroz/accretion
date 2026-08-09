@@ -69,7 +69,7 @@ if (slugs.length === 0) slugs = [path.basename(vaultPath)];
 
 const VAULTS_CONFIG =
   process.env.VAULTS_CONFIG ||
-  path.join(homedir(), ".config", "obsidian-mcp", "vaults.json");
+  path.join(homedir(), ".config", "accretion", "vaults.json");
 const MAP_PATH =
   typeof args.map === "string"
     ? args.map

@@ -36,7 +36,7 @@ export interface RouteOptions {
   marginRatio?: number;
 }
 
-// Calibrated on the work eval (see evals/results + ADR-010). MiniSearch scores
+// Calibrated on the demo eval (see evals/results + ADR-010). MiniSearch scores
 // are vault-relative, so these may need per-vault tuning; the eval is the tool.
 // A modest floor + margin keep obviously-weak/ambiguous matches out; the
 // domain-trigger guard (below) does the real precision work, so we deliberately

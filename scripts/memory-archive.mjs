@@ -7,7 +7,7 @@
  * run is a dry run.
  *
  * Usage:
- *   node scripts/memory-archive.mjs [--vault work] [--days 30] [--apply] [--no-require-digest]
+ *   node scripts/memory-archive.mjs [--vault demo] [--days 30] [--apply] [--no-require-digest]
  *
  * Requires `npm run build` (imports compiled dist/).
  */

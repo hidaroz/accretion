@@ -196,14 +196,14 @@ describe("SearchIndex", () => {
         content: "Summary of roasting work this week",
       }));
       index.addOrUpdate(makeNote({
-        path: "sessions/digests/2026-W23-work.md",
+        path: "sessions/digests/2026-W23-atlas.md",
         title: "Roasting work summary",
-        tags: ["type/digest", "project/work"],
+        tags: ["type/digest", "project/atlas"],
         content: "Summary of roasting work this week",
       }));
 
       const results = index.search("roasting work summary");
-      expect(results[0].path).toBe("sessions/digests/2026-W23-work.md");
+      expect(results[0].path).toBe("sessions/digests/2026-W23-atlas.md");
     });
 
     it("does not downrank digests the way raw sessions are downranked", () => {
@@ -214,14 +214,14 @@ describe("SearchIndex", () => {
         content: "## Topics\n\n- sourdough edge cases",
       }));
       index.addOrUpdate(makeNote({
-        path: "sessions/digests/2026-W19-work.md",
+        path: "sessions/digests/2026-W19-atlas.md",
         title: "Sourdough deep dive",
         tags: ["type/digest"],
         content: "Synthesized notes on sourdough edge cases",
       }));
 
       const results = index.search("sourdough");
-      expect(results[0].path).toBe("sessions/digests/2026-W19-work.md");
+      expect(results[0].path).toBe("sessions/digests/2026-W19-atlas.md");
     });
 
     it("keeps an old digest competitive against temporal decay", () => {
@@ -229,7 +229,7 @@ describe("SearchIndex", () => {
       const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 3600000);
 
       index.addOrUpdate(makeNote({
-        path: "sessions/digests/2026-W15-work.md",
+        path: "sessions/digests/2026-W15-atlas.md",
         title: "Cycling overhaul digest",
         tags: ["type/digest"],
         content: "Cycling overhaul decisions",
@@ -243,7 +243,7 @@ describe("SearchIndex", () => {
       }));
 
       const results = index.search("cycling");
-      expect(results[0].path).toBe("sessions/digests/2026-W15-work.md");
+      expect(results[0].path).toBe("sessions/digests/2026-W15-atlas.md");
     });
   });
 
@@ -295,7 +295,7 @@ describe("SearchIndex", () => {
       index.addOrUpdate(makeNote({
         path: "sessions/2026/05-07/session.md",
         title: "Roasting discussion session",
-        tags: ["type/session", "project/work"],
+        tags: ["type/session", "project/atlas"],
         content: "## Topics\n\n- discussed roasting changes\n\n## Files Changed\n\n- roasting.ts",
       }));
     });

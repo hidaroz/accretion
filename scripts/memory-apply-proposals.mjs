@@ -10,7 +10,7 @@
  * with judgment by the LLM, not mechanically.
  *
  * Usage:
- *   node scripts/memory-apply-proposals.mjs [--vault work] [--confidence high] [--apply]
+ *   node scripts/memory-apply-proposals.mjs [--vault demo] [--confidence high] [--apply]
  *
  * Requires `npm run build` (imports compiled dist/). Does NOT commit — the
  * caller commits.

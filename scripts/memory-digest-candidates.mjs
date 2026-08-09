@@ -4,7 +4,7 @@
  * Print project+period session groups needing a digest, as JSON.
  *
  * Usage:
- *   node scripts/memory-digest-candidates.mjs [--vault work] [--period week|month] [--project <slug>] [--min-sessions N]
+ *   node scripts/memory-digest-candidates.mjs [--vault demo] [--period week|month] [--project <slug>] [--min-sessions N]
  *
  * Requires `npm run build` (imports compiled dist/).
  */

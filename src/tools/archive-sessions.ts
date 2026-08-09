@@ -161,7 +161,7 @@ export function registerArchiveSessions(
  * A digest records the exact paths it was synthesized from, in `sources`
  * frontmatter and in its `## Source Sessions` wikilinks. Archiving used to move
  * the files and leave those paths behind: the June 2026 run stranded 92 links
- * across the Work vault, and nothing reported it — `validateStructure` checks
+ * across a production vault, and nothing reported it — `validateStructure` checks
  * dangling links in the curated layer only, and deliberately skips `sessions/`.
  *
  * `sources` is not decorative. `getDigestedSessionPaths` reads it to decide

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Fresh-machine bootstrap for obsidian-mcp-server. Idempotent. Built-ins only,
+ * Fresh-machine bootstrap for accretion. Idempotent. Built-ins only,
  * so it runs before `npm install`. Wires the per-machine pieces that
  * setup-vault (per-project) does not:
  *   1. verify Node version
@@ -10,7 +10,7 @@
  *   4. merge the SessionEnd hook into ~/.claude/settings.json (backed up, idempotent)
  *   5. optionally install a launchd agent that auto-starts the server (--server-autostart, macOS)
  *
- * Then run `omcp-setup-vault` per project and `omcp-doctor` to verify.
+ * Then run `accretion-setup-vault` per project and `accretion-doctor` to verify.
  *
  * Usage: node scripts/bootstrap.mjs [--skip-install] [--server-autostart]
  * Env:   CLAUDE_HOME (default ~/.claude) — override to test against a temp dir.
@@ -23,7 +23,11 @@ import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { mergeSessionEndHook, sessionJournalCommand } from "./lib/settings-merge.mjs";
 
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// See doctor.mjs — ACCRETION_HOME overrides script-relative resolution for
+// callers that are not running from a checkout.
+const REPO =
+  process.env.ACCRETION_HOME ||
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
 const SKIP_INSTALL = args.has("--skip-install");
 const SERVER_AUTOSTART = args.has("--server-autostart");
@@ -35,7 +39,7 @@ const ok = (m) => console.log(`  ✓ ${m}`);
 const info = (m) => console.log(`  • ${m}`);
 const die = (m) => { console.error(`✗ ${m}`); process.exit(1); };
 
-log(`obsidian-mcp-server bootstrap\n  repo: ${REPO}\n  CLAUDE_HOME: ${CLAUDE_HOME}\n`);
+log(`accretion bootstrap\n  repo: ${REPO}\n  CLAUDE_HOME: ${CLAUDE_HOME}\n`);
 
 // 1. Node version
 const major = Number(process.versions.node.split(".")[0]);
@@ -105,8 +109,8 @@ if (SERVER_AUTOSTART) {
       path.join(REPO, "infra", "launchd", "mcp-server.plist.template"),
       "utf8"
     );
-    const label = "com.obsidian-mcp.server";
-    const logDir = path.join(os.homedir(), "Library", "Logs", "obsidian-mcp-server");
+    const label = "com.accretion.server";
+    const logDir = path.join(os.homedir(), "Library", "Logs", "accretion");
     fs.mkdirSync(logDir, { recursive: true });
     const plist = template
       .replaceAll("__LABEL__", label)

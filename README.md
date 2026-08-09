@@ -1,4 +1,4 @@
-# obsidian-mcp-server
+# accretion
 
 A curated, human-readable **memory for AI agents**, served over [MCP](https://modelcontextprotocol.io).
 It indexes one or more Obsidian markdown vaults and exposes hybrid retrieval (keyword + local
@@ -23,8 +23,8 @@ vectors. Design rationale and the measurement story live in [`docs/DESIGN.md`](d
 ## Install
 
 ```bash
-git clone https://github.com/hidaroz/obsidian-mcp-server.git
-cd obsidian-mcp-server
+git clone https://github.com/hidaroz/accretion.git
+cd accretion
 npm install
 npm run build
 ```
@@ -44,7 +44,7 @@ cp .env.example .env
 | Var | Default | Purpose |
 |---|---|---|
 | `API_KEY` | *(required)* | Bearer token every `/mcp` request must send |
-| `VAULTS_CONFIG` | `~/.config/obsidian-mcp/vaults.json` | Path to the multi-vault registry |
+| `VAULTS_CONFIG` | `~/.config/accretion/vaults.json` | Path to the multi-vault registry |
 | `VAULT_PATH` | — | Legacy single-vault mode (used only if `VAULTS_CONFIG` is unset) |
 | `HOST` | `127.0.0.1` | Bind address (localhost-only by default; `0.0.0.0` to expose) |
 | `PORT` | `3001` | Listen port |
@@ -54,8 +54,8 @@ cp .env.example .env
 **2. Register a vault** — this creates the vault skeleton and the registry entry:
 
 ```bash
-node scripts/setup-vault.mjs --id work --path ~/devprojects/work/work-vault --display "Work" --default
-# or, after `npm link`:  omcp-setup-vault --id work --path <abs> --default
+node scripts/setup-vault.mjs --id work --path ~/Documents/work-vault --display "Work" --default
+# or, after `npm link`:  accretion-setup-vault --id work --path <abs> --default
 ```
 
 See [`docs/NEW-PROJECT.md`](docs/NEW-PROJECT.md) for multi-project routing, git, and scheduling flags.
@@ -149,9 +149,9 @@ node scripts/doctor.mjs               # read-only health check (Node, vaults, ho
 ## Auto-start (macOS)
 
 `node scripts/bootstrap.mjs --server-autostart` generates a `launchd` agent from
-[`infra/launchd/mcp-server.plist.template`](infra/launchd/mcp-server.plist.template) (wrapper:
+[`launchd/mcp-server.plist.template`](launchd/mcp-server.plist.template) (wrapper:
 [`bin/mcp-server-run.sh`](bin/mcp-server-run.sh)) and prints the `launchctl load` command. The
-weekly memory-maintenance job has its own agent — see [`infra/launchd/`](infra/launchd/).
+weekly memory-maintenance job has its own agent — see [`launchd/`](launchd/).
 
 ## Project layout
 
@@ -159,7 +159,7 @@ weekly memory-maintenance job has its own agent — see [`infra/launchd/`](infra
 src/            MCP server (tools, vault indexing, hybrid retrieval, brief routing)
 scripts/        CLI: setup-vault, bootstrap, doctor, memory-* maintenance, memory-eval (the eval harness)
 hooks/          session-journal capture hook (copied into ~/.claude/hooks/)
-infra/launchd/  launchd templates (server + weekly maintenance)
+launchd/  launchd templates (server + weekly maintenance)
 evals/          eval cases + scorecards (see docs/2026-06-28-eval-parity-split.md)
 docs/           DESIGN, NEW-PROJECT, REVIEW-RESPONSE, HANDOFF
 ```

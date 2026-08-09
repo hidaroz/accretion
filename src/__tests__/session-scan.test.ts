@@ -20,7 +20,7 @@ function makeSession(overrides: Partial<SessionNote> = {}): SessionNote {
     topics: overrides.topics ?? [],
     filesChanged: overrides.filesChanged ?? [],
     decisions: overrides.decisions ?? [],
-    project: overrides.project ?? "work-web-app",
+    project: overrides.project ?? "atlas-web-app",
   };
 }
 
@@ -133,8 +133,8 @@ describe("getYearMonth", () => {
 
 describe("extractProjectTag", () => {
   it("extracts the project slug", () => {
-    expect(extractProjectTag(["type/session", "project/work-infra"])).toBe(
-      "work-infra"
+    expect(extractProjectTag(["type/session", "project/atlas-infra"])).toBe(
+      "atlas-infra"
     );
   });
 
