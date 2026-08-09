@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+      # Keyword + routing only. The semantic tier downloads a ~90MB model and
+      # takes minutes; gating every PR on it buys little, and the retrieval
+      # numbers that matter are regenerated deliberately, not per-commit.
+      - name: Retrieval eval (no semantic)
+        run: node scripts/memory-eval.mjs --vault demo --no-semantic
+        env:
+          VAULTS_CONFIG: .github/ci-vaults.json
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # This repo previously published live database credentials inside the very
+      # test that guards against publishing credentials. Automation catches that
+      # class; a careful reading of the diff demonstrably did not.
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

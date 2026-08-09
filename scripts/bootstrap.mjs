@@ -7,6 +7,7 @@
  *   1. verify Node version
  *   2. npm install + npm run build   (skip with --skip-install)
  *   3. copy the SessionEnd capture hook into ~/.claude/hooks/
+ *   3b. install the /memory-weekly command into ~/.claude/commands/
  *   4. merge the SessionEnd hook into ~/.claude/settings.json (backed up, idempotent)
  *   5. optionally install a launchd agent that auto-starts the server (--server-autostart, macOS)
  *
@@ -84,6 +85,23 @@ if (!fs.existsSync(mapDest)) {
 } else {
   info(`kept existing ${mapDest}`);
 }
+
+// 3b. the /memory-weekly command the scheduled loop invokes.
+//
+// Previously this lived only on the author's machine, so `bin/memory-weekly-run.sh`
+// — the repo's headline feature — invoked a slash command that did not exist
+// anywhere in the repo, and doctor failed on it forever.
+const commandsDir = path.join(CLAUDE_HOME, "commands");
+fs.mkdirSync(commandsDir, { recursive: true });
+const cmdDest = path.join(commandsDir, "memory-weekly.md");
+const cmdSrc = path.join(REPO, "commands", "memory-weekly.md");
+if (fs.existsSync(cmdDest) && !fs.readFileSync(cmdDest).equals(fs.readFileSync(cmdSrc))) {
+  const backup = `${cmdDest}.bak-${Date.now()}`;
+  fs.copyFileSync(cmdDest, backup);
+  info(`backed up existing /memory-weekly command → ${path.basename(backup)}`);
+}
+fs.copyFileSync(cmdSrc, cmdDest);
+ok(`installed /memory-weekly command → ${cmdDest}`);
 
 // 4. settings.json SessionEnd hook (idempotent, backed up)
 const settingsPath = path.join(CLAUDE_HOME, "settings.json");
