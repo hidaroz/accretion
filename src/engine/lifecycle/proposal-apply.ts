@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { parseNote } from "../vault/frontmatter.js";
 import type { VaultManager } from "../vault/vault-manager.js";
+import { appendLog } from "./log.js";
 
 const PROPOSALS_DIR = "proposals/brief-updates";
 
@@ -219,6 +220,7 @@ export async function applyProposal(
     content: body,
     mode: "replace",
     frontmatter: { last_reviewed: today },
+    unrestricted: true,
   });
 
   // Prepend an unmistakable banner at the TOP so any later reader — human or a
@@ -231,6 +233,13 @@ export async function applyProposal(
   await vault.update(proposalPath, {
     prepend: banner,
     frontmatter: { status: "applied", applied: today },
+  });
+
+  await appendLog(vault.root, {
+    kind: "applied",
+    title: `proposal applied (${changed.join(", ")})`,
+    path: briefPath,
+    date: today,
   });
 
   return { briefPath, sectionsChanged: changed, lastReviewed: today };

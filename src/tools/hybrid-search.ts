@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { VaultRegistry } from "../engine/registry.js";
 import { rrf, isRawSession } from "../engine/retrieval/hybrid.js";
+import { SESSION_FUSION_WEIGHT } from "../engine/retrieval/weights.js";
 import { routeBrief } from "../engine/retrieval/brief-routing.js";
 import { handleToolError } from "../engine/utils/errors.js";
 
@@ -55,7 +56,7 @@ export function registerHybridSearch(
         const route = routeBrief(ctx.briefMap, ctx.searchIndex, query);
         const pin = route.path;
         const fused = rrf([kwPaths, semPaths], {
-          weight: (p) => (isRawSession(p) ? 0.7 : 1),
+          weight: (p) => (isRawSession(p) ? SESSION_FUSION_WEIGHT : 1),
           pins: pin ? [pin] : [],
         }).slice(0, limit);
 

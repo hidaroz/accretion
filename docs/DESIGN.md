@@ -73,7 +73,7 @@ MCP. The human and the agent read/write the **same store**.
 
 - The autonomous weekly run works end-to-end (synthesized 6 digests, auto-applied 1 brief
   correctly, archived 102 sessions, committed + pushed, all unattended).
-- 317 unit tests; deterministic edit logic is well covered.
+- 244 unit tests; deterministic edit logic is well covered.
 - **Dogfooding found two real bugs** the tests missed (a heading-level mismatch in the edit
   engine; a stale-state report from a fresh run) — both fixed. The system now documents its
   own architecture in a vault it maintains.

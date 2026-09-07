@@ -9,6 +9,7 @@ import {
   type SessionNote,
 } from "../engine/lifecycle/session-scan.js";
 import { handleToolError } from "../engine/utils/errors.js";
+import { appendLog } from "../engine/lifecycle/log.js";
 import { logger } from "../engine/utils/logger.js";
 
 function dedup(items: string[]): string[] {
@@ -179,6 +180,7 @@ export function registerConsolidateSessions(
 
           await ctx.vault.create(digest.path, digest.content, digest.frontmatter);
           created++;
+          await appendLog(vaultRoot, { kind: "digest", title: String(digest.frontmatter.title), path: digest.path });
         }
 
         logger.info("Consolidated sessions", {

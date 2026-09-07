@@ -3,6 +3,8 @@
 // clear an absolute floor AND beat #2 by a ratio (intent) or it abstains.
 // Exact evidence (brief-map route or exact title) routes without the threshold.
 
+import { ROUTABLE_TAGS } from "./brief-keywords.js";
+
 export interface BriefHit {
   path: string;
   title: string;
@@ -12,7 +14,7 @@ export interface BriefHit {
 export interface BriefSearcher {
   search(
     query: string,
-    opts?: { tag?: string; limit?: number }
+    opts?: { tag?: string; tags?: string[]; limit?: number }
   ): BriefHit[];
 }
 
@@ -60,7 +62,7 @@ const STOP = new Set([
   "from", "use", "used", "using", "make", "made", "up",
 ]);
 
-function tokenize(s: string): string[] {
+export function tokenize(s: string): string[] {
   return s
     .toLowerCase()
     .split(/[^a-z0-9]+/)
@@ -117,7 +119,7 @@ export function routeBrief(
   const mapped = briefMap[t];
   if (mapped) return { path: mapped.replace(/^\.\//, ""), method: "direct_map" };
 
-  const hits = searchIndex.search(t, { tag: "type/brief", limit: 2 });
+  const hits = searchIndex.search(t, { tags: [...ROUTABLE_TAGS], limit: 2 });
   if (hits.length === 0) return { path: null, method: "abstain" };
 
   const top = hits[0];

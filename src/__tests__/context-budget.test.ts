@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { truncateAtSection } from "../tools/get-context.js";
+import { truncateAtSection } from "../engine/context/assemble.js";
 
 /**
  * get_context concatenates whole briefs under a shared token budget, in the

@@ -8,38 +8,54 @@ import { SearchAnalytics } from "./retrieval/search-analytics.js";
 import { loadBriefMap } from "./retrieval/brief-map-loader.js";
 import { EmbeddingIndex, type Embedder } from "./retrieval/embedding-index.js";
 import { createLocalEmbedder } from "./retrieval/embedder.js";
-import type { VaultConfig } from "./config/vault-config.js";
+import {
+  DEFAULT_WRITABLE_PATHS,
+  resolveSemantic,
+  type VaultConfig,
+} from "./config/vault-config.js";
 import { VaultNotFoundError, VaultNotReadyError } from "./utils/errors.js";
 import { logger } from "./utils/logger.js";
 
 export interface VaultContext {
   id: string;
   displayName: string;
+  config: VaultConfig;
   vault: VaultManager;
   searchIndex: SearchIndex;
   tagIndex: TagIndex;
   embeddingIndex?: EmbeddingIndex;
+  /** Whether embeddings were enabled for this vault (config + size + env). */
+  semantic: boolean;
   watcher: VaultWatcher;
   briefMapWatcher: BriefMapWatcher;
   analytics: SearchAnalytics;
+  /** Explicit `.mcp/brief-map.json` entries only. */
+  fileBriefMap: Record<string, string>;
+  /** Effective routing map: frontmatter keywords overridden by the file map. */
   briefMap: Record<string, string>;
   ready: boolean;
   initError: string | null;
 }
 
+/**
+ * Long-lived registry for the MCP adapter: one context per vault, kept live
+ * by file watchers. One-shot callers (CLI, hooks) use `openVault` instead.
+ */
 export class VaultRegistry {
   private contexts = new Map<string, VaultContext>();
   private defaultVaultId: string;
-  /** Shared across vaults so the embedding model loads at most once. Null when
-   *  embeddings are disabled (DISABLE_EMBEDDINGS) — semantic search no-ops. */
-  private embedder: Embedder | null;
+  /** Shared across vaults so the embedding model loads at most once. Created
+   *  lazily: a registry of small vaults never pays for it. */
+  private embedder: Embedder | null = null;
 
   constructor(private configs: VaultConfig[]) {
     const explicit = configs.find((c) => c.default);
     this.defaultVaultId = explicit?.id ?? configs[0].id;
-    this.embedder = process.env.DISABLE_EMBEDDINGS
-      ? null
-      : createLocalEmbedder();
+  }
+
+  private getEmbedder(): Embedder {
+    if (!this.embedder) this.embedder = createLocalEmbedder();
+    return this.embedder;
   }
 
   async initializeAll(): Promise<void> {
@@ -97,35 +113,36 @@ export class VaultRegistry {
 
   private async initializeVault(cfg: VaultConfig): Promise<void> {
     const vault = new VaultManager(cfg.path, {
-      gitAutoCommit: cfg.gitAutoCommit,
-      gitAutoPush: cfg.gitAutoPush,
+      writablePaths: cfg.writablePaths ?? DEFAULT_WRITABLE_PATHS,
     });
     const searchIndex = new SearchIndex();
     const tagIndex = new TagIndex();
-    const embeddingIndex = this.embedder
-      ? new EmbeddingIndex(this.embedder, {
-          cachePath: path.join(cfg.path, ".mcp", "embeddings.json"),
-        })
-      : undefined;
-    const watcher = new VaultWatcher(vault, searchIndex, tagIndex, embeddingIndex);
-    const briefMap = await loadBriefMap(cfg.path);
+    const fileBriefMap = await loadBriefMap(cfg.path);
     const analytics = new SearchAnalytics(cfg.path);
 
+    const refreshBriefMap = () => {
+      ctx.briefMap = searchIndex.briefMap(ctx.fileBriefMap);
+    };
+
     const briefMapWatcher = new BriefMapWatcher(cfg.path, (newMap) => {
-      ctx.briefMap = newMap;
+      ctx.fileBriefMap = newMap;
+      refreshBriefMap();
     });
 
     const ctx: VaultContext = {
       id: cfg.id,
       displayName: cfg.displayName,
+      config: cfg,
       vault,
       searchIndex,
       tagIndex,
-      embeddingIndex,
-      watcher,
+      embeddingIndex: undefined,
+      semantic: false,
+      watcher: undefined as unknown as VaultWatcher,
       briefMapWatcher,
       analytics,
-      briefMap,
+      fileBriefMap,
+      briefMap: fileBriefMap,
       ready: false,
       initError: null,
     };
@@ -139,16 +156,30 @@ export class VaultRegistry {
 
       await searchIndex.buildFromVault(vault, allNotes);
       await tagIndex.buildFromVault(vault, allNotes);
-      watcher.start();
+      refreshBriefMap();
+
+      ctx.semantic = resolveSemantic(cfg, searchIndex.curatedCount);
+      const embeddingIndex = ctx.semantic
+        ? new EmbeddingIndex(this.getEmbedder(), {
+            cachePath: path.join(cfg.path, ".mcp", "embeddings.json"),
+          })
+        : undefined;
+      ctx.embeddingIndex = embeddingIndex;
+
+      ctx.watcher = new VaultWatcher(vault, searchIndex, tagIndex, embeddingIndex, {
+        onNote: refreshBriefMap,
+        onRemove: refreshBriefMap,
+      });
+      ctx.watcher.start();
       briefMapWatcher.start();
 
       ctx.ready = true;
-      logger.info(`Vault "${cfg.id}" initialized in ${Date.now() - start}ms`);
+      logger.info(
+        `Vault "${cfg.id}" initialized in ${Date.now() - start}ms (semantic: ${ctx.semantic ? "on" : "off"}, routing keywords: ${Object.keys(ctx.briefMap).length})`
+      );
 
-      // Build the semantic index in the background — the model load / first
+      // Build the semantic index in the background: the model load / first
       // embed can be slow and must never block readiness or keyword search.
-      // The on-disk cache makes subsequent boots fast; failure (e.g. no model
-      // access) is logged and leaves semantic_search returning nothing.
       if (embeddingIndex) {
         void (async () => {
           try {

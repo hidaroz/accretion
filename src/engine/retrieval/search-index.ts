@@ -1,6 +1,8 @@
-import MiniSearch from "minisearch";
+import MiniSearch, { type Options as MiniSearchOptions } from "minisearch";
 import type { VaultManager, NoteContent, NoteInfo } from "../vault/vault-manager.js";
 import { logger } from "../utils/logger.js";
+import { SESSION_KEYWORD_BOOST, DIGEST_KEYWORD_BOOST } from "./weights.js";
+import { buildBriefMap, isRoutableTagSet, keywordsFromFrontmatter } from "./brief-keywords.js";
 
 export interface SearchResult {
   path: string;
@@ -10,7 +12,7 @@ export interface SearchResult {
   tags: string[];
 }
 
-interface IndexedDoc {
+export interface IndexedDoc {
   id: string;
   title: string;
   tags: string;
@@ -18,6 +20,36 @@ interface IndexedDoc {
   folder: string;
   rawTags: string[];
   createdAt: string;
+  /** Routing keywords declared in frontmatter (briefs, playbooks, rejected). */
+  keywords: string[];
+}
+
+/** Serialised keyword index plus the per-note stats needed to refresh it. */
+export interface SearchSnapshot {
+  version: 1;
+  builtAt: string;
+  minisearch: string;
+  docs: IndexedDoc[];
+  noteInfos: NoteInfo[];
+}
+
+const MINISEARCH_OPTIONS: MiniSearchOptions<IndexedDoc> = {
+  fields: ["title", "tags", "content"],
+  storeFields: ["title", "tags", "folder", "rawTags", "createdAt"],
+  searchOptions: {
+    boost: { title: 3, tags: 2, content: 1 },
+    prefix: true,
+    fuzzy: 0.2,
+  },
+};
+
+export interface SearchOptions {
+  folder?: string;
+  /** Exact tag filter. */
+  tag?: string;
+  /** Any-of tag filter (used by routing to span brief-like note types). */
+  tags?: string[];
+  limit?: number;
 }
 
 export class SearchIndex {
@@ -30,15 +62,25 @@ export class SearchIndex {
 
   constructor(opts: { now?: () => number } = {}) {
     this.now = opts.now ?? Date.now;
-    this.index = new MiniSearch<IndexedDoc>({
-      fields: ["title", "tags", "content"],
-      storeFields: ["title", "tags", "folder", "rawTags", "createdAt"],
-      searchOptions: {
-        boost: { title: 3, tags: 2, content: 1 },
-        prefix: true,
-        fuzzy: 0.2,
-      },
-    });
+    this.index = new MiniSearch<IndexedDoc>(MINISEARCH_OPTIONS);
+  }
+
+  static fromSnapshot(snapshot: SearchSnapshot, opts: { now?: () => number } = {}): SearchIndex {
+    const idx = new SearchIndex(opts);
+    idx.index = MiniSearch.loadJSON<IndexedDoc>(snapshot.minisearch, MINISEARCH_OPTIONS);
+    for (const d of snapshot.docs) idx.docs.set(d.id, { ...d, keywords: d.keywords ?? [] });
+    for (const n of snapshot.noteInfos) idx.noteInfos.set(n.path, n);
+    return idx;
+  }
+
+  toSnapshot(): SearchSnapshot {
+    return {
+      version: 1,
+      builtAt: new Date().toISOString(),
+      minisearch: JSON.stringify(this.index),
+      docs: [...this.docs.values()],
+      noteInfos: [...this.noteInfos.values()],
+    };
   }
 
   async buildFromVault(vault: VaultManager, preloaded?: NoteContent[]): Promise<void> {
@@ -80,6 +122,28 @@ export class SearchIndex {
     this.noteInfos.delete(relativePath);
   }
 
+  /**
+   * Routing map = frontmatter keywords of routable notes, overridden by the
+   * explicit file map. Cheap enough to recompute after every index change.
+   */
+  briefMap(fileMap: Record<string, string> = {}): Record<string, string> {
+    const notes = [...this.docs.values()].map((d) => ({
+      path: d.id,
+      tags: d.rawTags,
+      frontmatter: { keywords: d.keywords },
+    }));
+    return buildBriefMap(notes, fileMap);
+  }
+
+  /** Notes that are not raw session journals: the curated layer. */
+  get curatedCount(): number {
+    let n = 0;
+    for (const p of this.noteInfos.keys()) {
+      if (!(p.startsWith("sessions/") && !p.startsWith("sessions/digests/"))) n++;
+    }
+    return n;
+  }
+
   listNotes(
     folder: string = "",
     recursive: boolean = true,
@@ -112,13 +176,12 @@ export class SearchIndex {
     return matches.slice(0, limit);
   }
 
-  search(
-    query: string,
-    options?: { folder?: string; tag?: string; limit?: number }
-  ): SearchResult[] {
+  search(query: string, options?: SearchOptions): SearchResult[] {
     const limit = options?.limit ?? 10;
-    const explicitSessionSearch =
-      options?.tag?.toLowerCase() === "type/session";
+    const tagFilter = (options?.tags ?? (options?.tag ? [options.tag] : [])).map((t) =>
+      t.toLowerCase()
+    );
+    const explicitSessionSearch = tagFilter.includes("type/session");
     const now = this.now();
     const SEVEN_DAYS = 7 * 24 * 3600000;
     const THIRTY_DAYS = 30 * 24 * 3600000;
@@ -142,13 +205,11 @@ export class SearchIndex {
         const tags = storedFields?.rawTags as string[] | undefined;
 
         if (!explicitSessionSearch && tags?.some((t) => t === "type/session")) {
-          boost *= 0.3;
+          boost *= SESSION_KEYWORD_BOOST;
         }
 
-        // Digests are synthesized summaries — keep them prominent even as
-        // they age past the temporal decay window.
         if (tags?.some((t) => t === "type/digest")) {
-          boost *= 1.5;
+          boost *= DIGEST_KEYWORD_BOOST;
         }
 
         return boost;
@@ -165,12 +226,11 @@ export class SearchIndex {
       );
     }
 
-    // Post-filter by tag
-    if (options?.tag) {
-      const tagLower = options.tag.toLowerCase();
+    // Post-filter by tag(s): any-of
+    if (tagFilter.length > 0) {
       results = results.filter((r) => {
         const rawTags = (r as unknown as { rawTags: string[] }).rawTags;
-        return rawTags?.some((t: string) => t.toLowerCase() === tagLower);
+        return rawTags?.some((t: string) => tagFilter.includes(t.toLowerCase()));
       });
     }
 
@@ -184,6 +244,12 @@ export class SearchIndex {
         tags: doc?.rawTags || [],
       };
     });
+  }
+
+  /** The indexed document (title, content, tags) for a path, if indexed. */
+  getDoc(relativePath: string): { title: string; content: string; tags: string[] } | undefined {
+    const d = this.docs.get(relativePath);
+    return d ? { title: d.title, content: d.content, tags: d.rawTags } : undefined;
   }
 
   get size(): number {
@@ -214,6 +280,7 @@ export class SearchIndex {
       folder,
       rawTags: note.tags,
       createdAt: note.createdAt,
+      keywords: isRoutableTagSet(note.tags) ? keywordsFromFrontmatter(note.frontmatter) : [],
     };
   }
 

@@ -48,6 +48,16 @@ export class PatchStringNotFoundError extends Error {
   }
 }
 
+export class WriteNotAllowedError extends Error {
+  constructor(path: string, allowed: string[]) {
+    super(
+      `Write to "${path}" is outside this vault's writable paths (${allowed.join(", ") || "none"}). ` +
+        `Curated notes change through proposals; see apply-proposals.`
+    );
+    this.name = "WriteNotAllowedError";
+  }
+}
+
 export class PatchStringAmbiguousError extends Error {
   constructor(path: string, editIndex: number, count: number) {
     super(
@@ -69,6 +79,7 @@ export function handleToolError(err: unknown, action: string) {
     err instanceof NoteAlreadyExistsError ||
     err instanceof PatchStringNotFoundError ||
     err instanceof PatchStringAmbiguousError ||
+    err instanceof WriteNotAllowedError ||
     err instanceof VaultNotFoundError ||
     err instanceof VaultNotReadyError ||
     (err instanceof Error && err.name === "PathSafetyError");

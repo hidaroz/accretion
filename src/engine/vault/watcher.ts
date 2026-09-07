@@ -1,10 +1,17 @@
 import { watch, type FSWatcher } from "chokidar";
 import path from "node:path";
-import { VaultManager } from "./vault-manager.js";
+import { VaultManager, type NoteContent } from "./vault-manager.js";
 import { SearchIndex } from "../retrieval/search-index.js";
 import { TagIndex } from "./tag-index.js";
 import type { EmbeddingIndex } from "../retrieval/embedding-index.js";
 import { logger } from "../utils/logger.js";
+
+export interface VaultWatcherHooks {
+  /** Called after a note has been (re)indexed. */
+  onNote?: (note: NoteContent) => void;
+  /** Called after a note has been removed from the indexes. */
+  onRemove?: (relativePath: string) => void;
+}
 
 export class VaultWatcher {
   private watcher: FSWatcher | null = null;
@@ -14,7 +21,8 @@ export class VaultWatcher {
     private vault: VaultManager,
     private searchIndex: SearchIndex,
     private tagIndex: TagIndex,
-    private embeddingIndex?: EmbeddingIndex
+    private embeddingIndex?: EmbeddingIndex,
+    private hooks: VaultWatcherHooks = {}
   ) {}
 
   start(): void {
@@ -70,6 +78,7 @@ export class VaultWatcher {
           if (this.embeddingIndex) {
             await this.embeddingIndex.addOrUpdate(note);
           }
+          this.hooks.onNote?.(note);
           logger.debug("Index updated for note", { path: relativePath });
         } catch (err) {
           logger.warn("Failed to index note", {
@@ -88,6 +97,7 @@ export class VaultWatcher {
     this.searchIndex.remove(relativePath);
     this.tagIndex.removeNote(relativePath);
     this.embeddingIndex?.remove(relativePath);
+    this.hooks.onRemove?.(relativePath);
     logger.debug("Removed from index", { path: relativePath });
   }
 }

@@ -1,3 +1,5 @@
+import { SESSION_FUSION_WEIGHT } from "./weights.js";
+
 // Reciprocal-rank fusion (RRF) for hybrid retrieval — combine keyword +
 // semantic rankings into one. Cheap, explainable, deterministic; the reviewer's
 // recommended first step before any cross-encoder reranking.
@@ -81,7 +83,7 @@ export async function hybridSearch(
   }
 
   const fused = rrf([kw, sem], {
-    weight: (p) => (isRawSession(p) ? 0.7 : 1),
+    weight: (p) => (isRawSession(p) ? SESSION_FUSION_WEIGHT : 1),
     pins: opts.pins,
   });
   return fused.slice(0, limit);

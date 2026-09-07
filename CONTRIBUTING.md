@@ -12,6 +12,12 @@ Node ≥ 20 (22 recommended — see `.nvmrc`).
 
 ## Things that will bite you
 
+**The repo is mid-restructure.** Per [`docs/ADR-001-engine-cli-skill.md`](docs/ADR-001-engine-cli-skill.md),
+the HTTP MCP server, `src/tools/`, and the `scripts/memory-*.mjs` wrappers are being replaced
+by an engine library and the `accretion` CLI, with a six-tool stdio adapter generated from the
+same command definitions. Read the ADR before adding code: a new MCP tool or a new script under
+`scripts/` is the wrong place for it, and will be deleted in a later phase.
+
 **Scripts import `dist/`, not `src/`.** Anything under `scripts/` loads the compiled build,
 so a TypeScript change is invisible to them until you `npm run build`. If a script's
 behaviour doesn't match the source you're reading, that's why.

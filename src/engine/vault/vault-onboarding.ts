@@ -66,6 +66,7 @@ export function gitignoreContent(): string {
     ".obsidian/workspace-mobile.json",
     ".mcp/search-log.jsonl",
     ".mcp/embeddings.json",
+    ".mcp/search-index.json",
     ".DS_Store",
     ".trash/",
     "",

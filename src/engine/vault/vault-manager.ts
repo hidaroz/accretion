@@ -1,18 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { execFile as execFileCb } from "node:child_process";
-import { promisify } from "node:util";
 import { resolveSafePath, PathSafetyError } from "../utils/path-safety.js";
 import { parseNote, stringifyNote, extractTitle, extractTags, type ParsedNote } from "./frontmatter.js";
-import { logger } from "../utils/logger.js";
 import {
   NoteNotFoundError,
   NoteAlreadyExistsError,
   PatchStringNotFoundError,
   PatchStringAmbiguousError,
+  WriteNotAllowedError,
 } from "../utils/errors.js";
-
-const execFile = promisify(execFileCb);
 
 export interface NoteInfo {
   path: string;
@@ -35,8 +31,39 @@ export interface FolderTree {
 }
 
 export interface VaultManagerOptions {
-  gitAutoCommit?: boolean;
-  gitAutoPush?: boolean;
+  /**
+   * Paths the engine may write to. Entries are vault-relative; a trailing "/"
+   * (or a bare directory name) allows everything beneath it, otherwise the
+   * entry names one file. Undefined = unrestricted (tests, one-off scripts).
+   * Hand-authored notes outside the list change only through an explicit
+   * `unrestricted` write, which `applyProposal` is the one caller of.
+   */
+  writablePaths?: string[];
+}
+
+export interface WriteOptions {
+  /** Bypass the allowlist. Reserved for proposal application. */
+  unrestricted?: boolean;
+}
+
+function normalizeRel(p: string): string {
+  return p.replace(/\\/g, "/").replace(/^\.\//, "").replace(/^\/+/, "");
+}
+
+/** Pure: is `relativePath` covered by the allowlist? */
+export function isWritable(relativePath: string, writablePaths: string[] | undefined): boolean {
+  if (!writablePaths) return true;
+  const rel = normalizeRel(relativePath);
+  for (const raw of writablePaths) {
+    const entry = normalizeRel(raw);
+    if (!entry) continue;
+    if (entry.endsWith("/")) {
+      if (rel.startsWith(entry)) return true;
+    } else if (rel === entry || rel.startsWith(entry + "/")) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export class VaultManager {
@@ -48,6 +75,17 @@ export class VaultManager {
 
   get root(): string {
     return this.vaultRoot;
+  }
+
+  get writablePaths(): string[] | undefined {
+    return this.options.writablePaths;
+  }
+
+  private assertWritable(relativePath: string, opts?: WriteOptions): void {
+    if (opts?.unrestricted) return;
+    if (!isWritable(relativePath, this.options.writablePaths)) {
+      throw new WriteNotAllowedError(relativePath, this.options.writablePaths ?? []);
+    }
   }
 
   async read(relativePath: string): Promise<NoteContent> {
@@ -82,11 +120,13 @@ export class VaultManager {
   async create(
     relativePath: string,
     content: string,
-    frontmatter: Record<string, unknown> = {}
+    frontmatter: Record<string, unknown> = {},
+    opts?: WriteOptions
   ): Promise<NoteInfo> {
     if (!relativePath.endsWith(".md")) {
       relativePath += ".md";
     }
+    this.assertWritable(relativePath, opts);
 
     const absPath = await resolveSafePath(this.vaultRoot, relativePath);
 
@@ -100,14 +140,10 @@ export class VaultManager {
       }
     }
 
-    // Ensure parent directory exists
     await fs.mkdir(path.dirname(absPath), { recursive: true });
 
     const raw = stringifyNote(content, frontmatter);
     await fs.writeFile(absPath, raw, "utf-8");
-
-    // Fire-and-forget git commit
-    this.gitCommit(`MCP: created ${relativePath}`);
 
     const stat = await fs.stat(absPath);
     return {
@@ -131,8 +167,9 @@ export class VaultManager {
       prepend?: string;
       frontmatter?: Record<string, unknown>;
       mode?: "replace" | "append" | "prepend";
-    }
+    } & WriteOptions
   ): Promise<NoteContent> {
+    this.assertWritable(relativePath, options);
     const absPath = await resolveSafePath(this.vaultRoot, relativePath);
     const existing = await this.read(relativePath);
 
@@ -164,9 +201,6 @@ export class VaultManager {
     const raw = stringifyNote(newContent, newFrontmatter);
     await fs.writeFile(absPath, raw, "utf-8");
 
-    // Fire-and-forget git commit
-    this.gitCommit(`MCP: updated ${relativePath}`);
-
     return this.read(relativePath);
   }
 
@@ -176,8 +210,10 @@ export class VaultManager {
       old_string: string;
       new_string: string;
       replace_all?: boolean;
-    }>
+    }>,
+    opts?: WriteOptions
   ): Promise<NoteContent> {
+    this.assertWritable(relativePath, opts);
     const absPath = await resolveSafePath(this.vaultRoot, relativePath);
     const existing = await this.read(relativePath);
 
@@ -202,15 +238,13 @@ export class VaultManager {
     const raw = stringifyNote(content, existing.frontmatter);
     await fs.writeFile(absPath, raw, "utf-8");
 
-    this.gitCommit(`MCP: patched ${relativePath} (${edits.length} edits)`);
-
     return this.read(relativePath);
   }
 
-  async delete(relativePath: string): Promise<void> {
+  async delete(relativePath: string, opts?: WriteOptions): Promise<void> {
+    this.assertWritable(relativePath, opts);
     const absPath = await resolveSafePath(this.vaultRoot, relativePath);
 
-    // Verify file exists
     await fs.access(absPath);
     await fs.unlink(absPath);
 
@@ -225,9 +259,6 @@ export class VaultManager {
         break;
       }
     }
-
-    // Fire-and-forget git commit
-    this.gitCommit(`MCP: deleted ${relativePath}`);
   }
 
   async list(
@@ -242,7 +273,6 @@ export class VaultManager {
     const notes: NoteInfo[] = [];
     await this.walkDir(absFolder, recursive, notes, limit);
 
-    // Sort by modified date descending
     notes.sort(
       (a, b) =>
         new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
@@ -280,7 +310,6 @@ export class VaultManager {
     for (const entry of entries) {
       if (results.length >= limit) return;
 
-      // Skip hidden files/folders (.obsidian, .git, etc.)
       if (entry.name.startsWith(".")) continue;
 
       const fullPath = path.join(dir, entry.name);
@@ -355,38 +384,6 @@ export class VaultManager {
 
     return { name, type: "folder", children };
   }
-
-  private gitCommit(message: string): void {
-    if (!this.options.gitAutoCommit) return;
-
-    const cwd = this.vaultRoot;
-    const autoPush = this.options.gitAutoPush ?? false;
-
-    // Stage → commit → (optionally) push as separate steps to avoid shell injection
-    execFile("git", ["add", "-A"], { cwd })
-      .then(() =>
-        // Check if there are staged changes before committing
-        execFile("git", ["diff", "--cached", "--quiet"], { cwd }).catch(() =>
-          // Non-zero exit means there are staged changes — commit them
-          execFile("git", ["commit", "-m", message], { cwd })
-        )
-      )
-      .then(() => {
-        if (!autoPush) return;
-        return execFile("git", ["push"], { cwd }).catch((pushErr) => {
-          logger.error("Git push failed", {
-            message,
-            error: String(pushErr),
-          });
-        });
-      })
-      .catch((err) => {
-        logger.error("Git commit failed", {
-          message,
-          error: String(err),
-        });
-      });
-  }
 }
 
 function countOccurrences(haystack: string, needle: string): number {
@@ -401,3 +398,4 @@ function countOccurrences(haystack: string, needle: string): number {
 }
 
 export { PathSafetyError };
+export type { ParsedNote };

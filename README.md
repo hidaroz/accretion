@@ -9,6 +9,17 @@ The thesis: memory should compound and stay *legible* (markdown + git), not accu
 vectors. Design rationale and the measurement story live in [`docs/DESIGN.md`](docs/DESIGN.md) and
 [`docs/REVIEW-RESPONSE.md`](docs/REVIEW-RESPONSE.md).
 
+## Direction
+
+accretion is being restructured. The product is an **engine** (a pure library) and an
+**`accretion` CLI** over it. Agents reach it through the CLI, a Claude Code **skill** that
+teaches when to call it, and two **hooks**: session capture and prompt-time passive recall. All
+of that ships as a Claude Code **plugin** with the CLI on `PATH`. A thin **stdio MCP adapter**
+with six tools, generated from the same command definitions as the CLI, remains for clients
+that have no shell. The HTTP server documented below is being retired on this branch; the
+lifecycle scripts under `scripts/` become CLI subcommands. The decision, its evidence, and the
+follow-ups are in [`docs/ADR-001-engine-cli-skill.md`](docs/ADR-001-engine-cli-skill.md).
+
 > **Transport note:** this is a long-running **HTTP** MCP server (Streamable HTTP) with Bearer-token
 > auth, not a stdio server. You start it once and point your client at `http://127.0.0.1:3001/mcp`.
 

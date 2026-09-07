@@ -9,81 +9,36 @@
  * Usage:
  *   node scripts/memory-archive.mjs [--vault demo] [--days 30] [--apply] [--no-require-digest]
  *
- * Requires `npm run build` (imports compiled dist/).
+ * Requires `npm run build` (imports compiled dist/). Superseded by `accretion archive`.
  */
 
-import fs from "node:fs/promises";
-import path from "node:path";
 import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
-import { findSessionNotes } from "../dist/engine/lifecycle/session-scan.js";
-import { getDigestedSessionPaths } from "../dist/engine/lifecycle/digest-candidates.js";
-import { repointDigests } from "../dist/tools/archive-sessions.js";
+import { archiveSessions } from "../dist/engine/lifecycle/archive.js";
 
 const args = parseArgs(process.argv.slice(2));
 
 try {
   const vaultRoot = await resolveVaultRoot(args.vault);
-  const daysOld = args.days ? Number(args.days) : 30;
-  const apply = args.apply === true;
-  const requireDigest = args["no-require-digest"] !== true;
-  const cutoff = new Date(Date.now() - daysOld * 24 * 3600000);
+  const result = await archiveSessions(vaultRoot, {
+    daysOld: args.days ? Number(args.days) : 30,
+    requireDigest: args["no-require-digest"] !== true,
+    apply: args.apply === true,
+  });
 
-  const { sessions } = await findSessionNotes(vaultRoot);
-  let toArchive = sessions.filter((s) => s.createdAt < cutoff);
-
-  let skippedUndigested = 0;
-  if (requireDigest) {
-    const digested = await getDigestedSessionPaths(vaultRoot);
-    const before = toArchive.length;
-    toArchive = toArchive.filter((s) => digested.has(s.relativePath));
-    skippedUndigested = before - toArchive.length;
-  }
-
-  toArchive.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-
-  if (!apply) {
-    console.log(`Dry run — would archive ${toArchive.length} session(s):`);
-    for (const s of toArchive) {
-      console.log(`  ${s.relativePath} (${s.createdAt.toISOString().slice(0, 10)})`);
+  if (!result.applied) {
+    console.log(`Dry run: would archive ${result.candidates.length} session(s):`);
+    for (const c of result.candidates) console.log(`  ${c.path} (${c.created})`);
+    if (result.skippedUndigested > 0) {
+      console.log(`Skipped ${result.skippedUndigested} old session(s) not yet covered by a digest.`);
     }
-    if (skippedUndigested > 0) {
-      console.log(
-        `Skipped ${skippedUndigested} old session(s) not yet covered by a digest.`
-      );
-    }
-    console.log("Re-run with --apply to move them.");
+    if (result.candidates.length > 0) console.log("Re-run with --apply to move them.");
     process.exit(0);
   }
 
-  let moved = 0;
-  const renames = new Map();
-  for (const s of toArchive) {
-    const srcAbs = path.join(vaultRoot, s.relativePath);
-    const archivePath = s.relativePath.replace(
-      /^sessions\//,
-      "sessions/archive/"
-    );
-    const destAbs = path.join(vaultRoot, archivePath);
-    await fs.mkdir(path.dirname(destAbs), { recursive: true });
-    await fs.rename(srcAbs, destAbs);
-    renames.set(s.relativePath, archivePath);
-    moved++;
-  }
-
-  // Digests record the exact paths they were built from, and archiving used to
-  // move the files out from under them — the June 2026 run stranded 92 source
-  // links. Shared with the MCP tool so the scheduled path and the interactive
-  // path cannot drift apart again.
-  const repointed = await repointDigests(vaultRoot, renames);
-
-  console.log(`Archived ${moved} session(s) to sessions/archive/.`);
-  if (repointed > 0) {
-    console.log(`Repointed source links in ${repointed} digest(s).`);
-  }
-  if (skippedUndigested > 0) {
-    console.log(
-      `Skipped ${skippedUndigested} old session(s) not yet covered by a digest.`
-    );
+  console.log(`Archived ${result.renames.length} session(s) to sessions/archive/.`);
+  if (result.repointedDigests > 0) console.log(`Repointed source links in ${result.repointedDigests} digest(s).`);
+  if (result.skippedUndigested > 0) {
+    console.log(`Skipped ${result.skippedUndigested} old session(s) not yet covered by a digest.`);
   }
 } catch (err) {
   fail(err instanceof Error ? err.message : String(err));
