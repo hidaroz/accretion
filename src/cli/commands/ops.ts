@@ -11,6 +11,14 @@ import { loadVaultsConfig, selectVault } from "../../engine/config/vault-config.
 const execFile = promisify(execFileCb);
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
+/** Engine-owned caches and logs under a vault's .mcp/. Never committed. */
+export const DERIVED_VAULT_FILES = [
+  ".mcp/search-index.json",
+  ".mcp/embeddings.json",
+  ".mcp/search-log.jsonl",
+  ".mcp/recall-log.jsonl",
+];
+
 export interface CommitResult {
   id: string;
   path: string;
@@ -36,6 +44,10 @@ export async function commitVault(
   const git = (args: string[]) => execFile("git", ["-C", cfg.path, ...args], { timeout: 60_000 });
   try {
     await git(["add", opts.only ? "--" : "-A", ...(opts.only ? [opts.only] : [])]);
+    // Derived, machine-local state under .mcp/ never belongs in the vault's history,
+    // whatever the vault's .gitignore says: it is large, it churns on every read,
+    // and an older vault predates the ignore entries.
+    await git(["rm", "-r", "-q", "--cached", "--ignore-unmatch", "--", ...DERIVED_VAULT_FILES]);
     let dirty = true;
     try {
       await git(["diff", "--cached", "--quiet"]);

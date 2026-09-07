@@ -43,6 +43,8 @@ export interface CommandSpec<S extends AnyShape = AnyShape> {
   jsonOnly?: boolean;
   /** JSON.stringify indent (the brief contract is a single line). */
   jsonIndent?: number;
+  /** MCP tools return JSON unless the command's text rendering is the better read (markdown briefs). */
+  mcpOutput?: "json" | "text";
   /** Hand the raw argv to the command untouched (wrappers around scripts). */
   passthrough?: boolean;
   run(args: z.infer<z.ZodObject<S>>, ctx: RunContext, rawArgv: string[]): Promise<unknown>;

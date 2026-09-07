@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Plugin shim. Resolves its own real location (it is usually reached through a
+# symlink from ~/.local/bin or a skills-dir install), then runs the built CLI two
+# levels up. ACCRETION_HOME overrides for an installed copy elsewhere.
+SELF="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+HERE="$(cd "$(dirname "$SELF")" && pwd)"
+ROOT="${ACCRETION_HOME:-$HERE/../..}"
+exec node "$ROOT/dist/cli/main.js" "$@"

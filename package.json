@@ -15,9 +15,7 @@
   },
   "bin": {
     "accretion": "dist/cli/main.js",
-    "accretion-setup-vault": "scripts/setup-vault.mjs",
-    "accretion-bootstrap": "scripts/bootstrap.mjs",
-    "accretion-doctor": "scripts/doctor.mjs"
+    "accretion-mcp": "dist/mcp/main.js"
   },
   "scripts": {
     "build": "tsc && node scripts/build-hooks.mjs",

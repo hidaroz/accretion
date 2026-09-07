@@ -1,0 +1,6 @@
+{
+  "name": "accretion",
+  "description": "Curated agent memory over Obsidian vaults: the accretion CLI on PATH, a skill that teaches when to use it, session capture, and prompt-time passive recall.",
+  "version": "0.2.0",
+  "author": { "name": "Hidar Elhassan" }
+}

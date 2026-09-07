@@ -86,5 +86,10 @@ export function homeMocStub(displayName: string): string {
     "",
     "Map of Content for this vault. Link domain MOCs here as they grow.",
     "",
+    "Note types the engine understands: `type/brief` (one per domain, the curated layer),",
+    "`type/playbook` (how we do X here), `type/rejected` (considered and declined),",
+    "`type/note` (evergreen, cites a Source), `type/digest` (weekly synthesis of sessions).",
+    "Routing keywords go in a note's `keywords:` frontmatter; `.mcp/brief-map.json` overrides.",
+    "",
   ].join("\n");
 }

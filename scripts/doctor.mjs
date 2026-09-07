@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Read-only health check for an accretion install. Verifies the pieces
- * a fresh machine needs and prints a PASS / WARN / FAIL checklist with a fix hint
- * for anything that isn't right. Exits non-zero if any hard check FAILs.
- * Built-ins only. Honors CLAUDE_HOME and VAULTS_CONFIG.
+ * Read-only health check for an accretion install. Prints a PASS / WARN / FAIL
+ * checklist with a fix hint for anything that isn't right. Exits non-zero if
+ * any hard check FAILs. Built-ins only. Honors CLAUDE_HOME and VAULTS_CONFIG.
  *
- * Usage: node scripts/doctor.mjs
+ * Usage: accretion doctor   (or node scripts/doctor.mjs)
  */
 
 import fs from "node:fs";
@@ -14,33 +13,29 @@ import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { hasSessionJournalHook } from "./lib/settings-merge.mjs";
+import { hasSessionJournalHook, hasPromptRecallHook } from "./lib/settings-merge.mjs";
 import { expandHome } from "./lib/expand-home.mjs";
 
-// Script-relative by default, which is right for every normal invocation.
-// ACCRETION_HOME overrides it for callers that are not running from a checkout
-// — the weekly loop hands the scheduled agent a repo path it cannot otherwise
-// infer, and that agent shells out to these scripts.
 const REPO =
   process.env.ACCRETION_HOME ||
   path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CLAUDE_HOME = expandHome(
-  process.env.CLAUDE_HOME || path.join(os.homedir(), ".claude")
-);
-const VAULTS_CONFIG = expandHome(
-  process.env.VAULTS_CONFIG ||
-    path.join(os.homedir(), ".config", "accretion", "vaults.json")
-);
-const PORT = process.env.PORT || "3001";
-const HOST = process.env.HOST || "127.0.0.1";
+const CLAUDE_HOME = expandHome(process.env.CLAUDE_HOME || path.join(os.homedir(), ".claude"));
+const CONFIG_PATH = path.join(os.homedir(), ".config", "accretion", "vaults.json");
+const LEGACY_CONFIG = path.join(os.homedir(), ".config", "obsidian-mcp", "vaults.json");
+const VAULTS_CONFIG = process.env.VAULTS_CONFIG
+  ? expandHome(process.env.VAULTS_CONFIG)
+  : fs.existsSync(CONFIG_PATH)
+    ? CONFIG_PATH
+    : fs.existsSync(LEGACY_CONFIG)
+      ? LEGACY_CONFIG
+      : CONFIG_PATH;
 const MIN_NODE_MAJOR = 20;
-// Weekly schedule + a sleeping-Mac allowance. Anything past this means the job
-// is not running, not that it ran late.
+// Weekly schedule + a sleeping-Mac allowance. Past this the job is not running.
 const MAX_RUN_AGE_DAYS = 10;
-// get_context's ceiling is 20k tokens across all briefs it assembles; ~4 chars
-// per token puts a single brief's share well under 32 KB.
+// context assembly caps at 20k tokens across all briefs; ~4 chars/token.
 const BRIEF_WARN_KB = 32;
 const BRIEF_FAIL_KB = 64;
+const CLI = path.join(REPO, "dist", "cli", "main.js");
 
 let failures = 0;
 const pass = (m) => console.log(`  ✓ ${m}`);
@@ -49,19 +44,35 @@ const fail = (m, hint) => { failures++; console.log(`  ✗ ${m}${hint ? `\n     
 
 console.log(`accretion doctor\n  repo: ${REPO}\n  CLAUDE_HOME: ${CLAUDE_HOME}\n  vaults.json: ${VAULTS_CONFIG}\n`);
 
-// 1. Node version
+// 1. Node
 const major = Number(process.versions.node.split(".")[0]);
 if (major >= MIN_NODE_MAJOR) pass(`Node ${process.versions.node} (>= ${MIN_NODE_MAJOR})`);
 else fail(`Node ${process.versions.node} too old`, `install Node >= ${MIN_NODE_MAJOR} (see .nvmrc)`);
 
-// 2. Build present
-if (fs.existsSync(path.join(REPO, "dist", "index.js"))) pass("dist/ is built");
-else warn("dist/ not built", "run `npm run build`");
+// 2. Build
+if (fs.existsSync(CLI)) pass("dist/ is built (CLI present)");
+else fail("dist/cli/main.js not built", "run `npm run build`");
+for (const h of ["session-journal.mjs", "prompt-recall.mjs"]) {
+  if (!fs.existsSync(path.join(REPO, "dist", "hooks", h))) warn(`dist/hooks/${h} not built`, "run `npm run build`");
+}
 
-// 3. vaults.json present + valid
+// 3. accretion on PATH
+let onPath = null;
+try {
+  onPath = execFileSync("sh", ["-c", "command -v accretion"], { encoding: "utf8" }).trim() || null;
+} catch {
+  /* not found */
+}
+if (onPath) pass(`accretion on PATH (${onPath})`);
+else warn("`accretion` is not on PATH", "run `node scripts/bootstrap.mjs` (links ~/.local/bin/accretion), or add plugin/bin to PATH");
+
+// 4. Registry
 let vaults = null;
+if (VAULTS_CONFIG === LEGACY_CONFIG) {
+  warn(`registry read from legacy path ${LEGACY_CONFIG}`, `copy it to ${CONFIG_PATH} (bootstrap does this)`);
+}
 if (!fs.existsSync(VAULTS_CONFIG)) {
-  fail("vaults.json not found", "run `node scripts/setup-vault.mjs --id <name> --path <abs> --default`");
+  fail("vaults.json not found", "run `accretion setup-vault --id <name> --path <abs> --default`");
 } else {
   try {
     const parsed = JSON.parse(fs.readFileSync(VAULTS_CONFIG, "utf8"));
@@ -76,118 +87,121 @@ if (!fs.existsSync(VAULTS_CONFIG)) {
     fail(`vaults.json is not valid JSON: ${e.message}`, "fix the syntax");
   }
 }
-
-// 3b. each vault path exists + has .mcp/
 for (const v of vaults ?? []) {
-  if (!v.path || !path.isAbsolute(v.path)) { fail(`vault "${v.id}" path is not absolute`, "use an absolute path"); continue; }
-  if (!fs.existsSync(v.path)) { fail(`vault "${v.id}" path missing: ${v.path}`, "create it or fix vaults.json"); continue; }
-  if (!fs.existsSync(path.join(v.path, ".mcp"))) warn(`vault "${v.id}" has no .mcp/ dir`, "re-run setup-vault for it");
-  else pass(`vault "${v.id}" → ${v.path}`);
+  const p = v.path ? path.resolve(expandHome(v.path)) : "";
+  if (!p || !fs.existsSync(p)) { fail(`vault "${v.id}" path missing: ${v.path}`, "create it or fix vaults.json"); continue; }
+  v.path = p;
+  if (!fs.existsSync(path.join(p, ".mcp"))) warn(`vault "${v.id}" has no .mcp/ dir`, "re-run setup-vault for it");
+  else pass(`vault "${v.id}" → ${p}`);
 }
 
-// 4. capture hook installed
-if (fs.existsSync(path.join(CLAUDE_HOME, "hooks", "session-journal.mjs"))) pass("capture hook installed");
-else warn("capture hook not installed", "run `node scripts/bootstrap.mjs`");
-
-// 5. SessionEnd wired
+// 5. Install mode. Plugin mode = ~/.claude/skills/accretion is (a link to) the
+// plugin directory; Claude Code then provides hooks, skills, bin and MCP itself.
+// Hooks mode = files copied into ~/.claude/hooks and wired in settings.json.
+const pluginDest = path.join(CLAUDE_HOME, "skills", "accretion");
+const pluginMode = fs.existsSync(path.join(pluginDest, ".claude-plugin", "plugin.json"));
+const hooksDir = path.join(CLAUDE_HOME, "hooks");
 const settingsPath = path.join(CLAUDE_HOME, "settings.json");
-if (!fs.existsSync(settingsPath)) {
-  warn("no settings.json", "run `node scripts/bootstrap.mjs` to wire the SessionEnd hook");
-} else {
+let settings = null;
+if (fs.existsSync(settingsPath)) {
   try {
-    if (hasSessionJournalHook(JSON.parse(fs.readFileSync(settingsPath, "utf8")))) pass("SessionEnd capture hook wired");
-    else warn("SessionEnd hook not wired", "run `node scripts/bootstrap.mjs`");
+    settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
   } catch (e) {
     fail(`settings.json not valid JSON: ${e.message}`, "fix the syntax");
   }
 }
-
-// 6. server reachable (optional)
-try {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 1500);
-  const res = await fetch(`http://${HOST}:${PORT}/health`, { signal: ctrl.signal });
-  clearTimeout(t);
-  if (res.ok) pass(`server reachable at http://${HOST}:${PORT}/health`);
-  else warn(`server returned HTTP ${res.status}`, "check server logs");
-} catch {
-  warn(`server not reachable at http://${HOST}:${PORT}`, "start it with `npm start` (ok if intentionally off)");
+if (pluginMode) {
+  let target = pluginDest;
+  try { target = fs.readlinkSync(pluginDest); } catch { /* real dir */ }
+  pass(`plugin installed at ${pluginDest}${target !== pluginDest ? ` → ${target}` : ""} (hooks, skills, bin, MCP from the plugin)`);
+  if (target !== pluginDest && path.resolve(target) !== path.join(REPO, "plugin")) {
+    warn(`plugin link points at a different checkout than this repo`, `expected ${path.join(REPO, "plugin")}`);
+  }
+  if (settings && (hasSessionJournalHook(settings) || hasPromptRecallHook(settings))) {
+    warn("settings.json still wires accretion hooks; with the plugin installed they fire twice", "run `node scripts/bootstrap.mjs` (plugin mode removes them, with a backup)");
+  }
+  for (const name of ["memory", "memory-weekly"]) {
+    if (fs.existsSync(path.join(REPO, "plugin", "skills", name, "SKILL.md"))) pass(`plugin skill: /accretion:${name}`);
+    else fail(`plugin skill missing: ${name}`, "the checkout is incomplete");
+  }
+  if (fs.existsSync(path.join(CLAUDE_HOME, "commands", "memory-weekly.md"))) {
+    warn("~/.claude/commands/memory-weekly.md still present; /memory-weekly and /accretion:memory-weekly both exist", "run `node scripts/bootstrap.mjs` to retire it");
+  }
+} else {
+  for (const h of ["session-journal.mjs", "prompt-recall.mjs"]) {
+    if (fs.existsSync(path.join(hooksDir, h))) pass(`hook installed: ${h}`);
+    else warn(`hook not installed: ${h}`, "run `node scripts/bootstrap.mjs` (plugin mode) or `--install hooks`");
+  }
+  if (!settings) {
+    warn("no settings.json", "run `node scripts/bootstrap.mjs`");
+  } else {
+    if (hasSessionJournalHook(settings)) pass("SessionEnd capture hook wired");
+    else warn("SessionEnd capture hook not wired", "run `node scripts/bootstrap.mjs`");
+    if (hasPromptRecallHook(settings)) pass("UserPromptSubmit recall hook wired");
+    else warn("UserPromptSubmit recall hook not wired", "run `node scripts/bootstrap.mjs`");
+  }
+  for (const name of ["memory", "memory-weekly"]) {
+    const p = path.join(CLAUDE_HOME, "skills", name, "SKILL.md");
+    if (fs.existsSync(p)) pass(`skill installed: ${name}`);
+    else warn(`skill not installed: ${name}`, "run `node scripts/bootstrap.mjs`");
+  }
+}
+const mapPath = process.env.PROJECT_VAULT_MAP
+  ? expandHome(process.env.PROJECT_VAULT_MAP)
+  : path.join(hooksDir, "project-vault-map.json");
+if (fs.existsSync(mapPath)) {
+  try {
+    const map = JSON.parse(fs.readFileSync(mapPath, "utf8"));
+    const mapped = Object.keys(map).filter((k) => k !== "_default" && k !== "_comment" && map[k]);
+    pass(`project map: ${mapped.length} slug(s) mapped, _default ${map._default ? `"${map._default}" (capture everything)` : "null (opt-in)"}`);
+  } catch (e) {
+    fail(`project map not valid JSON: ${e.message}`, `fix ${mapPath}`);
+  }
+} else {
+  warn("no project map; capture and recall are off everywhere", `run \`accretion setup-vault --project <slug>\` or seed ${mapPath}`);
 }
 
-// 7. Pipeline liveness.
-//
-// Everything above answers "is this installed?". None of it answers "is it
-// still running?" — and that is how this pipeline has died in silence more than
-// once: a capture hook that vanished, and a weekly agent that was generated but
-// never loaded. Neither broke loudly, and both went unnoticed for weeks. These
-// checks are the alarm.
+// 7. Pipeline liveness per vault. Everything above answers "is this installed?";
+// this answers "is it still running?", which is how the pipeline has died in
+// silence before: a hook that vanished, an agent generated but never loaded.
 console.log("");
-
-// 7a. The command the wrapper invokes.
-//
-// Missing only matters if something is actually scheduled to call it. On a
-// fresh install nothing is, and failing there would make the documented final
-// verification step red for every new user — the same trap 7b avoids below.
-// "In use" means a run has actually happened, not that the directory exists —
-// setup-vault creates the whole skeleton up front, so an empty _runs/ proves
-// nothing. Same definition as `managed` in 7b below; they must agree, or doctor
-// contradicts itself in adjacent lines.
 const hasRuns = (v) => {
   const dir = path.join(v.path, "sessions", "digests", "_runs");
-  return (
-    fs.existsSync(dir) && fs.readdirSync(dir).some((f) => f.endsWith(".md"))
-  );
+  return fs.existsSync(dir) && fs.readdirSync(dir).some((f) => f.endsWith(".md"));
 };
-const weeklyInUse = (vaults ?? []).some((v) => v.path && hasRuns(v));
-const commandPath = path.join(CLAUDE_HOME, "commands", "memory-weekly.md");
-if (fs.existsSync(commandPath)) pass("/memory-weekly command installed");
-else if (weeklyInUse)
-  fail(
-    "/memory-weekly command missing, but a vault is curated",
-    `run \`node scripts/bootstrap.mjs\` to install it — the launchd wrapper runs \`claude -p "/memory-weekly …"\` and fails without it`
-  );
-else
-  warn(
-    "/memory-weekly command not installed (weekly loop not in use)",
-    "run `node scripts/bootstrap.mjs` to enable the weekly loop, or ignore this if you only want the server"
-  );
+
+if (process.platform === "darwin") {
+  const committerLabels = ["com.accretion.committer", "com.vault.committer"];
+  const loaded = committerLabels.find((label) => {
+    try {
+      execFileSync("launchctl", ["print", `gui/${process.getuid()}/${label}`], { stdio: "ignore", timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  });
+  if (loaded) pass(`committer agent loaded (${loaded})`);
+  else warn("no committer agent loaded; vault commits depend on the capture hook alone", "node scripts/bootstrap.mjs --committer, then launchctl bootstrap");
+}
 
 for (const v of vaults ?? []) {
   if (!v.path || !fs.existsSync(v.path)) continue;
-
-  // 7b/7c. Weekly curation liveness.
-  //
-  // A vault that has never had a run has simply not been set up — that is a
-  // WARN. A vault that has run before and then stopped has *regressed*, and
-  // that is the state worth shouting about. Failing on both would keep an
-  // unmanaged vault permanently red, and a check that is always red is a check
-  // nobody reads.
   const runsDir = path.join(v.path, "sessions", "digests", "_runs");
-  const runs = fs.existsSync(runsDir)
-    ? fs.readdirSync(runsDir).filter((f) => f.endsWith(".md"))
-    : [];
+  const runs = fs.existsSync(runsDir) ? fs.readdirSync(runsDir).filter((f) => f.endsWith(".md")) : [];
   const managed = runs.length > 0;
-  const setupHint =
-    `node scripts/setup-vault.mjs --id ${v.id} --path ${v.path} --launchd`;
+  const setupHint = `accretion setup-vault --id ${v.id} --path ${v.path} --launchd`;
 
   if (process.platform === "darwin") {
     const label = `com.memory-weekly.${v.id}`;
     let loaded = false;
     try {
-      execFileSync("launchctl", ["print", `gui/${process.getuid()}/${label}`], {
-        stdio: "ignore",
-        timeout: 5000,
-      });
+      execFileSync("launchctl", ["print", `gui/${process.getuid()}/${label}`], { stdio: "ignore", timeout: 5000 });
       loaded = true;
     } catch {
       /* not loaded */
     }
     if (loaded) pass(`weekly agent loaded (${label})`);
-    else if (managed)
-      fail(
-        `weekly agent not loaded (${label}) — this vault is curated but unscheduled`,
-        `${setupHint}, then cp to ~/Library/LaunchAgents/ and \`launchctl bootstrap\``
-      );
+    else if (managed) fail(`weekly agent not loaded (${label}); this vault is curated but unscheduled`, `${setupHint}, then cp to ~/Library/LaunchAgents/ and \`launchctl bootstrap\``);
     else warn(`vault "${v.id}": no weekly agent (never curated)`, setupHint);
   }
 
@@ -197,72 +211,57 @@ for (const v of vaults ?? []) {
     const newest = Math.max(...runs.map((f) => fs.statSync(path.join(runsDir, f)).mtimeMs));
     const days = Math.floor((Date.now() - newest) / 86_400_000);
     if (days <= MAX_RUN_AGE_DAYS) pass(`vault "${v.id}": last memory-weekly run ${days}d ago`);
-    else
-      fail(
-        `vault "${v.id}": last memory-weekly run was ${days}d ago (limit ${MAX_RUN_AGE_DAYS}d)`,
-        `the weekly job is not running — check \`launchctl print\` and ~/Library/Logs/memory-weekly/${v.id}`
-      );
+    else fail(`vault "${v.id}": last memory-weekly run was ${days}d ago (limit ${MAX_RUN_AGE_DAYS}d)`, `check \`launchctl print\` and ~/Library/Logs/memory-weekly/${v.id}`);
+  }
+
+  // Digest backlog, through the same command the weekly run uses.
+  if (fs.existsSync(CLI)) {
+    try {
+      const raw = execFileSync(process.execPath, [CLI, "digest-candidates", "--vault", v.id], {
+        encoding: "utf8", timeout: 60_000, maxBuffer: 64 * 1024 * 1024,
+        env: { ...process.env, VAULTS_CONFIG, LOG_LEVEL: "error" },
+      });
+      const pending = (JSON.parse(raw).groups ?? []).filter((g) => g.exists === false);
+      if (pending.length === 0) pass(`vault "${v.id}": no digest backlog`);
+      else warn(`vault "${v.id}": ${pending.length} project-week(s) awaiting a digest`, pending.map((g) => `${g.period}-${g.project}`).join(", "));
+    } catch (e) {
+      warn(`vault "${v.id}": could not check digest backlog`, String(e.message).split("\n")[0]);
+    }
   }
 
   const notes = collectMarkdown(v.path);
 
-  // 7d. Digest backlog. Delegates to the same script the weekly run uses, so
-  // the grouping rule has exactly one definition.
-  if (fs.existsSync(path.join(REPO, "dist", "index.js"))) {
-    try {
-      const raw = execFileSync(
-        process.execPath,
-        [path.join(REPO, "scripts", "memory-digest-candidates.mjs"), "--vault", v.id],
-        { encoding: "utf8", timeout: 60_000, maxBuffer: 64 * 1024 * 1024 }
-      );
-      const pending = (JSON.parse(raw).groups ?? []).filter((g) => g.exists === false);
-      if (pending.length === 0) pass(`vault "${v.id}": no digest backlog`);
-      else
-        warn(
-          `vault "${v.id}": ${pending.length} project-week(s) awaiting a digest`,
-          pending.map((g) => `${g.period}-${g.project}`).join(", ")
-        );
-    } catch (e) {
-      warn(`vault "${v.id}": could not check digest backlog`, e.message.split("\n")[0]);
-    }
+  // Derived .mcp/ files must stay out of the vault's git history. `accretion commit`
+  // unstages them regardless, but a hand-run `git add -A` would not.
+  if (fs.existsSync(path.join(v.path, ".git"))) {
+    const ignore = fs.existsSync(path.join(v.path, ".gitignore")) ? fs.readFileSync(path.join(v.path, ".gitignore"), "utf8") : "";
+    const missing = [".mcp/search-index.json", ".mcp/embeddings.json", ".mcp/search-log.jsonl", ".mcp/recall-log.jsonl"].filter((f) => !ignore.split("\n").includes(f));
+    if (missing.length === 0) pass(`vault "${v.id}": derived .mcp files ignored`);
+    else warn(`vault "${v.id}": .gitignore lacks ${missing.join(", ")}`, "append them; `accretion commit` unstages them but plain git will not");
   }
 
-  // 7e. Embedding freshness. A stale index is invisible: semantic search keeps
-  // answering, just without anything written since the last build.
+  // Embedding freshness: a stale index keeps answering without recent notes.
   const embeddings = path.join(v.path, ".mcp", "embeddings.json");
   if (fs.existsSync(embeddings)) {
     const built = fs.statSync(embeddings).mtimeMs;
     const newer = notes.filter((n) => fs.statSync(n).mtimeMs > built).length;
     if (newer === 0) pass(`vault "${v.id}": embedding index current`);
-    else
-      warn(
-        `vault "${v.id}": ${newer} note(s) changed since the embedding index was built`,
-        "restart the server to rebuild, or it will keep answering without them"
-      );
+    else warn(`vault "${v.id}": ${newer} note(s) changed since the embedding index was built`, "any `accretion search` with embeddings on refreshes it");
   }
 
-  // 7f. Brief size. get_context concatenates whole briefs under a token budget,
-  // so one oversized brief starves every other topic in an assembled context.
-  // A single brief has reached 78 KB in practice — more than the 20k-token ceiling
-  // the tool allows in total.
+  // Brief size: one oversized brief starves every other topic in assembled context.
   for (const n of notes) {
     if (!path.basename(n).startsWith("brief-")) continue;
     const kb = fs.statSync(n).size / 1024;
     const rel = path.relative(v.path, n);
-    if (kb > BRIEF_FAIL_KB)
-      fail(
-        `brief too large: ${rel} (${Math.round(kb)} KB)`,
-        "split into a routing brief plus linked deep-dives — it cannot fit a get_context budget"
-      );
-    else if (kb > BRIEF_WARN_KB)
-      warn(`brief getting large: ${rel} (${Math.round(kb)} KB)`, "consider splitting before it crowds out other topics");
+    if (kb > BRIEF_FAIL_KB) fail(`brief too large: ${rel} (${Math.round(kb)} KB)`, "split into a routing brief plus linked deep-dives");
+    else if (kb > BRIEF_WARN_KB) warn(`brief getting large: ${rel} (${Math.round(kb)} KB)`, "consider splitting before it crowds out other topics");
   }
 }
 
 console.log(`\n${failures === 0 ? "✓ doctor: no hard failures" : `✗ doctor: ${failures} failure(s)`}`);
 process.exit(failures === 0 ? 0 : 1);
 
-/** Every .md in the vault, excluding Obsidian's own config. */
 function collectMarkdown(root) {
   const out = [];
   const walk = (dir) => {

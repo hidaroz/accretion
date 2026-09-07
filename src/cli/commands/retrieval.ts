@@ -40,6 +40,7 @@ export const search = defineCommand({
 export const brief = defineCommand({
   name: "brief",
   group: "retrieval",
+  mcpOutput: "text",
   summary: "Route a topic to its domain brief; abstains rather than guess.",
   description:
     "Resolve a topic keyword to the single curated brief (or playbook / rejected-decision note) that owns it, via the brief map, exact title, or a gated fuzzy match with a domain trigger. When nothing clears the gate it abstains and lists possibly related notes instead. Trust the abstention.",
@@ -69,6 +70,7 @@ export const brief = defineCommand({
 export const context = defineCommand({
   name: "context",
   group: "retrieval",
+  mcpOutput: "text",
   summary: "Assemble several briefs under one token budget.",
   description:
     "Route each topic to its brief and concatenate them under a shared token budget, fair-shared across the briefs that resolved. Topics that do not route are listed at the end. One call instead of several brief lookups.",
