@@ -51,6 +51,7 @@ export async function statNotes(
     for (const e of entries) {
       if (e.name.startsWith(".")) continue;
       const full = path.join(dir, e.name);
+      if (e.isDirectory() && path.relative(vaultRoot, full) === "sessions/archive") continue;
       if (e.isDirectory()) await walk(full);
       else if (e.isFile() && e.name.endsWith(".md")) {
         const st = await fs.stat(full);

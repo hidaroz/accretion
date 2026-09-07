@@ -1,26 +1,11 @@
 #!/usr/bin/env node
+// Deprecated shim: use `accretion stale-briefs`. Kept for one release so an
+// installed weekly loop keeps working while its command file is updated.
+import { spawn } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-/**
- * Print briefs that are stale (not reviewed in N days) AND have related
- * session activity since their review date, as JSON.
- *
- * Usage:
- *   node scripts/memory-stale-briefs.mjs [--vault demo] [--stale-days 21]
- *
- * Requires `npm run build` (imports compiled dist/).
- */
-
-import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
-import { getStaleBriefs } from "../dist/engine/lifecycle/brief-staleness.js";
-
-const args = parseArgs(process.argv.slice(2));
-
-try {
-  const vaultRoot = await resolveVaultRoot(args.vault);
-  const result = await getStaleBriefs(vaultRoot, {
-    staleDays: args["stale-days"] ? Number(args["stale-days"]) : 21,
-  });
-  console.log(JSON.stringify(result, null, 2));
-} catch (err) {
-  fail(err instanceof Error ? err.message : String(err));
-}
+const cli = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist", "cli", "main.js");
+console.error("[accretion] scripts/memory-stale-briefs.mjs is deprecated; use `accretion stale-briefs`");
+const child = spawn(process.execPath, [cli, "stale-briefs", ...process.argv.slice(2)], { stdio: "inherit" });
+child.on("exit", (code) => process.exit(code ?? 1));

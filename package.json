@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Curated Obsidian-vault memory served to AI agents over MCP: hybrid retrieval, confidence-gated brief routing, and a self-running weekly maintenance loop.",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/engine/index.js",
   "author": "Hidar Elhassan",
   "license": "MIT",
   "repository": {
@@ -14,7 +14,7 @@
     "node": ">=20"
   },
   "bin": {
-    "accretion": "dist/index.js",
+    "accretion": "dist/cli/main.js",
     "accretion-setup-vault": "scripts/setup-vault.mjs",
     "accretion-bootstrap": "scripts/bootstrap.mjs",
     "accretion-doctor": "scripts/doctor.mjs"

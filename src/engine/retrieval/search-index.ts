@@ -246,6 +246,18 @@ export class SearchIndex {
     });
   }
 
+  /** Tag → note count, optionally filtered by prefix, most common first. */
+  tagCounts(prefix?: string): Array<{ tag: string; count: number }> {
+    const counts = new Map<string, number>();
+    for (const d of this.docs.values()) {
+      for (const t of d.rawTags) {
+        if (prefix && !t.startsWith(prefix.toLowerCase())) continue;
+        counts.set(t, (counts.get(t) ?? 0) + 1);
+      }
+    }
+    return [...counts].map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+  }
+
   /** The indexed document (title, content, tags) for a path, if indexed. */
   getDoc(relativePath: string): { title: string; content: string; tags: string[] } | undefined {
     const d = this.docs.get(relativePath);

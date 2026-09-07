@@ -352,6 +352,9 @@ export class VaultManager {
 
       const fullPath = path.join(dir, entry.name);
 
+      // Archived sessions leave the live index; they stay on disk for grep and git.
+      if (entry.isDirectory() && path.relative(this.vaultRoot, fullPath) === "sessions/archive") continue;
+
       if (entry.isDirectory()) {
         await this.walkDirFull(fullPath, results);
       } else if (entry.isFile() && entry.name.endsWith(".md")) {

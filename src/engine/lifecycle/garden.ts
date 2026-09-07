@@ -49,7 +49,7 @@ const DURABLE_TAGS = ["type/brief", "type/note", "type/reference", "type/playboo
 
 // Path-like references into a codebase, and line numbers attached to them.
 const SOURCE_PATH = /(?:^|[\s(`'"])((?:src|lib|app|apps|packages|scripts|hooks|test|tests|bin|cmd|internal|pkg)\/[\w.@-]+(?:\/[\w.@-]+)*\.[a-z]{1,5})(?::\d+)?/g;
-const LINE_REF = /\b(?:line|lines|L)\s?\d{1,5}\b/gi;
+const LINE_REF = /(?:\b(?:line|lines)\s?\d{1,5}\b|#L\d{1,5}\b)/gi;
 
 export function findStaleReferences(content: string): string[] {
   const hits = new Set<string>();
