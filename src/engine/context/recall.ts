@@ -74,6 +74,33 @@ export function shouldRecall(prompt: string): boolean {
 }
 
 /**
+ * The vault's own vocabulary: routing keywords plus the title and slug tokens of
+ * every curated note. A prompt that shares none of it is off-domain for this
+ * vault, however many common words it has in common with some note body.
+ */
+export function domainVocabulary(
+  searchIndex: Pick<SearchIndex, "listNotes">,
+  briefMap: Record<string, string>
+): Set<string> {
+  const vocab = new Set<string>();
+  const add = (t: string) => {
+    if (t.length >= 3) vocab.add(t);
+  };
+  for (const k of Object.keys(briefMap)) for (const t of tokenize(k)) add(t);
+  for (const n of searchIndex.listNotes("", true, 1_000_000)) {
+    if (!isCuratedPath(n.path)) continue;
+    for (const t of tokenize(n.title)) add(t);
+    const slug = n.path.split("/").pop()?.replace(/\.md$/i, "") ?? "";
+    for (const t of tokenize(slug)) if (t !== "brief") add(t);
+  }
+  return vocab;
+}
+
+export function sharesDomainVocabulary(prompt: string, vocab: Set<string>): boolean {
+  return tokenize(prompt).some((t) => vocab.has(t));
+}
+
+/**
  * Fuzzy keyword search returns something for almost any prompt (common words,
  * prefixes). For ambient injection that is not good enough: a hit must share
  * real content words with the prompt. Two distinct body tokens, or one title
@@ -135,6 +162,7 @@ export async function recallForPrompt(
   }
 
   if (mode === "brief-only") return none;
+  if (!sharesDomainVocabulary(prompt, domainVocabulary(deps.searchIndex, deps.briefMap))) return none;
 
   const limit = 3;
   const wide = limit * 3;

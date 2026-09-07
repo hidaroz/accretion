@@ -25,9 +25,9 @@ describe("routeBrief", () => {
 
   it("routes a strong, well-separated fuzzy hit", () => {
     const r = routeBrief({}, idx([
-      { path: "a/brief.md", title: "Some Brief", score: 20 },
+      { path: "a/brief.md", title: "Cycling Brief", score: 20 },
       { path: "b/other.md", title: "Other", score: 8 },
-    ]), "some query", OPTS);
+    ]), "cycling query", OPTS);
     expect(r.method).toBe("tag_search");
     expect(r.path).toBe("a/brief.md");
   });

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-// @ts-expect-error — the capture hook is plain ESM, outside the TS build.
-import { redactSecrets } from "../../hooks/session-journal.mjs";
+import { redactSecrets } from "../hooks/session-journal.js";
 
 /**
  * Session notes copy user messages and shell commands verbatim, and the vault

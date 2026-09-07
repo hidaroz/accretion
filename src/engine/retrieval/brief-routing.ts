@@ -60,6 +60,14 @@ const STOP = new Set([
   "on", "and", "or", "with", "my", "our", "we", "get", "got", "set", "this",
   "that", "it", "its", "i", "you", "can", "should", "would", "about", "into",
   "from", "use", "used", "using", "make", "made", "up",
+  // Function words that also show up in note titles; without these a prompt
+  // shares "vocabulary" with a vault on "at" or "me".
+  "at", "me", "by", "as", "if", "be", "no", "not", "so", "than", "then", "there",
+  "their", "these", "those", "some", "such", "only", "own", "same", "too", "very",
+  "just", "also", "out", "over", "under", "onto", "off", "again", "once", "here",
+  "while", "after", "before", "during", "between", "through", "without", "within",
+  "both", "few", "many", "much", "any", "all", "each", "more", "most", "other",
+  "please", "let", "lets", "want", "need", "like", "know", "tell", "show", "give",
 ]);
 
 export function tokenize(s: string): string[] {

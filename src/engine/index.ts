@@ -218,6 +218,7 @@ export async function openVault(options: OpenVaultOptions = {}): Promise<VaultHa
 
 // Re-exports: the engine surface.
 export * from "./config/vault-config.js";
+export * from "./config/project-map.js";
 export * from "./vault/vault-manager.js";
 export * from "./vault/frontmatter.js";
 export * from "./vault/note-scan.js";

@@ -21,7 +21,7 @@ export interface VaultConfig {
   /** Where the engine may write. Defaults to DEFAULT_WRITABLE_PATHS. */
   writablePaths?: string[];
   /** Passive-recall hook settings. */
-  recall?: { budget?: number; mode?: RecallMode };
+  recall?: { budget?: number; mode?: RecallMode; /** Embeddings in the hook (default false: latency). */ semantic?: boolean };
 }
 
 interface VaultsConfigFile {

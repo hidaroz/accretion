@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { realpathSync } from "node:fs";
 import path from "node:path";
 import { resolveSafePath, PathSafetyError } from "../utils/path-safety.js";
 import { parseNote, stringifyNote, extractTitle, extractTags, type ParsedNote } from "./frontmatter.js";
@@ -69,7 +70,17 @@ export function isWritable(relativePath: string, writablePaths: string[] | undef
 export class VaultManager {
   private options: VaultManagerOptions;
 
-  constructor(private vaultRoot: string, options?: VaultManagerOptions) {
+  private vaultRoot: string;
+
+  constructor(vaultRoot: string, options?: VaultManagerOptions) {
+    // Path safety compares real paths, so a vault reached through a symlink
+    // (macOS /var → /private/var, a Documents folder linked elsewhere) would
+    // otherwise reject every note and index nothing, silently.
+    try {
+      this.vaultRoot = realpathSync(vaultRoot);
+    } catch {
+      this.vaultRoot = vaultRoot;
+    }
     this.options = options ?? {};
   }
 

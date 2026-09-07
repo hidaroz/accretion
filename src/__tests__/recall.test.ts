@@ -116,3 +116,21 @@ describe("sharesContentTokens", () => {
     expect(sharesContentTokens("what about the rank", doc)).toBe(false);
   });
 });
+
+describe("domainVocabulary", () => {
+  it("collects routing keys and curated titles, and gates off-domain prompts", async () => {
+    const { domainVocabulary, sharesDomainVocabulary } = await import("../engine/context/recall.js");
+    const fakeIndex = {
+      listNotes: () => [
+        { path: "02/brief-hybrid.md", title: "Hybrid retrieval", tags: [], createdAt: "", modifiedAt: "", size: 0 },
+        { path: "sessions/2026/09-01/x.md", title: "Session on tables", tags: [], createdAt: "", modifiedAt: "", size: 0 },
+      ],
+    };
+    const vocab = domainVocabulary(fakeIndex, { rrf: "02/brief-hybrid.md" });
+    expect(vocab.has("hybrid")).toBe(true);
+    expect(vocab.has("rrf")).toBe(true);
+    expect(vocab.has("tables")).toBe(false);
+    expect(sharesDomainVocabulary("why does hybrid search demote sessions", vocab)).toBe(true);
+    expect(sharesDomainVocabulary("book a table for four tonight", vocab)).toBe(false);
+  });
+});
