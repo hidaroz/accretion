@@ -4,7 +4,7 @@ import {
   upsertProjectMap,
   SKELETON_DIRS,
   type VaultConfigEntry,
-} from "../vault/vault-onboarding.js";
+} from "../engine/vault/vault-onboarding.js";
 
 describe("upsertVault", () => {
   it("appends a new vault entry", () => {

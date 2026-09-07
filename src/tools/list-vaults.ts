@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultRegistry } from "../vault/vault-registry.js";
-import { handleToolError } from "../utils/errors.js";
+import type { VaultRegistry } from "../engine/registry.js";
+import { handleToolError } from "../engine/utils/errors.js";
 
 export function registerListVaults(
   server: McpServer,

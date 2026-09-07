@@ -1,16 +1,16 @@
 import path from "node:path";
-import { VaultManager } from "./vault-manager.js";
-import { SearchIndex } from "./search-index.js";
-import { TagIndex } from "./tag-index.js";
-import { VaultWatcher } from "./watcher.js";
-import { BriefMapWatcher } from "./brief-map-watcher.js";
-import { SearchAnalytics } from "./search-analytics.js";
-import { loadBriefMap } from "./brief-map-loader.js";
-import { EmbeddingIndex, type Embedder } from "./embedding-index.js";
-import { createLocalEmbedder } from "./embedder.js";
-import type { VaultConfig } from "./vault-config.js";
-import { VaultNotFoundError, VaultNotReadyError } from "../utils/errors.js";
-import { logger } from "../utils/logger.js";
+import { VaultManager } from "./vault/vault-manager.js";
+import { SearchIndex } from "./retrieval/search-index.js";
+import { TagIndex } from "./vault/tag-index.js";
+import { VaultWatcher } from "./vault/watcher.js";
+import { BriefMapWatcher } from "./retrieval/brief-map-watcher.js";
+import { SearchAnalytics } from "./retrieval/search-analytics.js";
+import { loadBriefMap } from "./retrieval/brief-map-loader.js";
+import { EmbeddingIndex, type Embedder } from "./retrieval/embedding-index.js";
+import { createLocalEmbedder } from "./retrieval/embedder.js";
+import type { VaultConfig } from "./config/vault-config.js";
+import { VaultNotFoundError, VaultNotReadyError } from "./utils/errors.js";
+import { logger } from "./utils/logger.js";
 
 export interface VaultContext {
   id: string;

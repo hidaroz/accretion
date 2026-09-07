@@ -6,11 +6,11 @@ import rateLimit from "express-rate-limit";
 import { randomUUID } from "node:crypto";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { hostHeaderValidation } from "@modelcontextprotocol/sdk/server/middleware/hostHeaderValidation.js";
-import { loadVaultsConfig } from "./vault/vault-config.js";
-import { VaultRegistry } from "./vault/vault-registry.js";
+import { loadVaultsConfig } from "./engine/config/vault-config.js";
+import { VaultRegistry } from "./engine/registry.js";
 import { createMcpServer } from "./server.js";
 import { bearerAuth } from "./auth.js";
-import { logger } from "./utils/logger.js";
+import { logger } from "./engine/utils/logger.js";
 
 const PORT = parseInt(process.env.PORT || "3001", 10);
 // Bind localhost-only by default — this is a personal, single-user server.

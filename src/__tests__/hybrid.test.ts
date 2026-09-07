@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rrf, isRawSession, hybridSearch } from "../vault/hybrid.js";
+import { rrf, isRawSession, hybridSearch } from "../engine/retrieval/hybrid.js";
 
 describe("rrf", () => {
   it("ranks an item appearing in both lists above single-list items", () => {

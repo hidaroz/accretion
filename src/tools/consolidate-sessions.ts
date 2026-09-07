@@ -2,14 +2,14 @@ import { z } from "zod";
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultRegistry } from "../vault/vault-registry.js";
+import type { VaultRegistry } from "../engine/registry.js";
 import {
   findSessionNotes,
   groupSessions,
   type SessionNote,
-} from "../vault/session-scan.js";
-import { handleToolError } from "../utils/errors.js";
-import { logger } from "../utils/logger.js";
+} from "../engine/lifecycle/session-scan.js";
+import { handleToolError } from "../engine/utils/errors.js";
+import { logger } from "../engine/utils/logger.js";
 
 function dedup(items: string[]): string[] {
   return [...new Set(items)];

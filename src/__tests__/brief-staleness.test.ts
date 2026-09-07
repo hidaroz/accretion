@@ -7,7 +7,7 @@ import {
   getBriefReviewDate,
   matchesKeyword,
   getStaleBriefs,
-} from "../vault/brief-staleness.js";
+} from "../engine/lifecycle/brief-staleness.js";
 
 const DAY = 24 * 3600000;
 

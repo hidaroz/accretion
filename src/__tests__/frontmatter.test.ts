@@ -5,7 +5,7 @@ import {
   mergeFrontmatter,
   extractTitle,
   extractTags,
-} from "../vault/frontmatter.js";
+} from "../engine/vault/frontmatter.js";
 
 describe("parseNote", () => {
   it("parses frontmatter and content", () => {

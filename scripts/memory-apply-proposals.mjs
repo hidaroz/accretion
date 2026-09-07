@@ -25,8 +25,8 @@ import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
 import {
   findApplicableProposals,
   applyProposal,
-} from "../dist/vault/proposal-apply.js";
-import { VaultManager } from "../dist/vault/vault-manager.js";
+} from "../dist/engine/lifecycle/proposal-apply.js";
+import { VaultManager } from "../dist/engine/vault/vault-manager.js";
 
 const args = parseArgs(process.argv.slice(2));
 

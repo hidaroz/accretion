@@ -2,12 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { VaultManager } from "../vault/vault-manager.js";
+import { VaultManager } from "../engine/vault/vault-manager.js";
 import {
   PatchStringNotFoundError,
   PatchStringAmbiguousError,
   NoteNotFoundError,
-} from "../utils/errors.js";
+} from "../engine/utils/errors.js";
 
 let tmpRoot: string;
 let vault: VaultManager;

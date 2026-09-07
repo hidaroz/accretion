@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { parseNote } from "./frontmatter.js";
-import { loadBriefMap } from "./brief-map-loader.js";
+import { parseNote } from "../vault/frontmatter.js";
+import { loadBriefMap } from "../retrieval/brief-map-loader.js";
 import { findSessionNotes } from "./session-scan.js";
 
 export interface StaleBriefSession {

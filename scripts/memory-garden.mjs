@@ -12,10 +12,10 @@
  */
 
 import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
-import { readAllNotes } from "../dist/vault/note-scan.js";
-import { findOrphanNotes } from "../dist/vault/orphan-detection.js";
-import { validateStructure } from "../dist/vault/structure-validation.js";
-import { findNewDomainCandidates } from "../dist/vault/domain-candidates.js";
+import { readAllNotes } from "../dist/engine/vault/note-scan.js";
+import { findOrphanNotes } from "../dist/engine/lifecycle/orphan-detection.js";
+import { validateStructure } from "../dist/engine/lifecycle/structure-validation.js";
+import { findNewDomainCandidates } from "../dist/engine/lifecycle/domain-candidates.js";
 
 const args = parseArgs(process.argv.slice(2));
 const checks =

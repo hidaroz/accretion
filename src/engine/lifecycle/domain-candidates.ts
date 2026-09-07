@@ -1,4 +1,4 @@
-import { readAllNotes, isMocNote, topicTags, type NoteFile } from "./note-scan.js";
+import { readAllNotes, isMocNote, topicTags, type NoteFile } from "../vault/note-scan.js";
 
 export interface DomainCandidate {
   tag: string;

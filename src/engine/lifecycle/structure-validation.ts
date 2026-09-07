@@ -1,5 +1,5 @@
-import { readAllNotes, isMocNote, type NoteFile } from "./note-scan.js";
-import { buildWikilinkIndex, parseWikilinks } from "./wikilink-index.js";
+import { readAllNotes, isMocNote, type NoteFile } from "../vault/note-scan.js";
+import { buildWikilinkIndex, parseWikilinks } from "../vault/wikilink-index.js";
 
 export type StructureIssueKind =
   | "moc-not-in-home"

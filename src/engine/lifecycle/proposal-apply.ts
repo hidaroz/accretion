@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { parseNote } from "./frontmatter.js";
-import type { VaultManager } from "./vault-manager.js";
+import { parseNote } from "../vault/frontmatter.js";
+import type { VaultManager } from "../vault/vault-manager.js";
 
 const PROPOSALS_DIR = "proposals/brief-updates";
 

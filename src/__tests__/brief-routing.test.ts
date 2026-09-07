@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { routeBrief } from "../vault/brief-routing.js";
+import { routeBrief } from "../engine/retrieval/brief-routing.js";
 
 // Fake search index returning controlled type/brief hits.
 function idx(hits: Array<{ path: string; title: string; score: number }>) {

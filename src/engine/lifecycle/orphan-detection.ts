@@ -1,5 +1,5 @@
-import { readAllNotes, isMocNote, isKnowledgeNote, type NoteFile } from "./note-scan.js";
-import { buildWikilinkIndex } from "./wikilink-index.js";
+import { readAllNotes, isMocNote, isKnowledgeNote, type NoteFile } from "../vault/note-scan.js";
+import { buildWikilinkIndex } from "../vault/wikilink-index.js";
 
 export interface OrphanNote {
   path: string;

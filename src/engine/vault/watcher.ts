@@ -1,9 +1,9 @@
 import { watch, type FSWatcher } from "chokidar";
 import path from "node:path";
 import { VaultManager } from "./vault-manager.js";
-import { SearchIndex } from "./search-index.js";
+import { SearchIndex } from "../retrieval/search-index.js";
 import { TagIndex } from "./tag-index.js";
-import type { EmbeddingIndex } from "./embedding-index.js";
+import type { EmbeddingIndex } from "../retrieval/embedding-index.js";
 import { logger } from "../utils/logger.js";
 
 export class VaultWatcher {

@@ -1,9 +1,9 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import type { VaultRegistry } from "../vault/vault-registry.js";
-import { routeBrief } from "../vault/brief-routing.js";
-import { logger } from "../utils/logger.js";
-import { handleToolError } from "../utils/errors.js";
+import type { VaultRegistry } from "../engine/registry.js";
+import { routeBrief } from "../engine/retrieval/brief-routing.js";
+import { logger } from "../engine/utils/logger.js";
+import { handleToolError } from "../engine/utils/errors.js";
 
 /**
  * Cut `text` to at most `limit` characters, preferring a markdown section

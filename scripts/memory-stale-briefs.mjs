@@ -11,7 +11,7 @@
  */
 
 import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
-import { getStaleBriefs } from "../dist/vault/brief-staleness.js";
+import { getStaleBriefs } from "../dist/engine/lifecycle/brief-staleness.js";
 
 const args = parseArgs(process.argv.slice(2));
 

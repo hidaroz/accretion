@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { SearchAnalytics, type SearchLogEntry } from "../vault/search-analytics.js";
+import { SearchAnalytics, type SearchLogEntry } from "../engine/retrieval/search-analytics.js";
 
 let vaultRoot: string;
 let logPath: string;

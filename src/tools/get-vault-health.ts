@@ -1,11 +1,11 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultRegistry } from "../vault/vault-registry.js";
-import { readAllNotes } from "../vault/note-scan.js";
-import { findOrphanNotes } from "../vault/orphan-detection.js";
-import { validateStructure } from "../vault/structure-validation.js";
-import { findNewDomainCandidates } from "../vault/domain-candidates.js";
-import { handleToolError } from "../utils/errors.js";
+import type { VaultRegistry } from "../engine/registry.js";
+import { readAllNotes } from "../engine/vault/note-scan.js";
+import { findOrphanNotes } from "../engine/lifecycle/orphan-detection.js";
+import { validateStructure } from "../engine/lifecycle/structure-validation.js";
+import { findNewDomainCandidates } from "../engine/lifecycle/domain-candidates.js";
+import { handleToolError } from "../engine/utils/errors.js";
 
 export function registerGetVaultHealth(
   server: McpServer,

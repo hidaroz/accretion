@@ -10,7 +10,7 @@
  */
 
 import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
-import { getDigestCandidates } from "../dist/vault/digest-candidates.js";
+import { getDigestCandidates } from "../dist/engine/lifecycle/digest-candidates.js";
 
 const args = parseArgs(process.argv.slice(2));
 

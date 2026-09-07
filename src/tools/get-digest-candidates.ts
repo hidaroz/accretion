@@ -1,8 +1,8 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultRegistry } from "../vault/vault-registry.js";
-import { getDigestCandidates } from "../vault/digest-candidates.js";
-import { handleToolError } from "../utils/errors.js";
+import type { VaultRegistry } from "../engine/registry.js";
+import { getDigestCandidates } from "../engine/lifecycle/digest-candidates.js";
+import { handleToolError } from "../engine/utils/errors.js";
 
 export function registerGetDigestCandidates(
   server: McpServer,

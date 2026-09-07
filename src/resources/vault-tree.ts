@@ -1,5 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultRegistry } from "../vault/vault-registry.js";
+import type { VaultRegistry } from "../engine/registry.js";
 
 export function registerVaultTree(server: McpServer, registry: VaultRegistry): void {
   for (const ctx of registry.list()) {

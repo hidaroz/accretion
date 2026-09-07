@@ -5,7 +5,7 @@ import path from "node:path";
 import {
   getDigestCandidates,
   getDigestedSessionPaths,
-} from "../vault/digest-candidates.js";
+} from "../engine/lifecycle/digest-candidates.js";
 
 let vaultRoot: string;
 

@@ -29,7 +29,7 @@ import {
   SKELETON_DIRS,
   gitignoreContent,
   homeMocStub,
-} from "../dist/vault/vault-onboarding.js";
+} from "../dist/engine/vault/vault-onboarding.js";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = parseArgs(process.argv.slice(2));

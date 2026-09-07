@@ -2,12 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { parseWikilinks, buildWikilinkIndex } from "../vault/wikilink-index.js";
-import { readAllNotes } from "../vault/note-scan.js";
-import { findOrphanNotes } from "../vault/orphan-detection.js";
-import { validateStructure } from "../vault/structure-validation.js";
-import { findNewDomainCandidates } from "../vault/domain-candidates.js";
-import { findResurfaceCandidates } from "../vault/resurface-review.js";
+import { parseWikilinks, buildWikilinkIndex } from "../engine/vault/wikilink-index.js";
+import { readAllNotes } from "../engine/vault/note-scan.js";
+import { findOrphanNotes } from "../engine/lifecycle/orphan-detection.js";
+import { validateStructure } from "../engine/lifecycle/structure-validation.js";
+import { findNewDomainCandidates } from "../engine/lifecycle/domain-candidates.js";
+import { findResurfaceCandidates } from "../engine/lifecycle/resurface-review.js";
 
 let vaultRoot: string;
 

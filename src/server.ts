@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultRegistry } from "./vault/vault-registry.js";
+import type { VaultRegistry } from "./engine/registry.js";
 import { registerReadNote } from "./tools/read-note.js";
 import { registerCreateNote } from "./tools/create-note.js";
 import { registerListNotes } from "./tools/list-notes.js";

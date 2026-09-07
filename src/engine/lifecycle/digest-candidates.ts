@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { parseNote } from "./frontmatter.js";
+import { parseNote } from "../vault/frontmatter.js";
 import {
   findSessionNotes,
   groupSessions,

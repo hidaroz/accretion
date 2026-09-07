@@ -1,5 +1,5 @@
 import MiniSearch from "minisearch";
-import type { VaultManager, NoteContent, NoteInfo } from "./vault-manager.js";
+import type { VaultManager, NoteContent, NoteInfo } from "../vault/vault-manager.js";
 import { logger } from "../utils/logger.js";
 
 export interface SearchResult {

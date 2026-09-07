@@ -8,7 +8,7 @@ import {
   groupSessions,
   extractProjectTag,
   type SessionNote,
-} from "../vault/session-scan.js";
+} from "../engine/lifecycle/session-scan.js";
 
 function makeSession(overrides: Partial<SessionNote> = {}): SessionNote {
   return {

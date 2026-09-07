@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { parseNote, extractTitle, extractTags } from "./frontmatter.js";
+import { parseNote, extractTitle, extractTags } from "../vault/frontmatter.js";
 
 export interface SessionNote {
   relativePath: string;

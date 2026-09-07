@@ -1,4 +1,4 @@
-import { stripCodeBlocks } from "./session-scan.js";
+import { stripCodeBlocks } from "../lifecycle/session-scan.js";
 import type { NoteFile } from "./note-scan.js";
 
 export interface WikilinkIndex {

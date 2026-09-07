@@ -15,8 +15,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
-import { findSessionNotes } from "../dist/vault/session-scan.js";
-import { getDigestedSessionPaths } from "../dist/vault/digest-candidates.js";
+import { findSessionNotes } from "../dist/engine/lifecycle/session-scan.js";
+import { getDigestedSessionPaths } from "../dist/engine/lifecycle/digest-candidates.js";
 import { repointDigests } from "../dist/tools/archive-sessions.js";
 
 const args = parseArgs(process.argv.slice(2));

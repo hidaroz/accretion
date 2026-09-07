@@ -10,7 +10,7 @@ import {
   aggregate,
   type CaseScore,
   type RetrievalScore,
-} from "../eval/metrics.js";
+} from "../engine/eval/metrics.js";
 
 describe("precisionRecallAtK", () => {
   it("scores a full hit", () => {

@@ -11,7 +11,7 @@
  */
 
 import { parseArgs, resolveVaultRoot, fail } from "./memory-lib.mjs";
-import { findResurfaceCandidates } from "../dist/vault/resurface-review.js";
+import { findResurfaceCandidates } from "../dist/engine/lifecycle/resurface-review.js";
 
 const args = parseArgs(process.argv.slice(2));
 

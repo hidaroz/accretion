@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { TagIndex } from "../vault/tag-index.js";
+import { TagIndex } from "../engine/vault/tag-index.js";
 
 describe("TagIndex", () => {
   let tagIndex: TagIndex;

@@ -2,11 +2,11 @@ import { z } from "zod";
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultRegistry } from "../vault/vault-registry.js";
-import { findSessionNotes } from "../vault/session-scan.js";
-import { getDigestedSessionPaths } from "../vault/digest-candidates.js";
-import { handleToolError } from "../utils/errors.js";
-import { logger } from "../utils/logger.js";
+import type { VaultRegistry } from "../engine/registry.js";
+import { findSessionNotes } from "../engine/lifecycle/session-scan.js";
+import { getDigestedSessionPaths } from "../engine/lifecycle/digest-candidates.js";
+import { handleToolError } from "../engine/utils/errors.js";
+import { logger } from "../engine/utils/logger.js";
 
 export function registerArchiveSessions(
   server: McpServer,

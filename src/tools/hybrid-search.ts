@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { VaultRegistry } from "../vault/vault-registry.js";
-import { rrf, isRawSession } from "../vault/hybrid.js";
-import { routeBrief } from "../vault/brief-routing.js";
-import { handleToolError } from "../utils/errors.js";
+import type { VaultRegistry } from "../engine/registry.js";
+import { rrf, isRawSession } from "../engine/retrieval/hybrid.js";
+import { routeBrief } from "../engine/retrieval/brief-routing.js";
+import { handleToolError } from "../engine/utils/errors.js";
 
 export function registerHybridSearch(
   server: McpServer,

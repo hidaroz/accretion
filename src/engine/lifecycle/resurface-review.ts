@@ -1,4 +1,4 @@
-import { readAllNotes, topicTags, type NoteFile } from "./note-scan.js";
+import { readAllNotes, topicTags, type NoteFile } from "../vault/note-scan.js";
 
 export interface ResurfaceCandidate {
   path: string;
