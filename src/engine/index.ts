@@ -36,6 +36,7 @@ import {
 } from "./config/vault-config.js";
 import { assembleContext, type AssembleOptions, type AssembledContext } from "./context/assemble.js";
 import { recallForPrompt, type RecallConfig, type RecallResult } from "./context/recall.js";
+import { validityLine } from "./context/validity.js";
 import type { NoteContent } from "./vault/vault-manager.js";
 
 export interface OpenVaultOptions {
@@ -69,7 +70,7 @@ export interface SearchOutput {
 }
 
 export type BriefOutput =
-  | { found: true; path: string; method: RouteResult["method"]; title: string; content: string }
+  | { found: true; path: string; method: RouteResult["method"]; title: string; content: string; validity?: string }
   | {
       found: false;
       method: "abstain";
@@ -192,7 +193,8 @@ export async function openVault(options: OpenVaultOptions = {}): Promise<VaultHa
       const route = routeBrief(briefMap, searchIndex, t);
       if (route.path) {
         const note = await vault.read(route.path);
-        return { found: true, path: route.path, method: route.method, title: note.title, content: note.content };
+        const validity = validityLine(note.frontmatter);
+        return { found: true, path: route.path, method: route.method, title: note.title, content: note.content, ...(validity ? { validity } : {}) };
       }
       const related = searchIndex.search(t, { limit: 3 });
       return {
@@ -237,6 +239,7 @@ export * from "./retrieval/index-store.js";
 export * from "./retrieval/weights.js";
 export * from "./context/assemble.js";
 export * from "./context/recall.js";
+export * from "./context/validity.js";
 export * from "./lifecycle/session-scan.js";
 export * from "./lifecycle/digest-candidates.js";
 export * from "./lifecycle/brief-staleness.js";

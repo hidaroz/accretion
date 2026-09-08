@@ -4,6 +4,7 @@
 
 import { routeBrief, type BriefSearcher } from "../retrieval/brief-routing.js";
 import type { VaultManager } from "../vault/vault-manager.js";
+import { validityLine } from "./validity.js";
 
 /**
  * Cut `text` to at most `limit` characters, preferring a markdown section
@@ -89,7 +90,8 @@ export async function assembleContext(
     const allowance = Math.floor((maxChars - totalChars) / (routed.length - i));
     try {
       const note = await vault.read(briefPath);
-      const header = `---\n# ${note.title}\n\n`;
+      const validity = validityLine(note.frontmatter);
+      const header = `---\n# ${note.title}\n\n${validity ? `_${validity}_\n\n` : ""}`;
       let body = note.content;
       if (header.length + body.length + 1 > allowance) {
         const notice = `\n\n*[Truncated to fit the context budget. Read \`${briefPath}\` for the rest.]*`;

@@ -100,6 +100,12 @@ For each stale brief, read it and the sessions that matched, then do one of:
   keyword hits that belong to another brief: stamp `last_reviewed` on the brief (frontmatter
   only, with Edit) and record the reasoning in the report.
 
+A brief `accretion garden` lists under `stale` because its `review_by` has passed gets the
+same treatment: re-read it against recent sessions, then either propose or stamp
+`last_reviewed` and move `review_by` forward (a quarter is the usual interval). A note
+marked `superseded_by` is not edited; it is a candidate for archiving once nothing links to
+it.
+
 ### 3. Contradictions and gaps
 
 While reading in steps 1 and 2, note where a session contradicts a brief, or where a topic
@@ -126,7 +132,7 @@ accretion resurface --vault <id> --window 14
 accretion index --vault <id>                        # skip under --dry-run
 ```
 
-Report `garden` issues by rule (`orphan`, `missing-link`, `missing-page`,
+Report `garden` issues by rule (`orphan`, `missing-link`, `missing-page`, `stale`,
 `stale-reference`, `missing-provenance`) and the brief growth figure. For each resurfaced
 note say one of **promote** (link it from a MOC, it earned it), **merge** (fold into a
 sibling), or **drop** (recommend deletion). Surfacing is the job; act only on `index`.

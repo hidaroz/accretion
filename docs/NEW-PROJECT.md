@@ -61,6 +61,26 @@ keywords:
 should route somewhere else. `type/playbook` and `type/rejected` notes route the same way.
 `accretion brief <keyword>` shows the result; an abstention means nothing claimed the word.
 
+
+## Saying when a note is current
+
+Curated notes can carry validity in frontmatter, and everything that places a note in front
+of a model (passive recall, `accretion brief`, `accretion context`) renders it as one line
+under the title:
+
+```yaml
+last_reviewed: 2026-07-21     # stamped by the weekly loop or by you after a review
+review_by: 2026-10-21         # when it is due again; past this date the line says "overdue"
+valid_from: 2026-01-01        # optional: when the described behaviour began
+superseded_by: brief-routing-v2   # optional: a newer note replaces this one
+```
+
+`accretion garden` lists notes under the `stale` rule when `review_by` has passed, when
+`superseded_by` is set, or when a brief's `last_reviewed` is older than 90 days
+(`--stale-days` to change). Notes without these keys render nothing and are never flagged
+by the first two checks, so the convention is opt-in per note; the sibling-is-the-schema
+rule spreads it once one brief carries it.
+
 ## Client work and IP-sensitive contexts
 
 If the vault holds someone else's intellectual property, a few defaults are worth revisiting.

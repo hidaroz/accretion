@@ -40,7 +40,7 @@ export function invertBriefMap(
   return inverted;
 }
 
-function coerceDate(value: unknown): Date | null {
+export function coerceDate(value: unknown): Date | null {
   if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
   if (typeof value === "string") {
     const d = new Date(value);

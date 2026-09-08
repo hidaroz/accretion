@@ -39,6 +39,15 @@ Briefs are the curated layer, one per domain. A `type/playbook` note is procedur
 debug X here"); a `type/rejected` note records something considered and declined, so check
 for one before re-proposing an idea.
 
+## Answering from the vault
+
+A retrieved note is the boundary of what you know about this project. Answer from it, and
+name what it says. Where the note does not cover the question, say so and stop: name what
+the vault does cover, and do not assemble a procedure, a setting, or a detail the note does
+not state. For a question the vault does not answer at all, the right answer is that it does
+not, plus the nearest thing it does say. General knowledge is fine when presented as
+general knowledge, never as the project's.
+
 ## Writing
 
 Write markdown directly with Write and Edit. Copy the frontmatter shape from a sibling note

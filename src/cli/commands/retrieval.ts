@@ -3,7 +3,7 @@ import { defineCommand, vaultFlag, semanticFlags, semanticFrom } from "../spec.j
 import { openVault, type SearchOutput, type BriefOutput } from "../../engine/index.js";
 import { loadVaultsConfig, DEFAULT_WRITABLE_PATHS } from "../../engine/config/vault-config.js";
 import type { AssembledContext } from "../../engine/context/assemble.js";
-import type { RecallResult } from "../../engine/context/recall.js";
+import { GROUNDING_BRIEF, type RecallResult } from "../../engine/context/recall.js";
 import type { NoteInfo } from "../../engine/vault/vault-manager.js";
 
 export const search = defineCommand({
@@ -59,7 +59,8 @@ export const brief = defineCommand({
     const r = result as BriefOutput;
     if (r.found) {
       const caveat = r.method === "tag_search" ? " (fuzzy match; verify this is the correct brief)" : "";
-      return `# ${r.title}\n\n${r.content}\n\n---\n_Resolved via: ${r.method}${caveat}_`;
+      const validity = r.validity ? `_${r.validity}_\n\n` : "";
+      return `# ${r.title}\n\n${validity}${r.content}\n\n---\n_Resolved via: ${r.method}${caveat}_\n_${GROUNDING_BRIEF}_`;
     }
     if (r.related.length === 0) return `No brief or related notes found for "${args.topic}".`;
     const lines = r.related.map((n, i) => `${i + 1}. ${n.title} (${n.path})\n   > ${n.snippet}`);
@@ -88,7 +89,7 @@ export const context = defineCommand({
   format(result, args) {
     const r = result as AssembledContext;
     if (r.text.trim().length === 0) return `No briefs found for topics: ${args.topics.join(", ")}. Try \`accretion search\`.`;
-    return r.text;
+    return `${r.text}\n\n_${GROUNDING_BRIEF.replace("this note", "these notes").replace("the note does not state", "they do not state")}_`;
   },
 });
 

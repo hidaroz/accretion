@@ -8,11 +8,14 @@ import { readAllNotes, type NoteFile } from "../vault/note-scan.js";
 import { findOrphanNotes } from "./orphan-detection.js";
 import { validateStructure } from "./structure-validation.js";
 import { findNewDomainCandidates } from "./domain-candidates.js";
+import { readValidity } from "../context/validity.js";
+import { isRoutableTagSet } from "../retrieval/brief-keywords.js";
 
 export type GardenRule =
   | "orphan"
   | "missing-link"
   | "missing-page"
+  | "stale"
   | "stale-reference"
   | "missing-provenance";
 
@@ -20,6 +23,7 @@ export const GARDEN_RULES: Record<GardenRule, string> = {
   orphan: "knowledge note reachable from no MOC, or linked from nowhere",
   "missing-link": "dangling wikilink, or a MOC that Home does not link to",
   "missing-page": "a topic tag cluster large enough to deserve its own MOC",
+  stale: "a routable note past its review_by, superseded by another note, or a brief not reviewed within staleDays",
   "stale-reference":
     "a durable note cites a source path or line number; those go stale, describe behaviour instead",
   "missing-provenance":
@@ -43,6 +47,10 @@ export interface GardenOptions {
   rules?: GardenRule[];
   /** Min notes for a topic cluster to be a missing-page candidate (default 3). */
   threshold?: number;
+  /** Days since last_reviewed after which a brief is stale (default 90). */
+  staleDays?: number;
+  /** Injected clock for tests. */
+  now?: Date;
 }
 
 const DURABLE_TAGS = ["type/brief", "type/note", "type/reference", "type/playbook"];
@@ -127,6 +135,27 @@ export async function runGarden(
         path: c.tag,
         detail: `${c.noteCount} notes carry ${c.tag} and no MOC owns it`,
       });
+    }
+  }
+
+  if (want.has("stale")) {
+    const now = options.now ?? new Date();
+    const staleDays = options.staleDays ?? 90;
+    for (const n of notes) {
+      if (!isRoutableTagSet(n.tags)) continue;
+      const v = readValidity(n.frontmatter, now);
+      if (v.supersededBy) {
+        issues.push({ rule: "stale", path: n.relativePath, detail: `superseded by ${v.supersededBy}` });
+        continue;
+      }
+      if (v.overdue) {
+        issues.push({ rule: "stale", path: n.relativePath, detail: `review was due ${v.reviewBy}` });
+        continue;
+      }
+      if (n.tags.includes("type/brief") && v.lastReviewed) {
+        const age = Math.floor((now.getTime() - Date.parse(v.lastReviewed)) / 86_400_000);
+        if (age > staleDays) issues.push({ rule: "stale", path: n.relativePath, detail: `last reviewed ${v.lastReviewed}, ${age} days ago` });
+      }
     }
   }
 

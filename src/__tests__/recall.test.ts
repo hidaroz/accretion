@@ -134,3 +134,11 @@ describe("domainVocabulary", () => {
     expect(sharesDomainVocabulary("book a table for four tonight", vocab)).toBe(false);
   });
 });
+
+describe("grounding contract in the header", () => {
+  it("keeps the pinned prefix and appends the tier's contract", async () => {
+    const { GROUNDING_BRIEF, GROUNDING_HITS } = await import("../engine/context/recall.js");
+    expect(GROUNDING_BRIEF).toMatch(/say so and stop/);
+    expect(GROUNDING_HITS).toMatch(/read the path first/);
+  });
+});
