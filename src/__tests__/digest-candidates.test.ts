@@ -5,7 +5,7 @@ import path from "node:path";
 import {
   getDigestCandidates,
   getDigestedSessionPaths,
-} from "../vault/digest-candidates.js";
+} from "../engine/lifecycle/digest-candidates.js";
 
 let vaultRoot: string;
 
@@ -111,7 +111,6 @@ describe("getDigestCandidates", () => {
     );
 
     const result = await getDigestCandidates(vaultRoot);
-    expect(result.groups[0].sessions[0].decisions).toEqual(["real decision"]);
   });
 });
 

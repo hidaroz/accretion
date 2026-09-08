@@ -8,3 +8,6 @@ dist/
 launchd/com.*.plist
 # macOS cruft
 .DS_Store
+
+# task-eval answer/judgment cache (regenerated; answers are model output, not source)
+evals/results/task-cache/

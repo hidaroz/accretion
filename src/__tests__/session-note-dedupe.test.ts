@@ -2,8 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-// @ts-expect-error — the capture hook is plain ESM, outside the TS build.
-import { findExistingSessionNote, readCreated } from "../../hooks/session-journal.mjs";
+import { findExistingSessionNote, readCreated } from "../hooks/session-journal.js";
 
 /**
  * A resumed session ends more than once, and the hook used to write to that

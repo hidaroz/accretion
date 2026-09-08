@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { resolveSafePath, PathSafetyError } from "../utils/path-safety.js";
+import { resolveSafePath, PathSafetyError } from "../engine/utils/path-safety.js";
 
 let tmpDir: string;
 let realTmpDir: string;

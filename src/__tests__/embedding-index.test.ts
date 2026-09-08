@@ -7,7 +7,7 @@ import {
   cosine,
   EmbeddingIndex,
   type Embedder,
-} from "../vault/embedding-index.js";
+} from "../engine/retrieval/embedding-index.js";
 
 // --- Deterministic fake embedder: bag-of-words over a fixed vocab. ---
 const VOCAB = ["auth", "login", "token", "grind", "roasting", "schedule"];

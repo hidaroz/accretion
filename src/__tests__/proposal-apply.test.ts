@@ -8,8 +8,8 @@ import {
   findApplicableProposals,
   applyProposal,
   type ProposalEdit,
-} from "../vault/proposal-apply.js";
-import { VaultManager } from "../vault/vault-manager.js";
+} from "../engine/lifecycle/proposal-apply.js";
+import { VaultManager } from "../engine/vault/vault-manager.js";
 
 // --- Pure section-edit core ---
 

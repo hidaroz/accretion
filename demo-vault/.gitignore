@@ -2,3 +2,5 @@
 .mcp/embeddings.json
 .obsidian/workspace*
 .DS_Store
+.mcp/search-index.json
+.mcp/recall-log.jsonl

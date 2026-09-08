@@ -190,9 +190,9 @@ over-fitting.
 
 ```bash
 npm run build
-node scripts/memory-eval.mjs --vault demo                 # full → evals/results/*-curated.md
-node scripts/memory-eval.mjs --vault demo --no-semantic   # fast: keyword + routing
-node scripts/memory-eval.mjs --vault demo --sweep-routing # floor/margin grid
+accretion eval --vault demo                 # full → evals/results/*-curated.md
+accretion eval --vault demo --no-semantic   # fast: keyword + routing
+accretion eval --vault demo --sweep-routing # floor/margin grid
 ```
 
 `VAULTS_CONFIG` must point at a registry containing a `demo` vault at `demo-vault/`; see

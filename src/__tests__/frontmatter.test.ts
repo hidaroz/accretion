@@ -5,7 +5,7 @@ import {
   mergeFrontmatter,
   extractTitle,
   extractTags,
-} from "../vault/frontmatter.js";
+} from "../engine/vault/frontmatter.js";
 
 describe("parseNote", () => {
   it("parses frontmatter and content", () => {
@@ -65,23 +65,6 @@ describe("stringifyNote", () => {
   });
 });
 
-describe("mergeFrontmatter", () => {
-  it("merges updates into existing", () => {
-    const result = mergeFrontmatter(
-      { title: "Old", tags: ["a"] },
-      { title: "New", author: "Me" }
-    );
-    expect(result).toEqual({ title: "New", tags: ["a"], author: "Me" });
-  });
-
-  it("preserves existing keys not in updates", () => {
-    const result = mergeFrontmatter(
-      { title: "Keep", custom: true },
-      { author: "New" }
-    );
-    expect(result).toEqual({ title: "Keep", custom: true, author: "New" });
-  });
-});
 
 describe("extractTitle", () => {
   it("prefers frontmatter title", () => {

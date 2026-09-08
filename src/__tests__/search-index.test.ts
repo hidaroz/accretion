@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { SearchIndex } from "../vault/search-index.js";
-import type { NoteContent } from "../vault/vault-manager.js";
+import { SearchIndex } from "../engine/retrieval/search-index.js";
+import type { NoteContent } from "../engine/vault/vault-manager.js";
 
 function makeNote(overrides: Partial<NoteContent> = {}): NoteContent {
   return {

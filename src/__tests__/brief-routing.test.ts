@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { routeBrief } from "../vault/brief-routing.js";
+import { routeBrief } from "../engine/retrieval/brief-routing.js";
 
 // Fake search index returning controlled type/brief hits.
 function idx(hits: Array<{ path: string; title: string; score: number }>) {
@@ -25,9 +25,9 @@ describe("routeBrief", () => {
 
   it("routes a strong, well-separated fuzzy hit", () => {
     const r = routeBrief({}, idx([
-      { path: "a/brief.md", title: "Some Brief", score: 20 },
+      { path: "a/brief.md", title: "Cycling Brief", score: 20 },
       { path: "b/other.md", title: "Other", score: 8 },
-    ]), "some query", OPTS);
+    ]), "cycling query", OPTS);
     expect(r.method).toBe("tag_search");
     expect(r.path).toBe("a/brief.md");
   });

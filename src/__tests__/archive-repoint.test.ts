@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { repointDigests } from "../tools/archive-sessions.js";
+import { repointDigests } from "../engine/lifecycle/archive.js";
 
 /**
  * Archiving moved session files and left every digest pointing at where they

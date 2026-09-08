@@ -73,7 +73,7 @@ MCP. The human and the agent read/write the **same store**.
 
 - The autonomous weekly run works end-to-end (synthesized 6 digests, auto-applied 1 brief
   correctly, archived 102 sessions, committed + pushed, all unattended).
-- 317 unit tests; deterministic edit logic is well covered.
+- 244 unit tests; deterministic edit logic is well covered.
 - **Dogfooding found two real bugs** the tests missed (a heading-level mismatch in the edit
   engine; a stale-state report from a fresh run) — both fixed. The system now documents its
   own architecture in a vault it maintains.
@@ -133,3 +133,12 @@ memory-quality loop.* Changes made in response:
 
 The north star from the review: any future automation is gated on measured behavior, not
 confidence labels.
+
+## 2026-09 restructure
+
+The HTTP MCP server this document describes is gone. The system is now an engine library
+with an `accretion` CLI, a Claude Code skill, a session-capture hook and a prompt-time passive
+recall hook, shipped as a plugin, with a six-tool stdio MCP adapter for clients without a shell.
+The reasons, the sourced research behind them, and the follow-ups (a task-level eval first)
+are in [`ADR-001-engine-cli-skill.md`](ADR-001-engine-cli-skill.md). The decisions above still
+hold: propose-only, the eval as the gate on autonomy, markdown plus git as the store.

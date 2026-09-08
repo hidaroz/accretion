@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Stdio MCP adapter over the same engine, for clients without a shell.
+SELF="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+HERE="$(cd "$(dirname "$SELF")" && pwd)"
+ROOT="${ACCRETION_HOME:-$HERE/../..}"
+exec node "$ROOT/dist/mcp/main.js" "$@"

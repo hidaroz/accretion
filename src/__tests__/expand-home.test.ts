@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 import os from "node:os";
 import path from "node:path";
-import { expandHome } from "../utils/path-safety.js";
+import { expandHome } from "../engine/utils/path-safety.js";
 // @ts-expect-error — plain ESM helper, kept build-free for fresh-machine bootstrap.
 import { expandHome as expandHomeMjs } from "../../scripts/lib/expand-home.mjs";
-// @ts-expect-error — the capture hook is plain ESM, outside the TS build.
-import { resolveVault } from "../../hooks/session-journal.mjs";
+import { resolveVault } from "../hooks/session-journal.js";
 import fs from "node:fs";
 
 /**

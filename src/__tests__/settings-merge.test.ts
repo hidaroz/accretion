@@ -64,3 +64,21 @@ describe("mergeSessionEndHook", () => {
     expect(settings.hooks.SessionEnd).toHaveLength(2); // existing kept + ours appended
   });
 });
+
+describe("mergePromptRecallHook", () => {
+  it("adds a synchronous UserPromptSubmit hook once, leaving other hooks alone", async () => {
+    const { mergePromptRecallHook, hasPromptRecallHook, promptRecallCommand } = await import("../../scripts/lib/settings-merge.mjs");
+    const cmd = promptRecallCommand("/home/u/.claude/hooks");
+    expect(cmd).toBe('node "/home/u/.claude/hooks/prompt-recall.mjs"');
+    const base = { hooks: { UserPromptSubmit: [{ matcher: "", hooks: [{ type: "command", command: "notify.sh" }] }] } };
+    const first = mergePromptRecallHook(base, cmd);
+    expect(first.changed).toBe(true);
+    expect(hasPromptRecallHook(first.settings)).toBe(true);
+    expect(first.settings.hooks.UserPromptSubmit).toHaveLength(2);
+    const added = first.settings.hooks.UserPromptSubmit[1].hooks[0];
+    expect(added).toEqual({ type: "command", command: cmd, timeout: 10 });
+    expect(base.hooks.UserPromptSubmit).toHaveLength(1);
+    const second = mergePromptRecallHook(first.settings, cmd);
+    expect(second.changed).toBe(false);
+  });
+});

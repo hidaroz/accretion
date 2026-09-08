@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>__LABEL__</string>
+
+  <!-- The one git writer for the vaults: `accretion commit` via a PATH-setting wrapper. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__WRAPPER__</string>
+  </array>
+
+  <!-- Every 20 minutes, and once at login. -->
+  <key>StartInterval</key>
+  <integer>1200</integer>
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__LOGDIR__/vault-committer.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__LOGDIR__/vault-committer.err.log</string>
+</dict>
+</plist>
