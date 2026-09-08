@@ -67,6 +67,7 @@ export function gitignoreContent(): string {
     ".mcp/search-log.jsonl",
     ".mcp/embeddings.json",
     ".mcp/search-index.json",
+    ".mcp/recall-log.jsonl",
     ".DS_Store",
     ".trash/",
     "",
