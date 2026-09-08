@@ -20,7 +20,7 @@
   "scripts": {
     "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc && node scripts/build-hooks.mjs",
     "start": "node dist/cli/main.js",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "doctor": "node scripts/doctor.mjs",

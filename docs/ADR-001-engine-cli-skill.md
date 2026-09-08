@@ -140,3 +140,33 @@ Named here so they are not re-litigated as scope for this change.
 - **Contradiction surfacing at recall time** and **inline capture mid-session**; both need an LLM
   in the loop.
 - **Proposals as a git branch** so review is `git diff` and approval is `git merge`.
+
+## Implementation notes
+
+Decisions taken while carrying this out, recorded so they are not rediscovered.
+
+- `VaultManager` resolves its root through `realpath`. Path safety compares real paths, so a
+  vault reached through a symlink (macOS `/var`, a linked Documents folder) rejected every note
+  and indexed nothing, with no error.
+- Recall's hits tier has a domain-vocabulary gate: a prompt must share a routing keyword or a
+  curated note's title or slug token with the vault before any hit is injected. Without it,
+  fuzzy keyword search matched off-domain prompts on common words. The tokenizer stop list was
+  widened for the same reason (function words that appear in titles); the eval scorecard did
+  not move.
+- Retrieval walkers skip `sessions/archive/`. Archived sessions were documented as out of the
+  live index and were being re-indexed on every full read.
+- `accretion commit` unstages the derived `.mcp/` files (index snapshot, embeddings, logs)
+  regardless of the vault's `.gitignore`; older vaults predate the ignore entries.
+- Brief routing keywords in frontmatter (`keywords:`, `aliases:`) merge with
+  `.mcp/brief-map.json`; the file map wins on conflict, because it is where a person writes
+  "this word means that brief" on purpose.
+- The plugin installs by symlink into `~/.claude/skills/accretion`, which Claude Code documents
+  as loading a plugin without a marketplace. Verified in headless sessions: skills, both hooks,
+  and `bin/` load from there. Bootstrap strips the `settings.json` hook entries the plugin
+  replaces, so a previous hooks-mode install does not fire twice.
+- The keyword index is snapshotted to `.mcp/search-index.json` and refreshed by mtime, so a
+  one-shot CLI call costs tens of milliseconds instead of re-indexing the vault.
+- `eval`, `doctor`, `setup-vault` and `bootstrap` remain scripts behind CLI subcommands. Porting
+  them into `src/cli/` is mechanical and deferred; their interfaces are the subcommands.
+- The weekly loop's Bash allowlist is `Bash(accretion *)` and `Bash(osascript *)`. The skill
+  never runs git; `accretion commit` does, reading push policy from the registry.
