@@ -1,0 +1,2875 @@
+{
+  "stamp": "2026-09-08T00:32:33.678Z",
+  "vault": "demo",
+  "casesPath": "evals/tasks.jsonl",
+  "conditions": [
+    "bare",
+    "recall",
+    "plugin"
+  ],
+  "baseline": "bare",
+  "passes": 2,
+  "seed": 42,
+  "report": {
+    "conditions": [
+      {
+        "condition": "bare",
+        "n": 22,
+        "meanCorrectness": 0.4772727272727273,
+        "meanGrounding": 0.045454545454545456,
+        "fabricationRate": 0,
+        "negativeAbstainRate": 1,
+        "fullyCorrectRate": 0.05263157894736842,
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "winRate": 0,
+        "winRateCI": [
+          0,
+          0
+        ],
+        "meanLatencyMs": 11338.681818181818,
+        "meanCostUsd": 0.08998026136363636,
+        "errors": 0
+      },
+      {
+        "condition": "recall",
+        "n": 22,
+        "meanCorrectness": 1.6363636363636365,
+        "meanGrounding": 1.7045454545454546,
+        "fabricationRate": 0.18181818181818182,
+        "negativeAbstainRate": 1,
+        "fullyCorrectRate": 0.6842105263157895,
+        "wins": 20,
+        "losses": 1,
+        "ties": 1,
+        "winRate": 0.9090909090909091,
+        "winRateCI": [
+          0.7727272727272727,
+          1
+        ],
+        "meanLatencyMs": 9289.681818181818,
+        "meanCostUsd": 0.09469739772727272,
+        "errors": 0
+      },
+      {
+        "condition": "plugin",
+        "n": 22,
+        "meanCorrectness": 1.9772727272727273,
+        "meanGrounding": 2,
+        "fabricationRate": 0.1590909090909091,
+        "negativeAbstainRate": 1,
+        "fullyCorrectRate": 1,
+        "wins": 21,
+        "losses": 1,
+        "ties": 0,
+        "winRate": 0.9545454545454546,
+        "winRateCI": [
+          0.8636363636363636,
+          1
+        ],
+        "meanLatencyMs": 14939.636363636364,
+        "meanCostUsd": 0.37257645454545457,
+        "errors": 0
+      }
+    ],
+    "cases": [
+      {
+        "id": "task-rrf-constant",
+        "stratum": "factual",
+        "negative": false,
+        "correctness": {
+          "bare": 1,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "B and A both state k = 60, the 1/(k+rank) formula, and the agreement-beats-single-top-hit effect; B additionally makes explicit that only ranks (not raw scores) are fused, matching the judge note, while C abstains and offers only generic RRF explanation with 60 as a hedged default.",
+          "A states k=60, the rank-based formula, the agreement-over-confidence effect, and explicitly that only ranks (not scores) are used; C matches on k=60 and the effect but adds unsupported vault-specific claims (raw-session demotion, exact-match pinning) and never explicitly says scores aren't compared; B abstains and gives only generic RRF explanation."
+        ]
+      },
+      {
+        "id": "task-routing-thresholds",
+        "stratum": "factual",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A and C both give floor 4, margin ratio 1.3, the per-vault MiniSearch calibration caveat, the eval-harness sweep, and the no-scorecard-tuning guidance, with mutually consistent extra detail; C wins the tie by being shorter, while B abstains entirely.",
+          "A and C both give DEFAULT_FLOOR=4, DEFAULT_MARGIN_RATIO=1.3, the per-vault MiniSearch calibration caveat, the eval-harness sweep, and the no-scorecard-tuning guidance (tie broken by C being shorter); B abstains entirely."
+        ]
+      },
+      {
+        "id": "task-embedding-cache",
+        "stratum": "factual",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A and B both give the .mcp/embeddings.json path, path+content-hash keying, delete-to-rebuild, and the separate transformers.js/TRANSFORMERS_CACHE weight cache with no unsupported claims; A is slightly shorter and equally complete, while C abstains entirely.",
+          "A and C both correctly give .mcp/embeddings.json, path+content-hash keying, per-note re-embed, delete-to-rebuild, and the separate transformers/TRANSFORMERS_CACHE weight cache with consistent extra brief details; C edges A only by being slightly shorter, while B abstains entirely."
+        ]
+      },
+      {
+        "id": "task-capture-records",
+        "stratum": "factual",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A and B both capture the three extracted items (topics, files changed, shell commands), the single committed markdown note, opt-in routing via the vault map, and redactSecrets-first, with consistent extra detail drawn from the same brief; they tie and A is marginally shorter, while C abstains entirely.",
+          "A and C both capture the reference's substance (topics, files changed, commands; one note per mapped vault, committed; opt-in fail-closed; redactSecrets first) with consistent extra detail from the same brief, while B abstains entirely; A edges C on tie-break by being marginally shorter."
+        ]
+      },
+      {
+        "id": "task-archive-invariant",
+        "stratum": "factual",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 1,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "C matches the reference fully (sources: frontmatter check, lossy-compression rationale, --no-require-digest manual-only override, wrong-path stranding); B gets the core digest-coverage condition but misses the override and adds an unsupported claim that source links are repointed after archiving; A abstains.",
+          "B captures the full invariant (digest must list the session in sources: frontmatter), the lossy-compression rationale, the path-based stranding risk, and the manual-only --no-require-digest override; A gets the core digest-coverage rule but omits the sources: check and override and adds an unsupported claim that source links are repointed so \"nothing is stranded\"; C abstains."
+        ]
+      },
+      {
+        "id": "task-embedding-model",
+        "stratum": "factual",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "B and C both match the reference on model name, local-only operation, one-time HuggingFace download, and the EMBEDDING_MODEL/DISABLE_EMBEDDINGS knobs; C is slightly shorter with equally accurate extra detail, while A abstained entirely.",
+          "A and B both correctly name all-MiniLM-L6-v2 via transformers.js, the one-time weight download, local-only querying, and the EMBEDDING_MODEL/DISABLE_EMBEDDINGS knobs; A ranks first as the shorter of the tie, while C abstains entirely."
+        ]
+      },
+      {
+        "id": "task-why-rrf",
+        "stratum": "rationale",
+        "negative": false,
+        "correctness": {
+          "bare": 1,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A and B both reproduce the reference's core points (incomparable BM25 vs cosine distributions, per-vault calibration burden, RRF summing 1/(k+rank) rewarding agreement) with matching vault-specific details, so they tie and A wins on brevity; C abstains and gives only generic, though partly correct, rank-fusion arguments.",
+          "B and C both reproduce the reference's two points (incomparable MiniSearch/cosine distributions with per-vault calibration burden, and RRF rewarding cross-index agreement) with consistent vault-specific details; C edges ahead by citing the brief path and being marginally tighter, while A explicitly abstains and gives only generic RRF-vs-normalisation reasoning."
+        ]
+      },
+      {
+        "id": "task-why-demote-sessions",
+        "stratum": "rationale",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 0,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "loss",
+          "plugin": "win"
+        },
+        "reasons": [
+          "B matches the reference on all points (volume/verbosity, path-based demotion in fusion, still retrievable, digests exempt); A cleanly abstains; C abstains but asserts an unsupported mechanism (sessions excluded from the embedding index) that the reference does not support.",
+          "B matches the reference on every point (volume/verbosity, path-based demotion in fusion, still retrievable, digests exempt); A cleanly abstains; C abstains but asserts an unsupported mechanism (sessions excluded from the embedding index) that the reference does not support."
+        ]
+      },
+      {
+        "id": "task-why-no-autoapply",
+        "stratum": "rationale",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A and B both capture the confidence/correctness anti-correlation, the silent-corruption argument, propose-only with confidence as triage hint, and the shadow-mode condition; B is slightly shorter and equally complete, while C abstains entirely.",
+          "B and C both capture the confidence/correctness anti-correlation, the silent-corruption argument, propose-only with confidence as triage hint, and the shadow-mode condition; B wins the tie by being shorter, while A abstains entirely."
+        ]
+      },
+      {
+        "id": "task-why-floor-low",
+        "stratum": "rationale",
+        "negative": false,
+        "correctness": {
+          "bare": 1,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A and B both capture the reference's core points (floor is a coarse noise filter, raising it kills legitimate fuzzy/paraphrase routes, the domain trigger with brief-map/title/slug tokens is the precision instrument) with matching vault-specific detail; A is slightly tighter so wins the tie, while C abstains and offers only generic precision/recall reasoning.",
+          "A and B both capture the reference's core (floor is a coarse noise filter, raising it kills fuzzy/paraphrase recall, the domain trigger with brief-tied tokens is the precision instrument), but A asserts uncorroborated specifics (DEFAULT_FLOOR = 4, MiniSearch, eval-harness strata) the reference does not support, while C abstains and offers only generic precision/recall advice."
+        ]
+      },
+      {
+        "id": "task-why-abstain",
+        "stratum": "rationale",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 1,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A reproduces the reference's core asymmetry (visible miss vs. invisible wrong brief) and the one-in-twelve framing; B captures that a wrong pin misleads and abstention is priced but misses the explicit visible-miss contrast and cost comparison; C abstains entirely.",
+          "C reproduces the reference's core asymmetry (visible miss vs. invisible wrong brief) and the 1/3-abstain vs. 1/12-wrong framing; B captures that a wrong pick misleads and precision is prioritized but misses the visible-vs-invisible asymmetry; A abstains entirely."
+        ]
+      },
+      {
+        "id": "task-why-dry-run",
+        "stratum": "rationale",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A and C both reproduce the reference's core argument (Write access plus Bash(node:*) enabling node -e, bounded by instructions not allowlist, supervised run before --apply in the plist), with A matching the wording more precisely; both append unsupported knowledge-base-specific extras (A: doctor.mjs/silent death; C: a propose-only brief rule), while B abstains entirely.",
+          "B and C both capture the reference's core (Write access plus Bash(node:*) allowing node -e making the allowlist weaker than it looks, supervise-first then --apply in the plist); B is marginally tighter and more precise, while A abstains entirely."
+        ]
+      },
+      {
+        "id": "task-onboard-vault",
+        "stratum": "procedural",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 1,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "C covers setup-vault per project vs bootstrap per machine, what setup-vault creates (skeleton, brief-map.json, .gitignore, Home MOC, registry, slug routing, --git) and doctor to verify; B gets the three-step structure and basename routing but omits what gets created and the session-note check; A abstains entirely.",
+          "A covers the bootstrap-vs-setup-vault split, what setup-vault creates (skeleton, brief-map.json, .gitignore, Home MOC), registry/routing, --git, and doctor verification, missing only the specific flags and the end-a-session check; C gets the three-step structure and basename routing but omits what gets created; B abstains entirely."
+        ]
+      },
+      {
+        "id": "task-weekly-steps",
+        "stratum": "procedural",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A and B both give the exact eight-step order (preflight, digests, stale briefs/proposals, archive, health, report, commit, notify) plus dry-run/--apply and the fresh-model TODO caveat; B is slightly more concise so ranks first, while C abstains entirely.",
+          "B and C both give the exact eight-step order (preflight/doctor, digests, stale briefs→proposals, archive with source-link repointing, health, report, commit, notify) plus dry-run/--apply and the fresh-model TODO caveat, clearly from the same brief; they tie on substance so C wins by brevity, while A abstains entirely."
+        ]
+      },
+      {
+        "id": "task-apply-proposal",
+        "stratum": "procedural",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 0,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "B matches the reference on every point (human apply via --apply or apply_brief_proposal, H1–H6 heading matching, the three limits, and restating unreachable proposals in run reports) with extra details consistent with the reference; A and C both abstain with no content, C being shorter.",
+          "B matches the reference fully (human apply via script/tool, H1–H6 heading reach, the three limits, restated in run reports) with extra consistent detail; A and C both abstain, with C shorter."
+        ]
+      },
+      {
+        "id": "task-brief-map-entry",
+        "stratum": "procedural",
+        "negative": false,
+        "correctness": {
+          "bare": 0,
+          "recall": 1,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "C names the .mcp/brief-map.json entry with no-threshold routing and exact-title fallback (missing only the watched-file and keep-it-small notes); A knows the routing brief's structure but misses the map entirely and only gets the title-match path; B abstains.",
+          "C gives the reference's core answer (add a keyword→path entry to .mcp/brief-map.json, no threshold, exact title also thresholdless) though it omits the watched-file and keep-it-small notes; A knows the exact-vs-fuzzy split but never identifies the brief map and admits it lacks the mechanism; B fully abstains."
+        ]
+      },
+      {
+        "id": "task-first-run-check",
+        "stratum": "procedural",
+        "negative": false,
+        "correctness": {
+          "bare": 0.5,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "B and C both give the reference's exact recipe (temp HOME + CLAUDE_HOME, bootstrap --skip-install, doctor must exit 0) and the severity rule, but C adds unsupported history claims about doctor being broken for a long time, while A abstains and offers only generic clean-environment advice.",
+          "B and C both give the exact throwaway HOME/CLAUDE_HOME + bootstrap --skip-install + doctor-must-exit-0 recipe; C edges out B by reproducing both parts of doctor's severity rule (never-curated vault only warns, weekly command fatal only if scheduled), while B adds unsupported history claims and omits the vault-warning point; A abstains with generic container/CI advice."
+        ]
+      },
+      {
+        "id": "task-sourdough-timing",
+        "stratum": "factual",
+        "negative": false,
+        "correctness": {
+          "bare": 1,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "B and C both reproduce the note's temperature-over-clock point, the 26°C/20°C timings, the 30–50% rise/dome/jiggle cues and the thermometer advice, but C attributes an unsupported \"dense, gummy loaf\" caution to the note; A is generic advice with different readiness numbers (50–75%) and no thermometer point.",
+          "A and C both reproduce the reference's temperature-over-clock point, the 26°C/20°C numbers, the 30–50% rise/dome/jiggle cues and the thermometer advice, but A explicitly attributes an unsupported \"dense, gummy loaf\" caution to the note; B is generic advice with different readiness cues (50–75%) and no grounding in the source material."
+        ]
+      },
+      {
+        "id": "task-chain-replace",
+        "stratum": "factual",
+        "negative": false,
+        "correctness": {
+          "bare": 2,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A reproduces the full reference (0.5%/0.75% thresholds, check cadence, cassette-reshaping consequence, 2–3 chains per cassette) from the vault brief; B hits the 0.5% threshold and cassette consequence with a file citation but omits the 0.75% and cadence details; C gets the substance right but explicitly treats it as generic knowledge rather than drawing from the knowledge base.",
+          "A and C both hit the 0.5% threshold and cassette-wear consequence from the vault brief, but A attributes extra unsupported specifics (£25/£150 prices, 200 km lube, annual cables) to the brief, so C edges it on fabrication; B gives a correct generic answer while explicitly disclaiming project knowledge."
+        ]
+      },
+      {
+        "id": "task-neg-finetune",
+        "stratum": "negative",
+        "negative": true,
+        "correctness": {
+          "bare": 2,
+          "recall": 2,
+          "plugin": 1.5
+        },
+        "outcome": {
+          "recall": "tie",
+          "plugin": "loss"
+        },
+        "reasons": [
+          "A plainly says the vault lacks fine-tuning info and only cites what the retrieved note actually covers without inventing a procedure; B abstains cleanly but is entirely generic; C says no workflow exists yet then supplies a vault-attributed swap-and-rebuild recipe (EMBEDDING_MODEL, all-MiniLM-L6-v2, .mcp/embeddings.json) the reference does not support, which the judge notes flag as fabrication.",
+          "All three correctly say the vault has no fine-tuning workflow, but B abstains cleanly with only generic pointers, while C and especially A go on to supply vault-specific details (env vars, cache paths, hybrid-retrieval internals) that the reference does not support, with A turning them into an actionable recipe."
+        ]
+      },
+      {
+        "id": "task-neg-sharding",
+        "stratum": "negative",
+        "negative": true,
+        "correctness": {
+          "bare": 1,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A plainly states there is no sharding design and correctly cites the exhaustive-scan/50k-chunk ANN threshold without inventing a scheme; C also correctly says no sharding exists with some matching specifics but omits the 50k note and speculates about other briefs; B abstains but only because it lacks context, not because the vault doesn't cover it.",
+          "A plainly states the vault has no sharding design and cites the exhaustive-scan/50k-chunk limit exactly as the judge notes allow; C also correctly denies any sharding and grounds it in the git-repo-bounded scale note but omits the 50k point and hedges about unretrieved files; B honestly abstains but is entirely generic with no vault grounding."
+        ]
+      },
+      {
+        "id": "task-neg-pinecone",
+        "stratum": "negative",
+        "negative": true,
+        "correctness": {
+          "bare": 1,
+          "recall": 2,
+          "plugin": 2
+        },
+        "outcome": {
+          "recall": "win",
+          "plugin": "win"
+        },
+        "reasons": [
+          "A and C both state plainly that no Pinecone path exists, correctly grounding that in the vault's documented local-only embedding premise without inventing a config recipe; B abstains only because of missing tools and offers a generic, ungrounded guess at env var names.",
+          "A and B both plainly state the vault has no Pinecone integration and correctly ground that in the documented local-only embedding design without inventing a config recipe; C abstains only for lack of tool access rather than stating the vault doesn't cover it, with no grounding."
+        ]
+      }
+    ],
+    "perStratum": [
+      {
+        "stratum": "factual",
+        "n": 8,
+        "winRate": {
+          "recall": 1,
+          "plugin": 1
+        },
+        "meanCorrectness": {
+          "bare": 0.5,
+          "recall": 1.875,
+          "plugin": 2
+        }
+      },
+      {
+        "stratum": "negative",
+        "n": 3,
+        "winRate": {
+          "recall": 0.6666666666666666,
+          "plugin": 0.6666666666666666
+        },
+        "meanCorrectness": {
+          "bare": 1.3333333333333333,
+          "recall": 2,
+          "plugin": 1.8333333333333333
+        }
+      },
+      {
+        "stratum": "procedural",
+        "n": 5,
+        "winRate": {
+          "recall": 1,
+          "plugin": 1
+        },
+        "meanCorrectness": {
+          "bare": 0.1,
+          "recall": 1.2,
+          "plugin": 2
+        }
+      },
+      {
+        "stratum": "rationale",
+        "n": 6,
+        "winRate": {
+          "recall": 0.8333333333333334,
+          "plugin": 1
+        },
+        "meanCorrectness": {
+          "bare": 0.3333333333333333,
+          "recall": 1.5,
+          "plugin": 2
+        }
+      }
+    ],
+    "baseline": "bare",
+    "passes": 2
+  },
+  "answers": [
+    {
+      "caseId": "task-rrf-constant",
+      "condition": "bare",
+      "text": "I don't have access to this project's source in this session (no file-reading or search tools are available here, and the working directory is an unmapped temp folder), so I can't tell you what value the damping constant is set to in your rank fusion code or how it's named.\n\nWhat I can say in general terms, if you're using Reciprocal Rank Fusion (the most common rank fusion method):\n\n- The formula is `score(d) = Σ 1 / (k + rank_i(d))` across each retriever's ranked list, where `k` is the damping constant (the canonical default from the original RRF paper is 60).\n- **What it does:** it flattens the gap between top-ranked and lower-ranked items. With a small `k`, rank 1 dominates heavily (1/1 vs 1/2 vs 1/3…), so a document that's #1 in one list can outweigh one that's #3 in several lists. With a large `k`, the contributions become nearly equal across ranks, so agreement across lists (appearing in many of them) matters more than being at the very top of any single one.\n- In practice: higher `k` → favors consensus; lower `k` → favors strong single-source wins.\n\nIf you can point me at the file (or paste the fusion function), I'll tell you exactly what your constant is and how it's applied.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 11641,
+      "inputTokens": 2,
+      "outputTokens": 638,
+      "costUsd": 0.3021,
+      "turns": 1
+    },
+    {
+      "caseId": "task-rrf-constant",
+      "condition": "plugin",
+      "text": "The damping constant is **k = 60**, per the hybrid retrieval brief in the vault. The implementation lives in `src/vault/hybrid.ts`.\n\nThe fusion formula is:\n\n```\nscore(doc) = Σ  1 / (k + rank_i(doc))\n```\n\nsummed over each index ranking the document appears in. The brief describes what k does as \"damping the top-heaviness.\" Concretely:\n\n- **It flattens the gap between rank 1 and rank 2.** Without damping, rank 1 would score 1.0 and rank 2 would score 0.5, so a single top hit in one index dominates everything. With k = 60, rank 1 scores about 1/61 and rank 2 about 1/62, nearly equal.\n- **It rewards agreement over confidence.** A document at rank 1 in one index and absent from the other scores lower than a document at rank 3 in both. The brief calls this the behavior worth wanting, because two independent methods agreeing is stronger evidence than one method being confident.\n- **It avoids score calibration.** RRF discards raw BM25 and cosine scores entirely and only uses ranks, so no per-vault normalization is needed.\n\nThe brief does not record why 60 specifically was chosen. That value is the conventional default from the original RRF paper, but the vault does not say whether it was tuned against the eval harness.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 14334,
+      "inputTokens": 34,
+      "outputTokens": 655,
+      "costUsd": 0.43924725000000003,
+      "turns": 2
+    },
+    {
+      "caseId": "task-rrf-constant",
+      "condition": "recall",
+      "text": "The damping constant is **k = 60**, used in the RRF formula from `src/vault/hybrid.ts`:\n\n```\nscore(doc) = Σ  1 / (k + rank_i(doc))\n```\n\nsummed over each index (keyword and semantic) the document appears in.\n\nWhat it does: it flattens the top of the curve. Without damping (k = 0), rank 1 would score 1.0 and rank 2 would score 0.5 — a single top placement in one index would swamp everything else. With k = 60, rank 1 scores ~0.0164 and rank 3 scores ~0.0159, so adjacent ranks are worth almost the same. The consequence the brief calls out explicitly: a document at rank 1 in one index but absent from the other (~0.0164) scores *below* a document at rank 3 in both (~0.0317). Agreement between the two independent methods therefore beats a confident hit from just one, which is the intended behaviour — it's what lets fusion recover notes that either keyword or embedding search alone would misrank.\n\nNote that this is orthogonal to the other two ranking adjustments in the same module: raw-session demotion and exact-match pinning of the routed brief, both applied on top of the fused scores.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 14872,
+      "inputTokens": 2,
+      "outputTokens": 394,
+      "costUsd": 0.31538,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-hybrid-retrieval.md"
+      ]
+    },
+    {
+      "caseId": "task-routing-thresholds",
+      "condition": "recall",
+      "text": "The current values are `DEFAULT_FLOOR = 4` and `DEFAULT_MARGIN_RATIO = 1.3`.\n\nThey are **not** universal — they're calibrated specifically against the \"demo\" vault. MiniSearch scores depend on corpus size and term distribution, so a substantially different vault may need its own values. To recalibrate, run `memory-eval.mjs --sweep-routing`, which prints precision, recall, abstention, and negative accuracy across a grid; the guidance is to pick a conservative, high-precision point rather than tuning to improve a scorecard.\n\nNote these two gates only apply to the fuzzy tag-search route — direct brief-map hits and exact title matches route with no threshold at all. The floor is deliberately kept low as a coarse noise filter; the domain trigger (a query token tied to the specific brief) is what actually does the precision work.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 6636,
+      "inputTokens": 2,
+      "outputTokens": 292,
+      "costUsd": 0.07758375,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-brief-routing.md"
+      ]
+    },
+    {
+      "caseId": "task-routing-thresholds",
+      "condition": "bare",
+      "text": "I don't have the information to answer this. Nothing in my current context describes routing floor or margin values, and this session doesn't expose file-reading or search tools (no Read/Grep/Bash available), so I can't inspect the project to find them.\n\nTo get an answer, you could either:\n- Paste the relevant config/source snippet (e.g. wherever `floor`/`margin` are defined for routing), or\n- Point me at the file path and re-run in a session with file access tools enabled.\n\nI'd rather not guess at specific numbers or whether they're universal vs. per-route/per-region — that's exactly the kind of project fact I'd risk inventing.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 13345,
+      "inputTokens": 66,
+      "outputTokens": 595,
+      "costUsd": 0.26995824999999996,
+      "turns": 3
+    },
+    {
+      "caseId": "task-routing-thresholds",
+      "condition": "plugin",
+      "text": "The values in the vault are:\n\n| Constant | Value |\n|---|---|\n| `DEFAULT_FLOOR` | 4 |\n| `DEFAULT_MARGIN_RATIO` | 1.3 |\n\nThey are not universal. The routing brief states they are calibrated against this specific vault. MiniSearch scores depend on corpus size and term distribution, so a substantially different vault may need its own values. To recalibrate, run the eval harness with the routing sweep flag, which prints precision, recall, abstention, and negative accuracy across a grid. The guidance is to pick a conservative high-precision point and not to tune the numbers to improve a scorecard.\n\nTwo related points from the brief and the 2026-W29 digest:\n\n- **The floor is meant to stay low.** It is only a coarse noise filter. Raising it to suppress wrong routes also kills legitimate fuzzy matches.\n- **The domain trigger is the real precision gate.** Fuzzy routes must also contain a token tied to the target brief, which is what stops confidently wrong routes that floor and margin alone let through.\n\nThe W29 digest confirms the fix added the trigger guard rather than changing the floor or margin values.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 17426,
+      "inputTokens": 66,
+      "outputTokens": 784,
+      "costUsd": 0.39767775,
+      "turns": 3
+    },
+    {
+      "caseId": "task-embedding-cache",
+      "condition": "recall",
+      "text": "Based on the retrieved brief (`brief-embedding-index.md`):\n\n**Where they're cached**\n\n- **Embedding vectors** are cached to `.mcp/embeddings.json` inside the vault (the `.mcp/` directory is described in `brief-vault-structure`).\n- **Model weights** (`all-MiniLM-L6-v2`, ~90MB) are a separate cache: downloaded once from the HuggingFace hub and stored on disk by transformers.js. `TRANSFORMERS_CACHE` overrides that location; for locked-down environments you can pre-seed it and set `TRANSFORMERS_OFFLINE`, or point `EMBEDDING_MODEL` at a vendored directory.\n\n**What invalidates the embedding cache**\n\n- The cache is keyed on **note path + content hash**. Editing a note re-embeds only that note; unchanged notes are reused.\n- **Deleting `.mcp/embeddings.json`** forces a full rebuild — the brief calls this the usual fix when results look stale after a bulk edit.\n\nA couple of related details: only curated notes (briefs, digests, knowledge notes) are embedded — raw session notes are excluded — so a full rebuild takes minutes rather than the 15+ minutes a whole-vault build took. The brief doesn't say whether changing `EMBEDDING_MODEL` invalidates the cache automatically, so I can't confirm that; deleting the cache file after a model switch would be the safe move.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 8121,
+      "inputTokens": 2,
+      "outputTokens": 492,
+      "costUsd": 0.07902374999999999,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-embedding-index.md"
+      ]
+    },
+    {
+      "caseId": "task-embedding-cache",
+      "condition": "bare",
+      "text": "I don't have the information to answer this. There's no file-reading, search, or shell tool available in this session (only scheduling/messaging tools), and the working directory (`.../accretion-task-eval-PcEBPc/unmapped`) isn't a git repo with any content I've been shown, so I can't inspect the embedding code to see where caching happens or what keys/invalidation logic it uses.\n\nIf you can share the relevant file(s) — typically the embedding service/module, any cache layer (e.g. a `cache.py`, Redis/SQLite/disk-cache wrapper), and config — or enable file tools for this session, I'll give you a concrete answer on:\n\n- **Where** the cache lives (in-memory dict, on-disk directory, Redis, DB table, etc.)\n- **Cache key** composition (content hash, model name/version, chunking params, dimensions)\n- **What invalidates it** (content change, model/version bump, TTL expiry, explicit clear, schema/migration)\n\nI'd rather not guess at project-specific details.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 12417,
+      "inputTokens": 34,
+      "outputTokens": 582,
+      "costUsd": 0.07119875,
+      "turns": 2
+    },
+    {
+      "caseId": "task-capture-records",
+      "condition": "recall",
+      "text": "Per the retrieved brief (`03-Lifecycle/brief-session-capture.md`), the SessionEnd hook extracts three things from the transcript and writes them as one markdown note to the vault mapped to that project, then commits it:\n\n1. **Topics discussed** — derived from the session transcript (the note copies user messages verbatim).\n2. **Files changed** during the session.\n3. **Shell commands run** — also copied verbatim.\n\nImportant qualifiers:\n\n- **Opt-in only.** It writes nothing unless the project directory's basename is mapped in `project-vault-map.json` (or `_default` is set to a vault id). A missing/unparseable map or no matching entry means the hook returns without writing — it fails closed. Your current directory (`unmapped`) would, by that rule, record nothing.\n- **Redaction before write.** `redactSecrets()` runs over all content first, stripping vendor-prefixed tokens (`ghp_`, `sk-`, `AKIA…`, etc.), JWTs, credentials in URLs, PEM keys, and `FOO_SECRET=value` assignments — deliberately over-matching, but explicitly not a guarantee.\n- **Resumed sessions** update the existing note in place (matched by session-id suffix) rather than creating duplicates.\n\nThe brief doesn't detail the note's exact template or frontmatter fields, so I can't say more about its precise structure.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 7823,
+      "inputTokens": 2,
+      "outputTokens": 465,
+      "costUsd": 0.08031374999999999,
+      "turns": 1,
+      "injected": [
+        "03-Lifecycle/brief-session-capture.md"
+      ]
+    },
+    {
+      "caseId": "task-embedding-cache",
+      "condition": "plugin",
+      "text": "Per the vault brief on the embedding index, there are two separate caches.\n\n**Note embeddings** are cached at `.mcp/embeddings.json` inside the vault. The cache keys on note path plus content hash, so:\n\n- Editing a note re-embeds only that note.\n- Deleting the cache file forces a full rebuild. This is the usual fix when results look stale after a bulk edit.\n\nOnly curated notes are indexed: briefs, digests, and knowledge notes. Raw session notes are excluded, which keeps a first build to a few minutes instead of fifteen-plus.\n\n**Model weights** for `all-MiniLM-L6-v2` are a separate cache. They download from the HuggingFace hub on first use and land wherever `TRANSFORMERS_CACHE` points. After that the machine can be offline. `EMBEDDING_MODEL` swaps the model, and `TRANSFORMERS_OFFLINE` with a pre-seeded cache handles locked-down environments.\n\nThe brief does not say whether changing `EMBEDDING_MODEL` invalidates the embeddings file automatically. The documented key is path plus content hash only, so if you swap models, delete the cache manually to be safe.\n\nSource: `02-Retrieval/brief-embedding-index.md` in the demo vault.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 13524,
+      "inputTokens": 34,
+      "outputTokens": 604,
+      "costUsd": 0.35853475,
+      "turns": 2
+    },
+    {
+      "caseId": "task-capture-records",
+      "condition": "bare",
+      "text": "I don't have the information to answer this. In this environment I have no file-reading, search, or shell tools available (only scheduling/messaging/workflow tools), so I can't inspect the session capture hook's source in `/private/var/folders/.../accretion-task-eval-PcEBPc/unmapped`, and I won't guess at project-specific behavior.\n\nIf you can paste the hook's script (or its config entry, e.g. from `.claude/settings.json` or `hooks/`), I can tell you exactly what fields it records — things like session ID, timestamps, transcript path, cwd, tool calls, or whatever it actually writes.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 16662,
+      "inputTokens": 34,
+      "outputTokens": 413,
+      "costUsd": 0.06134824999999999,
+      "turns": 2
+    },
+    {
+      "caseId": "task-archive-invariant",
+      "condition": "recall",
+      "text": "The archive step refuses to move a session note when no weekly digest yet covers it. Per `03-Lifecycle/brief-digests-archive.md`: \"A session is never archived before a digest covers it.\" Raw sessions must first be compressed into a weekly digest; only after that can archiving proceed, and when it does, the digest's source links are repointed to the archived location so nothing is stranded.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 4803,
+      "inputTokens": 2,
+      "outputTokens": 126,
+      "costUsd": 0.045683749999999995,
+      "turns": 1,
+      "injected": [
+        "03-Lifecycle/brief-session-capture.md",
+        "03-Lifecycle/brief-digests-archive.md",
+        "03-Lifecycle/brief-brief-proposals.md"
+      ]
+    },
+    {
+      "caseId": "task-capture-records",
+      "condition": "plugin",
+      "text": "The vault brief on session capture confirms it. At the end of a Claude Code session, the global SessionEnd hook pulls three things from the transcript and writes them as one markdown note in the vault mapped to that project, then commits it:\n\n- **Topics discussed** in the session.\n- **Files changed** during the session.\n- **Shell commands run**, copied verbatim.\n\nThe note also copies user messages verbatim, which the brief calls out as deliberately broad.\n\nTwo things shape what actually lands on disk:\n\n- **Routing is opt-in and fails closed.** The project directory's basename is looked up in the vault map. If there is no entry and no default, or the map is missing or unparseable, nothing is written.\n- **Secrets are redacted first.** Before writing, a redaction pass strips vendor-prefixed tokens, JWTs including truncated fragments, credentials in URLs, PEM private keys, and generic secret-style assignments. Documented placeholders and identifiers that merely end in \"Key\" are excluded. The brief is explicit that this is not a guarantee.\n\nFor resumed sessions, the hook finds the existing note by session-id suffix and updates it in place rather than writing a duplicate. The brief lives at `03-Lifecycle/brief-session-capture.md`.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 13562,
+      "inputTokens": 34,
+      "outputTokens": 592,
+      "costUsd": 0.36608325,
+      "turns": 2
+    },
+    {
+      "caseId": "task-archive-invariant",
+      "condition": "bare",
+      "text": "I don't have the information to answer this. I have no file-reading, search, or shell tools available in this session, and the working directory (`.../accretion-task-eval-PcEBPc/unmapped`) contains nothing I can inspect from here. Nothing in the loaded context describes an \"archive step\" or the rules for moving session notes, so I won't guess at the condition.\n\nIf you can paste the relevant script or documentation (e.g., the archive command, skill, or hook that handles session notes), I'll tell you exactly what condition blocks the move.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 14841,
+      "inputTokens": 34,
+      "outputTokens": 376,
+      "costUsd": 0.06003875,
+      "turns": 2
+    },
+    {
+      "caseId": "task-embedding-model",
+      "condition": "bare",
+      "text": "I don't have file-reading tools available in this session (Read/Grep/Glob/Bash aren't exposed), so I can't inspect the project in `/private/var/folders/.../accretion-task-eval-PcEBPc/unmapped` to check its embedding configuration or network behavior.\n\nI don't want to guess project-specific facts. To answer accurately, I'd need one of:\n\n- The project's config/settings file (e.g. where the embedding model is named), or\n- The search/indexing source file that builds embeddings and runs queries, or\n- The README/docs section on privacy or offline mode.\n\nIf you paste any of those (or tell me the project name if it's a known open-source tool), I can tell you specifically which model is used and whether queries or documents are sent to an external API versus computed locally.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 10163,
+      "inputTokens": 34,
+      "outputTokens": 416,
+      "costUsd": 0.0613195,
+      "turns": 2
+    },
+    {
+      "caseId": "task-archive-invariant",
+      "condition": "plugin",
+      "text": "The archive step refuses to move a session note when no digest lists that session in its `sources:` frontmatter.\n\nPer the vault brief on digests and archiving, this is the core invariant: a session is never archived before a digest covers it, because archiving is lossy compression and the digest is what makes that loss acceptable.\n\nTwo related details from the same note:\n\n- **The check is path-based.** The script reads the `sources:` entries literally, so if the digest wrote a wrong relative path, the session is silently stranded and can never be archived. Nothing reports this.\n- **There is an override.** The `--no-require-digest` flag bypasses the check for manual recovery, but the brief says it must never be used on an unattended run.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 11804,
+      "inputTokens": 34,
+      "outputTokens": 360,
+      "costUsd": 0.34020225000000004,
+      "turns": 2
+    },
+    {
+      "caseId": "task-embedding-model",
+      "condition": "recall",
+      "text": "It uses **`all-MiniLM-L6-v2`**, run locally in-process via transformers.js (`@xenova/transformers`).\n\n**Nothing leaves the machine when you search.** The only network activity is a one-time download of the model weights from the HuggingFace hub on first use; after that they're cached on disk and the machine can be fully offline. Queries and note contents are never sent to a hosted embedding API — that's a deliberate design choice so the tool is usable for NDA/regulated work.\n\nRelated knobs from the brief:\n- `EMBEDDING_MODEL` — override the model (can point at a vendored directory)\n- `TRANSFORMERS_CACHE` — where weights are stored\n- `TRANSFORMERS_OFFLINE` — for locked-down environments, pre-seed the cache and set this\n- `DISABLE_EMBEDDINGS=1` — turn the embedding tier off entirely (keyword + routing only)\n\nNote the model loads lazily on first use, not at server startup.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 6396,
+      "inputTokens": 2,
+      "outputTokens": 332,
+      "costUsd": 0.07108375,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-embedding-index.md"
+      ]
+    },
+    {
+      "caseId": "task-why-rrf",
+      "condition": "recall",
+      "text": "Because the two scores aren't on comparable scales, and making them comparable would require per-vault calibration.\n\nAccording to the brief (`02-Retrieval/brief-hybrid-retrieval.md`):\n\n- **MiniSearch** returns a BM25-ish relevance number whose scale depends on the corpus.\n- **Cosine similarity** from the embeddings returns a bounded number with a completely different distribution.\n\nNormalising one onto the other would need a calibration step that would have to be redone for every vault, since the keyword score distribution shifts with corpus size and vocabulary.\n\n**Reciprocal-rank fusion (RRF)** avoids the problem entirely by throwing the scores away and using only each document's rank in each index:\n\n```\nscore(doc) = Σ 1 / (k + rank_i(doc))    with k = 60\n```\n\nA side benefit the brief calls out: this rewards *agreement* between the two independent methods. A note ranked 3rd in both indexes outscores a note ranked 1st in one and absent from the other — which is the desired behaviour, since two methods agreeing is stronger evidence than one method being confident.\n\nThe implementation is in `src/vault/hybrid.ts`. Note that RRF is then layered with two adjustments: raw session notes are demoted (via `isRawSession()`), and the router's canonical brief is pinned into the results if at least one index retrieved it.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 8065,
+      "inputTokens": 2,
+      "outputTokens": 453,
+      "costUsd": 0.08121375,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-hybrid-retrieval.md"
+      ]
+    },
+    {
+      "caseId": "task-embedding-model",
+      "condition": "plugin",
+      "text": "The vault's embedding-index brief answers both questions directly.\n\n**Model:** `all-MiniLM-L6-v2`, run in-process via `@xenova/transformers` (transformers.js). It loads lazily on first use, not at server startup.\n\n**Does anything leave the machine at search time?** No. Queries and notes are embedded locally. The only network activity is a one-time download of the model weights from the HuggingFace hub, which are then cached on disk. After that the machine can be fully offline.\n\nRelevant knobs from the brief:\n\n- `EMBEDDING_MODEL` overrides the model, and can point at a vendored directory.\n- `TRANSFORMERS_CACHE` sets where weights land. For locked-down environments, pre-seed the cache and set `TRANSFORMERS_OFFLINE`.\n- `DISABLE_EMBEDDINGS=1` turns the semantic tier off entirely. The server then runs keyword search plus routing only.\n\nTwo other details worth knowing: only curated notes (briefs, digests, knowledge notes) are embedded, not raw session notes. And the vector cache lives in `.mcp/embeddings.json`, keyed on note path and content hash, so edits re-embed only the changed note.\n\nSource: `02-Retrieval/brief-embedding-index.md` in the vault.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 14047,
+      "inputTokens": 34,
+      "outputTokens": 610,
+      "costUsd": 0.3595555,
+      "turns": 2
+    },
+    {
+      "caseId": "task-why-rrf",
+      "condition": "bare",
+      "text": "I don't have access to this project's code or design notes in this session, so I can't tell you the reasoning its authors actually recorded. But the general argument for rank fusion (typically Reciprocal Rank Fusion) over score normalisation is:\n\n- **The scores aren't commensurable.** BM25 scores are unbounded and depend on query length and term rarity; cosine similarities sit in a narrow band (often 0.6–0.9 for everything). Min-max or z-score normalising per query makes both look like [0,1], but the *distribution shape* still differs, so one side systematically dominates.\n- **Normalisation is query-unstable.** Min-max depends on the extremes of each result list, so a single outlier reshapes the whole scale from one query to the next. Ranks are invariant to that.\n- **No tuning required.** RRF (`1/(k+rank)`) has one insensitive constant; score fusion needs per-source weights that drift as the corpus or embedding model changes.\n- **Robust to a weak channel.** If one retriever returns garbage for a query, its ranks still only contribute bounded credit, whereas an inflated score can push junk to the top.\n- **Rewards agreement.** Documents found by both channels get summed credit, which is usually the signal you want in hybrid search.\n\nThe trade-off: rank fusion throws away score magnitude, so a runaway winner in one channel is flattened. If you want, point me at the file where fusion is implemented and I can check whether the project documents its own rationale.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 13326,
+      "inputTokens": 2,
+      "outputTokens": 659,
+      "costUsd": 0.06603375,
+      "turns": 1
+    },
+    {
+      "caseId": "task-why-demote-sessions",
+      "condition": "bare",
+      "text": "I don't have information about this project's search ranking logic, so I can't say why raw session notes are demoted in results without guessing.\n\nIn my current environment I also don't have file-reading or search tools available to inspect the codebase, and there's no project documentation loaded in context that describes the ranking behavior.\n\nIf you can point me to the relevant code or docs (e.g., the search/ranking module, a config file with scoring weights, or a design note), or paste the relevant snippet, I can explain the specific mechanism — for example, whether it's a type-based score penalty, a recency/consolidation boost applied to processed notes, or a filter that prefers summarized/distilled entries over raw captures.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 8038,
+      "inputTokens": 2,
+      "outputTokens": 359,
+      "costUsd": 0.05063375,
+      "turns": 1
+    },
+    {
+      "caseId": "task-why-rrf",
+      "condition": "plugin",
+      "text": "The vault's hybrid retrieval brief gives two reasons.\n\n**The scores are not comparable, and calibrating them is fragile.** MiniSearch returns a BM25-style relevance number scaled to the corpus. Cosine similarity returns a bounded value with a completely different distribution. Putting them on one scale would need a calibration step, and that calibration would have to be redone for every vault, since corpus size and vocabulary change the keyword score distribution. Reciprocal-rank fusion throws the scores away and uses only ranks, so nothing needs tuning per vault.\n\n**Rank fusion rewards agreement between independent methods.** With RRF, each document scores the sum of 1/(k + rank) across the indexes where it appears, with k set to 60. A note at rank 3 in both indexes outscores a note at rank 1 in one index and absent from the other. The brief calls that the desired behaviour: two independent strategies agreeing is stronger evidence than one strategy being confident. Score normalisation would let a single very high keyword or embedding score dominate.\n\nThe implementation lives in `src/vault/hybrid.ts`. Two adjustments sit on top of the fusion: raw session notes are demoted so they do not bury curated briefs, and a confidently routed brief is pinned into the results if at least one index retrieved it.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 15850,
+      "inputTokens": 34,
+      "outputTokens": 690,
+      "costUsd": 0.3687665,
+      "turns": 2
+    },
+    {
+      "caseId": "task-why-demote-sessions",
+      "condition": "recall",
+      "text": "The retrieved notes don't directly explain a demotion of raw session notes, so I can't give you the exact mechanism. What they do say that's adjacent:\n\n- **Embedding index only covers curated notes** (`02-Retrieval/brief-embedding-index.md`). Raw session notes aren't embedded, so in hybrid search they can only surface through the keyword (MiniSearch) side, not the semantic side — which alone would make them rank lower than curated notes that score on both.\n- **Keyword index weights title/tags/body and boosts recency** (`02-Retrieval/brief-search-index.md`). Nothing here mentions a penalty for session notes specifically.\n- **Session capture** (`03-Lifecycle/brief-session-capture.md`) describes how the SessionEnd hook writes per-session notes, but not how they're ranked.\n\nSo the likely answer is \"they're excluded from the embedding index and only appear via keyword matching,\" but whether there's an additional explicit downranking (e.g., a tag- or folder-based penalty) isn't stated in what I have. If that exists, it'd probably be documented in the retrieval briefs or the hybrid-merge logic — worth checking those directly.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 12841,
+      "inputTokens": 2,
+      "outputTokens": 518,
+      "costUsd": 0.06506375,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-embedding-index.md",
+        "02-Retrieval/brief-search-index.md",
+        "03-Lifecycle/brief-session-capture.md"
+      ]
+    },
+    {
+      "caseId": "task-why-no-autoapply",
+      "condition": "bare",
+      "text": "I don't have the information to answer this. Nothing in my current context describes the decision to remove automatic application of high-confidence brief edits, and I don't have file-reading or search tools available in this session to look through the project's code, commit history, or design docs for the rationale.\n\nIf you can point me to where this was discussed (a commit message, PR, ADR, or changelog entry), or paste the relevant excerpt, I can summarize the reasoning. Otherwise, I'd rather say I don't know than guess at project-specific motivations.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 7712,
+      "inputTokens": 2,
+      "outputTokens": 380,
+      "costUsd": 0.05192375,
+      "turns": 1
+    },
+    {
+      "caseId": "task-why-no-autoapply",
+      "condition": "recall",
+      "text": "It was removed because measurement showed the gate itself couldn't work, not just that its threshold was too loose:\n\n1. **Confidence was anti-correlated with value.** The model was *most* confident when a session merely restated what the brief already said (useless edits) and *least* confident when a session genuinely contradicted the brief (the valuable edits). A stricter threshold would therefore admit more of the useless edits and block more of the important ones — tightening makes the selection worse, not better.\n\n2. **Wrong edits fail silently.** A bad brief edit doesn't throw. Retrieval returns the corrupted brief with the same confidence as before, poisoning every future answer on that topic, and the source sessions may already be archived by the time anyone questions it. There's no error signal a gate could key off.\n\nSo `confidence` was demoted to a triage hint for the human reading the proposal queue, and the loop is propose-only. The note leaves a path back: if auto-apply is ever reintroduced, it should first run in shadow mode for several cycles — recording what it *would* have applied versus what a human actually approved — until the false-accept rate is demonstrably near zero.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 7245,
+      "inputTokens": 2,
+      "outputTokens": 369,
+      "costUsd": 0.07129375,
+      "turns": 1,
+      "injected": [
+        "03-Lifecycle/brief-brief-proposals.md"
+      ]
+    },
+    {
+      "caseId": "task-why-demote-sessions",
+      "condition": "plugin",
+      "text": "Raw session notes are demoted during hybrid retrieval because they would otherwise drown out the curated briefs.\n\nPer the \"Hybrid retrieval\" brief in the vault:\n\n- **Volume and verbosity.** Session notes vastly outnumber briefs and are much longer. Left alone they dominate results. The brief gives the example of a scheduling query returning nine session notes that mention scheduling in passing while burying the brief that actually explains it.\n- **How it works.** During reciprocal-rank fusion, `isRawSession()` identifies session notes by their path, and fusion applies a demotion to them. The implementation lives in the hybrid retrieval module under the vault source.\n- **They stay retrievable.** The demotion is not a filter. Sometimes the raw session is the answer, so they remain in results. They just no longer outrank a curated note written specifically to answer the question.\n- **Digests are exempt.** Weekly digests are curated output, not raw capture, so they are not demoted.\n\nA related mechanism handles the opposite failure: when routing confidently picks a canonical brief, that brief is pinned into the result set so it cannot be crowded out by sessions, provided at least one index actually retrieved it.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 16102,
+      "inputTokens": 66,
+      "outputTokens": 707,
+      "costUsd": 0.4074925,
+      "turns": 3
+    },
+    {
+      "caseId": "task-why-floor-low",
+      "condition": "bare",
+      "text": "I don't have access to this project's routing code or its docs in this session, so I can't tell you what your specific score floor does or what \"wrong routes\" look like here. I'd rather not guess at project-specific behavior.\n\nSpeaking generally, though, raising a confidence/score floor usually doesn't eliminate misroutes on its own, for a few reasons:\n\n- **Precision vs. recall trade-off.** A higher floor rejects more low-scoring *correct* routes too. You trade wrong routes for \"no route\" / fallback cases, which may just be a different failure mode.\n- **Confident mistakes.** Many misroutes score *high* — the scorer is confidently wrong because of ambiguous input, overlapping route definitions, or a miscalibrated model. No floor catches those.\n- **Miscalibration.** If scores aren't calibrated probabilities, a threshold is a blunt instrument; the \"right\" floor shifts as routes, data, or the underlying model change.\n- **Masks the root cause.** Wrong routes usually point to something structural — overlapping route intents, missing negative examples, stale embeddings, ordering bugs — that a threshold hides rather than fixes.\n\nIf you can point me at the routing module or the design doc, I can give you a concrete answer about *this* system's floor and what's actually causing the misroutes.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 11352,
+      "inputTokens": 2,
+      "outputTokens": 605,
+      "costUsd": 0.06305374999999999,
+      "turns": 1
+    },
+    {
+      "caseId": "task-why-floor-low",
+      "condition": "recall",
+      "text": "Because the floor is the wrong instrument for that job — it's a coarse noise filter, not a precision gate.\n\nPer the brief routing note:\n\n- **It kills recall.** Raising `DEFAULT_FLOOR` high enough to block every wrong route also blocks every legitimate fuzzy route. The system stops answering paraphrased questions entirely, and paraphrases are most real questions.\n- **The floor can't distinguish the actual failure mode.** The dangerous case (\"what's the support phone number\") isn't a low-score problem per se — it's a query about *nothing in the vault* that happens to be numerically closest to some brief. It clears the floor and the margin gate on incidental token overlap. A higher floor would have to be set so high it swallows good routes too.\n- **The domain trigger already solves it, more cheaply.** Requiring a token tied to the specific brief (brief-map keyword, title word, or slug token) demands positive evidence the query is *about* that brief, not merely nearer to it than the alternatives. Intent over proximity. Raising the floor trades away recall to buy precision the trigger provides at no recall cost.\n\nAlso, `DEFAULT_FLOOR = 4` is calibrated per-vault against MiniSearch scores, and the note explicitly warns against tuning it to make the scorecard look better — the negative strata in the eval harness exist to keep that cost visible.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 8945,
+      "inputTokens": 2,
+      "outputTokens": 456,
+      "costUsd": 0.08586374999999999,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-brief-routing.md"
+      ]
+    },
+    {
+      "caseId": "task-why-no-autoapply",
+      "condition": "plugin",
+      "text": "The vault's \"Brief proposals\" note gives two reasons a stricter gate would not have fixed the problem.\n\n**Confidence was the wrong signal.** Measurement showed model confidence was poorly correlated with correctness on exactly the edits that mattered. The model was most confident when a session merely restated what the brief already said, and least confident when a session genuinely contradicted it. So any confidence threshold, however strict, would let through the useless edits and block the valuable ones. Tightening it changes the volume, not the selection.\n\n**Wrong edits are invisible.** A bad brief edit does not throw. Retrieval returns the corrupted brief with the same confidence as before, and it silently poisons every future answer on that topic. By the time anyone questions it, the source sessions may already be archived. There is no error to catch, so no gate can be tuned against feedback that never arrives.\n\nThe result is the current line: deterministic housekeeping like digests, timestamps, archiving, and link repointing stays automatic because it is mechanical and verifiable. Semantic edits go to the proposals queue for a human to apply. The confidence field survives only as a triage hint for that human.\n\nThe note adds one condition for ever bringing auto-apply back: it must first run in shadow mode for several cycles, logging what it would have applied against what a human actually approved, until the false-accept rate is demonstrably near zero.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 14315,
+      "inputTokens": 34,
+      "outputTokens": 645,
+      "costUsd": 0.360305,
+      "turns": 2
+    },
+    {
+      "caseId": "task-why-abstain",
+      "condition": "bare",
+      "text": "I don't have information about a \"brief router\" in this project — there's no project documentation loaded in my context, and I don't have file-reading tools available in this session to inspect the codebase and check its implementation or design notes.\n\nRather than guess at the rationale (which would risk inventing project-specific reasoning), I'd suggest looking for:\n\n- The router's source file or module (search for `brief` + `router`/`route`) and any comments around its fallback/no-match branch\n- A design doc, ADR, or README that discusses routing confidence thresholds or \"abstain vs. best guess\" behavior\n- Tests that assert the router returns `None`/empty on ambiguous input — their names often encode the intent\n\nIf you can share the relevant code or doc excerpt, I can explain the reasoning behind that choice concretely.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 8378,
+      "inputTokens": 2,
+      "outputTokens": 385,
+      "costUsd": 0.052053749999999996,
+      "turns": 1
+    },
+    {
+      "caseId": "task-why-abstain",
+      "condition": "recall",
+      "text": "Based on the vault notes, the router's job is to pick **the one canonical brief** for a query — and a wrong pick is treated as worse than no pick. A few reasons the notes give:\n\n- **Routing is a commitment, not a ranking.** Unlike hybrid retrieval (which returns a fused list the reader can scan), the routed brief gets pinned as *the* answer. A confidently-wrong brief misleads rather than merely under-serves.\n- **Fuzzy evidence is gated, exact evidence is not.** Exact matches route freely. Fuzzy candidates must clear a score floor, beat the runner-up by a margin, *and* carry a token tying them to the query. If any gate fails, the router abstains rather than guessing between close competitors.\n- **Abstention is measured, so it has to be earned.** The eval harness deliberately includes negative cases — queries with no correct brief — and scores routing precision over them. The notes call the negatives \"the point\": they price abstention, which the harness treats as the property that matters most for routing.\n\nIn short: the router optimizes for precision on a single pinned answer, and the eval explicitly rewards saying \"nothing\" on negatives. The notes are truncated on exactly what the tying token is and why abstention is \"the property most…\" — I can't fill that in from what was retrieved.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 10976,
+      "inputTokens": 2,
+      "outputTokens": 637,
+      "costUsd": 0.07155375,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-brief-routing.md",
+        "04-Operations/brief-eval-harness.md",
+        "02-Retrieval/brief-hybrid-retrieval.md"
+      ]
+    },
+    {
+      "caseId": "task-why-floor-low",
+      "condition": "plugin",
+      "text": "Because the floor can't distinguish the failure it's meant to catch, and raising it kills the routes you want.\n\nThe routing brief in the vault explains it. Wrong routes come from queries that have no answer in the vault but are simply *closest* to some brief on incidental token overlap. Example from the notes: \"what's the support phone number\" scores low everywhere, yet one brief edges out the rest, clears the floor, and beats a weak second place by a wide ratio. A high floor doesn't fix this cleanly, because the score is about proximity, not intent.\n\nMeanwhile, legitimate paraphrased questions also produce moderate scores. Raising the floor until wrong routes vanish also blocks those, and paraphrases are most real questions. You end up with a system that only answers exact-title or brief-map hits.\n\nThe design instead uses three gates on fuzzy routes:\n\n- **Floor**, kept low, as a coarse noise filter.\n- **Margin** over the runner-up, to catch ambiguous queries.\n- **Domain trigger**, requiring the query to contain a token tied to that specific brief. This is the precision instrument.\n\nThe trigger gives positive evidence the query is about the brief, which a score threshold cannot. The brief also warns that floor and margin are per-vault calibrations, and not to tune them to improve a scorecard.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 16637,
+      "inputTokens": 34,
+      "outputTokens": 641,
+      "costUsd": 0.37059274999999997,
+      "turns": 2
+    },
+    {
+      "caseId": "task-why-dry-run",
+      "condition": "bare",
+      "text": "I don't have the information to answer this. I can't see any project files or documentation in this session (the working directory is an unmapped temp folder, and no file-reading tools are available), and nothing in my context describes a \"scheduled weekly run\" or its defaults.\n\nIf you can share the relevant file — e.g. the workflow/cron config, the script that runs weekly, or the README/docs that describe it — I can explain why it defaults to a no-op (common reasons are a dry-run/`--apply` flag defaulting to off, or a safety guard that only reports changes unless explicitly told to write them, but I'd be guessing without seeing your project).",
+      "model": "claude-fable-5-1",
+      "latencyMs": 9369,
+      "inputTokens": 34,
+      "outputTokens": 388,
+      "costUsd": 0.06031899999999999,
+      "turns": 2
+    },
+    {
+      "caseId": "task-why-abstain",
+      "condition": "plugin",
+      "text": "Because the vault's brief-routing note treats a wrong route as far more expensive than no route.\n\n**The asymmetry.** A retrieval miss is visible: the caller sees other results and can tell something is absent. A wrong brief is invisible. It arrives as a confident, canonical document pinned to the top of context, looks exactly like a correct answer, and the caller reasons from it with no signal anything went wrong. So routing is tuned for precision, not recall, and \"no brief\" is a first-class result. The note's framing: a system that abstains on a third of queries and is never wrong beats one that always answers and is wrong one time in twelve.\n\n**How it abstains.** Direct map and exact title hits route without thresholds, since they are explicit evidence. Fuzzy matches must pass three gates: a score floor, a margin over the runner-up, and a domain trigger token tying the query to that specific brief. The trigger matters most. A query like \"what's the support phone number\" can clear floor and margin on incidental overlap while being about nothing in the vault, so routing demands positive evidence of intent, not just proximity.\n\n**Kept honest by the eval.** The harness includes negative cases specifically to price abstention, so over-tuning stays visible.\n\nSource: `02-Retrieval/brief-brief-routing.md`.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 13560,
+      "inputTokens": 34,
+      "outputTokens": 558,
+      "costUsd": 0.36218625,
+      "turns": 2
+    },
+    {
+      "caseId": "task-why-dry-run",
+      "condition": "recall",
+      "text": "The weekly run defaults to dry-run because of what the agent is actually permitted to do. It's spawned headless with `Read`/`Write`/`Edit` plus `Bash(node:*)` and `Bash(git:*)` against a vault it can commit and push. And `Bash(node:*)` permits `node -e '…'`, which makes that allowlist closer to arbitrary code execution than it looks — the loop is bounded by its instructions, not by the allowlist.\n\nScheduling an agent with that much reach is reasonable *once you've watched it work and read its reports*, but it isn't reasonable as the first thing that happens to someone trying the tool. So by default the run only reports what it *would* do (digests, proposals, archiving, run report) and writes nothing. `--apply` opts into mutation, and the brief says it belongs in the launchd plist only after a supervised run.\n\nTwo related design points reinforce this: every run is a fresh model with no memory, so all state has to be legible on disk; and the pipeline has silently died before, so `doctor.mjs` — not the exit code — decides whether a run was healthy.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 6942,
+      "inputTokens": 2,
+      "outputTokens": 363,
+      "costUsd": 0.07163375,
+      "turns": 1,
+      "injected": [
+        "03-Lifecycle/brief-weekly-loop.md"
+      ]
+    },
+    {
+      "caseId": "task-onboard-vault",
+      "condition": "bare",
+      "text": "I don't have enough context to walk you through this reliably. \"Vault\" could mean several different things, and I have no project-specific documentation or filesystem access in this session to check which one applies:\n\n- **Obsidian vault** – a notes folder for the project\n- **HashiCorp Vault** – secrets management (init, unseal, enable a KV engine, write/read a test secret)\n- **1Password / Bitwarden vault** – a shared credentials collection\n- **A project-specific \"vault\"** in your own tooling (e.g. an Accretion \"vault\" concept), which I have no information about\n\nRather than guess and give you steps for the wrong tool, can you tell me:\n\n1. Which \"vault\" you mean (or point me at the relevant docs/repo)?\n2. What the new project is called and where it lives?\n\nIf it's a known library/CLI (e.g. HashiCorp Vault), I'll pull current docs via Context7 and give you exact setup and verification commands. If it's an internal concept, I'll need the project's docs or codebase to answer accurately.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 10361,
+      "inputTokens": 2,
+      "outputTokens": 577,
+      "costUsd": 0.06173375,
+      "turns": 1
+    },
+    {
+      "caseId": "task-onboard-vault",
+      "condition": "recall",
+      "text": "Based on the onboarding and multi-vault briefs, the flow is three steps:\n\n**1. `bootstrap` (once per machine)**\nWires the machine itself. If you've already set up another vault on this machine, you can skip it — but it's idempotent, so re-running is harmless. Anything it overwrites gets backed up first.\n\n**2. `setup-vault` (once per project)**\nWires the new project to a vault and registers it in `~/.config/accretion/vaults.json`. One server serves several vaults, and sessions route to a vault by the **project directory's basename** — so make sure the directory name is what you want the vault keyed on before you run it (e.g. `~/code/acme-client` → routes to the `acme-client` vault). Keeping separate vaults per client/personal context is the intended pattern.\n\n**3. `doctor` (verify)**\nReports whether the above worked. Run it from inside the project directory so it exercises the same basename-based routing your sessions will use. If it's clean, you're done; if not, fix what it flags and re-run — all three commands are safe to repeat.\n\nOne caveat: the vault notes I have don't include the exact CLI flags or argument syntax for `setup-vault` (e.g. how you name the vault or point it at a path). Check the command's `--help` or the full `04-Operations/brief-onboarding.md` for those specifics rather than guessing.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 11286,
+      "inputTokens": 2,
+      "outputTokens": 615,
+      "costUsd": 0.07015375,
+      "turns": 1,
+      "injected": [
+        "04-Operations/brief-onboarding.md",
+        "04-Operations/brief-multi-vault.md",
+        "03-Lifecycle/brief-brief-proposals.md"
+      ]
+    },
+    {
+      "caseId": "task-why-dry-run",
+      "condition": "plugin",
+      "text": "The weekly run defaults to a dry run because of what it is allowed to touch, according to the weekly loop brief in the vault.\n\n**The agent is powerful and unsupervised.** The scheduled headless agent gets Read, Write, Edit, plus Bash for node and git, against a vault it can commit and push. The brief points out that allowing node also allows inline scripts, so that allowlist is closer to arbitrary code execution than it looks. The loop is bounded by its instructions, not by the allowlist.\n\n**Trust should be earned by watching it.** Scheduling that kind of agent is reasonable once you have seen it work and read its reports. It is not reasonable to happen to someone the first time they try the tool. So by default it only reports what it would do and writes nothing. The `--apply` flag turns on mutation and belongs in the launchd plist only after a supervised run.\n\n**It also fits the propose-only rule.** A related brief says the loop may never edit brief content unattended. It writes proposals and a human applies them. Dry-run by default is the same conservatism applied to the whole run.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 13620,
+      "inputTokens": 34,
+      "outputTokens": 583,
+      "costUsd": 0.357993,
+      "turns": 2
+    },
+    {
+      "caseId": "task-weekly-steps",
+      "condition": "bare",
+      "text": "I don't have information about a \"weekly curation run\" for this project. No project documentation was provided in my context, and I have no file-reading or search tools available in this session to look it up, so I can't tell you what steps it performs or in what order.\n\nIf you can share the relevant file (e.g. the cron/workflow definition, a script, or a README describing the curation process), or point me at where it lives, I'll walk through the steps in order.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 8964,
+      "inputTokens": 34,
+      "outputTokens": 308,
+      "costUsd": 0.056017500000000005,
+      "turns": 2
+    },
+    {
+      "caseId": "task-onboard-vault",
+      "condition": "plugin",
+      "text": "Per the vault's onboarding brief, it is three steps: `bootstrap` once per machine, `setup-vault` once per project, `doctor` to verify.\n\n1. **Bootstrap the machine (skip if already done).** Run `node scripts/bootstrap.mjs`. It checks Node, builds, installs the capture hook and the `/memory-weekly` command into `~/.claude`, and merges the SessionEnd hook into your settings. Anything it overwrites gets a timestamped `.bak-` copy first.\n\n2. **Set up the project's vault.** Run `node scripts/setup-vault.mjs` with a path for the new vault. It creates the skeleton, seeds `brief-map.json`, a `.gitignore`, and a Home MOC. It also registers the vault in `~/.config/accretion/vaults.json` and routes your project slug to it. Add `--git` to git-init the vault. Routing keys off the working directory's basename, so run sessions from the directory whose name you mapped, and map sub-projects separately.\n\n3. **Check it worked.** Run `node scripts/doctor.mjs`. It is read-only and verifies the registry, vault paths, hook and command installation, server response, and the weekly loop. A never-curated vault shows only a warning, not a failure, so a fresh setup should exit 0.\n\nThe brief does not list the exact flags for `setup-vault`, so check its `--help` for the path and slug options.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 14107,
+      "inputTokens": 34,
+      "outputTokens": 717,
+      "costUsd": 0.379737,
+      "turns": 2
+    },
+    {
+      "caseId": "task-weekly-steps",
+      "condition": "recall",
+      "text": "Per `03-Lifecycle/brief-weekly-loop.md`, the weekly run (`bin/memory-weekly-run.sh <vault>` invoking `/memory-weekly --autonomous` headless) does the following in order:\n\n1. **Preflight** — runs `doctor.mjs`.\n2. **Synthesise missing digests.**\n3. **Check stale briefs and write proposals** (propose-only; it never edits briefs directly).\n4. **Archive digest-covered sessions.**\n5. **Survey structural health.**\n6. **Write a run report** — any outstanding manual TODO must be restated in every report until done, since each run is a fresh model with no memory.\n7. **Commit.**\n8. **Notify.**\n\nThen a **postflight** `doctor.mjs` check decides whether the run counts as healthy; if the run completes but doctor is still red (digest backlog, stale index, unloaded agent), a separate notification is raised.\n\nNote: by default this is a **dry run** — it reports what it would do and writes nothing. `--apply` enables mutation and should only go into the launchd plist after a supervised run.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 11719,
+      "inputTokens": 2,
+      "outputTokens": 369,
+      "costUsd": 0.07181375000000001,
+      "turns": 1,
+      "injected": [
+        "03-Lifecycle/brief-weekly-loop.md"
+      ]
+    },
+    {
+      "caseId": "task-weekly-steps",
+      "condition": "plugin",
+      "text": "The weekly run is a scheduled headless agent launched by the shell wrapper, which invokes the memory-weekly skill in autonomous mode. Per the vault brief on the weekly loop, it does these steps in order:\n\n1. **Preflight** with the doctor script to confirm the setup is healthy before doing anything.\n2. **Synthesise missing digests** by compressing raw sessions into weekly digests.\n3. **Check stale briefs and write proposals.** It never edits brief content directly. A human applies proposals later.\n4. **Archive digest-covered sessions.** A session is only archived once a digest covers it, and archiving repoints the digest's source links.\n5. **Survey structural health** of the vault.\n6. **Write a run report.** Any outstanding manual TODO must be restated in every report until done, since each run is a fresh model with no memory.\n7. **Commit** the changes.\n8. **Notify.** Postflight reruns doctor, and a run that completes but leaves doctor red raises a separate notification.\n\nTwo caveats from the brief: it is dry-run by default and writes nothing until the apply flag is set, which belongs in the launchd plist only after a supervised run. The exit code is not the health signal. Doctor decides whether the run counts as healthy.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 14838,
+      "inputTokens": 34,
+      "outputTokens": 625,
+      "costUsd": 0.364616,
+      "turns": 2
+    },
+    {
+      "caseId": "task-apply-proposal",
+      "condition": "recall",
+      "text": "I need to look at the project's proposal-queue and apply code to answer this, but I don't have any file-reading tools available in this session (no Read/Grep/Glob/Bash — only scheduling, messaging, and design-sync tools are exposed), and no project context about the proposal queue or apply step was loaded.\n\nSo I can't answer this concretely without guessing. If you can paste the relevant code or docs (e.g. the queue consumer / apply handler and whatever defines the apply step's scope), or re-run this in a session where file tools are enabled, I'll trace exactly how a queued proposal gets applied and what falls outside the apply step's reach.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 13407,
+      "inputTokens": 66,
+      "outputTokens": 595,
+      "costUsd": 0.32241775,
+      "turns": 3,
+      "injected": []
+    },
+    {
+      "caseId": "task-apply-proposal",
+      "condition": "bare",
+      "text": "I don't have the information to answer this.\n\nIn this session I have no file-reading, search, or shell tools available (Read/Grep/Glob/Bash aren't exposed — only scheduling, monitoring, and messaging tools), and the working directory is an unmapped temp folder with no project context loaded. I also have no prior conversation or knowledge-base material describing a \"proposal queue\" or an \"apply step\" for this project, so I can't tell you how proposals are dequeued and applied, or what the apply step can't reach, without guessing.\n\nIf you can point me at the relevant source (e.g. the module that drains the queue and the apply/commit function), paste the code or docs here, or run this in a session where file tools are enabled, I'll give you a concrete walkthrough of the apply path and its boundaries.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 15027,
+      "inputTokens": 66,
+      "outputTokens": 681,
+      "costUsd": 0.27789075,
+      "turns": 3
+    },
+    {
+      "caseId": "task-brief-map-entry",
+      "condition": "bare",
+      "text": "I don't have enough information about your project to answer this reliably. I can't see the codebase in this session (no file-reading tools are available here, and the working directory appears unmapped), and I don't have any record of what your \"router\" or \"brief\" system looks like — whether it's a keyword-to-file mapping, a config table, frontmatter on the brief itself, or something else.\n\nTo point you in the right direction, I'd need to know one of:\n\n- **Where the router lives** — e.g. a config file (`router.yaml`, `routes.json`), a code module, or a prompt/instruction file that lists keyword → brief mappings.\n- **How existing briefs are registered** — if you open another brief that already routes correctly, the mechanism is probably visible there (a `keywords:`/`triggers:` frontmatter field, a filename convention, or an entry in a central index).\n\nIf you can paste the router's config or one working brief's header, or tell me the repo path so a session with file access can inspect it, I can give you the exact steps rather than guessing.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 10181,
+      "inputTokens": 2,
+      "outputTokens": 473,
+      "costUsd": 0.05657375,
+      "turns": 1
+    },
+    {
+      "caseId": "task-brief-map-entry",
+      "condition": "recall",
+      "text": "Based on the retrieved routing brief, the router has two paths: **exact evidence** (routes directly, no gates) and **fuzzy matches** (must clear a score floor, beat the runner-up by a margin, and carry a token tying the query to the brief). To send a keyword straight to your new brief, you want it to hit the *exact* path.\n\nWhat I can say from the retrieved material:\n\n- The search index is MiniSearch over **title, tags, and body**, with field weighting — so putting the keyword in the brief's title or tags gives it the strongest exact signal.\n- Fuzzy routing still requires a token from the query to appear in the brief, so the keyword must literally be present in the brief text, not just implied.\n- The index applies a recency boost, which will temporarily favor your new brief — don't mistake that for the router being correctly wired. The eval harness freezes its clock for this reason, so verify with the harness rather than ad-hoc queries.\n\nWhat I *don't* have: the exact frontmatter field or alias mechanism that constitutes \"exact evidence\" (e.g. whether it's a dedicated `aliases`/`keywords` key or just tags), and the specific floor/margin values. Check `02-Retrieval/brief-brief-routing.md` directly for those — I'd rather not guess the field name.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 10977,
+      "inputTokens": 2,
+      "outputTokens": 619,
+      "costUsd": 0.07051375,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-hybrid-retrieval.md",
+        "02-Retrieval/brief-brief-routing.md",
+        "02-Retrieval/brief-search-index.md"
+      ]
+    },
+    {
+      "caseId": "task-apply-proposal",
+      "condition": "plugin",
+      "text": "A proposal in the queue is never applied automatically. A human applies it by hand.\n\n**How it gets applied**\n\n- The weekly loop writes the proposal to `proposals/brief-updates/` with an edits block, a status, a confidence hint, and provenance.\n- A human reviews the queue and applies it with the apply-proposals script using `--apply`, or through the `apply_brief_proposal` tool.\n- Confidence is only a triage hint for the reader. Nothing auto-applies because the model felt sure. An earlier auto-apply design was removed because confidence was poorly correlated with correctness, and a wrong brief edit fails silently.\n\n**What the apply step can reach**\n\nThe edit engine in `proposal-apply.ts` matches headings at any level H1 through H6 for both replace and append operations.\n\n**What it can't reach or won't do**\n\n- Replace on a missing heading throws rather than creating the section.\n- Append to a missing heading creates it, but always as an H2 at the end of the note. Proposals that care about placement must say so.\n- Content before the first heading, such as the TL;DR line or a top callout, is unreachable. Those need patch_note and must be flagged for manual application.\n\nA proposal that targets an unreachable region should still be written, marked as needing manual application, and restated in every later run report until done, since each run is a fresh model with no memory.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 15601,
+      "inputTokens": 66,
+      "outputTokens": 762,
+      "costUsd": 0.395764,
+      "turns": 3
+    },
+    {
+      "caseId": "task-first-run-check",
+      "condition": "recall",
+      "text": "Use a throwaway `$HOME` so none of your existing `~/.claude` config is visible to the installers. The onboarding brief spells this out:\n\n```bash\nFAKE=$(mktemp -d)\nHOME=$FAKE CLAUDE_HOME=$FAKE/.claude node scripts/bootstrap.mjs --skip-install\nHOME=$FAKE CLAUDE_HOME=$FAKE/.claude node scripts/doctor.mjs   # must exit 0\n```\n\nWhy this works:\n\n- **`bootstrap.mjs`** writes into `~/.claude` (hook, `/memory-weekly` command, merged `settings.json`). Pointing `HOME`/`CLAUDE_HOME` at an empty temp dir forces it to do a genuine first-time install rather than a no-op against your already-configured machine.\n- **`doctor.mjs` exiting 0** is the pass condition. Per the brief's design rule, a fresh install should not be red: a never-curated vault is only a *warning*, and a missing `/memory-weekly` command is only fatal if something is scheduled to call it (nothing is on a fresh install).\n- `--skip-install` avoids re-running npm install/build in the fake home; the `dist/` check still runs against the real project.\n\nIf you also want to exercise the per-project path, run `setup-vault.mjs` under the same fake `HOME` before `doctor`, and check it registers the vault and seeds `brief-map.json`, `.gitignore` and the Home MOC without touching anything outside `$FAKE`.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 9180,
+      "inputTokens": 2,
+      "outputTokens": 518,
+      "costUsd": 0.08226375,
+      "turns": 1,
+      "injected": [
+        "04-Operations/brief-onboarding.md"
+      ]
+    },
+    {
+      "caseId": "task-brief-map-entry",
+      "condition": "plugin",
+      "text": "Add an entry to the direct brief map. That is route one, and it fires with no threshold at all.\n\n**What to do**\n\n1. Open `.mcp/brief-map.json` in the vault. The vault-structure brief documents its location.\n2. Add a key for your keyword whose value is the path to your new brief.\n3. Query with that keyword and confirm the brief comes back pinned at the top.\n\n**Why this works**\n\nRouting checks three routes in order. The direct map is first and is treated as explicit human intent, so a hit routes immediately. An exact title match is second and also needs no threshold. Only the third route, fuzzy tag search, has to clear the score floor, the margin over the runner-up, and the domain-trigger check.\n\n**Side benefit**\n\nThe keywords you put in the brief map also count as domain triggers for fuzzy routing. So paraphrased queries that mention your keyword become eligible to route to the brief even when they do not hit the map exactly.\n\nOne caveat: the routing note says the map is a keyword-to-path mapping, but I did not read the vault-structure brief or an existing map file, so check the exact key and path format against an existing entry before adding yours.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 14455,
+      "inputTokens": 34,
+      "outputTokens": 548,
+      "costUsd": 0.35752900000000004,
+      "turns": 2
+    },
+    {
+      "caseId": "task-first-run-check",
+      "condition": "bare",
+      "text": "I don't have any information about your project's onboarding (no README, setup script, or docs are available to me in this session), so I can't point to specifics. Here's the general approach that actually proves it, though:\n\n**Run it somewhere that has none of your state.**\n- **Container**: `docker run -it --rm <base-image>` matching your target OS, then follow the onboarding doc literally, top to bottom, copy-pasting commands. Anything you have to \"just know\" is a gap.\n- **CI job**: add a workflow that starts from a clean runner and runs the documented setup steps, then the smoke test/build. This is the only version that stays honest over time — re-run it on every change to setup docs or dependencies.\n- **Fresh VM / new user account** on your machine if you need GUI or macOS-specific steps a container can't cover.\n\n**Rules that make it a real test:**\n- No dotfiles, no cached credentials, no globally installed tools beyond what the doc says to install.\n- Have someone *other than you* do it once — they won't fill in gaps subconsciously.\n- Define \"works\" concretely: a specific command that must succeed at the end (tests pass, app serves a page).\n\nIf you point me at the repo or setup script, I can suggest a concrete CI job for it.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 15899,
+      "inputTokens": 2,
+      "outputTokens": 692,
+      "costUsd": 0.06750375,
+      "turns": 1
+    },
+    {
+      "caseId": "task-sourdough-timing",
+      "condition": "bare",
+      "text": "Recipe times are estimates, not rules — bulk fermentation is driven by temperature and starter vigor, and \"four hours\" assumes conditions your kitchen may not match. Common culprits:\n\n- **Cool kitchen.** Most recipes assume ~76–78°F (24–26°C). At 68°F, fermentation can easily take 6–8+ hours or more.\n- **Sluggish starter.** If it wasn't at peak (roughly doubled, bubbly, domed) when you mixed, it'll ferment slowly. A starter that's underfed or straight from the fridge is a frequent cause.\n- **Low inoculation.** Recipes using 10% starter ferment much slower than ones using 20%+.\n- **Cold ingredients** (flour, water) drop the dough temperature and slow things down.\n\nWhat to do: ignore the clock and watch the dough. Look for ~50–75% volume increase, a domed and jiggly surface, visible bubbles on the sides/bottom, and a slightly airy, less sticky feel. Keeping the dough somewhere warm (oven with the light on, or near a warm appliance) speeds it up.\n\nUnderproofed dough gives dense, gummy bread — so waiting longer is the right call.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 9810,
+      "inputTokens": 2,
+      "outputTokens": 444,
+      "costUsd": 0.05528375,
+      "turns": 1
+    },
+    {
+      "caseId": "task-sourdough-timing",
+      "condition": "recall",
+      "text": "Almost certainly your kitchen is colder than the one the recipe was written in.\n\nPer your sourdough note, recipe times are a proxy for temperature, and they're only correct in the recipe author's kitchen. At ~26°C bulk fermentation might take four hours; at ~20°C the same dough needs seven or eight. The dough doesn't know what time it is.\n\nSo: ignore the clock and judge the dough directly. It's ready when you see roughly 30–50% volume increase, a domed surface, and a jiggle rather than a slosh. Treat the stated four hours as an estimate and keep going until it hits those markers.\n\nTwo practical follow-ups:\n\n- **Get a thermometer.** The note's point is that sourdough stops feeling unpredictable the moment you know your dough temperature.\n- **Check your starter.** It should double and dome within 4–8 hours of feeding, and you want to use it just before it peaks. A sluggish or past-peak starter will also stretch bulk times.\n\nIf you cut bulk short to match the recipe, you'll get the classic dense, gummy underproofed loaf — so waiting is the right call.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 7742,
+      "inputTokens": 2,
+      "outputTokens": 368,
+      "costUsd": 0.06758375,
+      "turns": 1,
+      "injected": [
+        "05-Kitchen/brief-sourdough.md"
+      ]
+    },
+    {
+      "caseId": "task-first-run-check",
+      "condition": "plugin",
+      "text": "Use a throwaway `$HOME` so the installers see a machine with nothing configured. Your own machine already has the hook, command, and settings merged, so it proves nothing.\n\nThe onboarding brief in the vault gives this exact recipe:\n\n```bash\nFAKE=$(mktemp -d)\nHOME=$FAKE CLAUDE_HOME=$FAKE/.claude node scripts/bootstrap.mjs --skip-install\nHOME=$FAKE CLAUDE_HOME=$FAKE/.claude node scripts/doctor.mjs   # must exit 0\n```\n\nWhat that checks:\n\n- **Bootstrap writes into an empty `~/.claude`.** The capture hook, the weekly command, and the settings merge all land in the fake home, so you see exactly what a new user gets.\n- **Doctor must exit 0 on a fresh install.** The brief notes this was broken for a long time. The weekly-command check was unconditionally fatal, so the documented happy path ended red for everyone. Doctor now only fails on that when something is scheduled to call it.\n- **Nothing on your real machine changes.** Both installers back up anything they overwrite, but pointing `HOME` elsewhere avoids touching your config at all.\n\nIf you also want to prove the per-project step, run `setup-vault.mjs` against a path inside the same fake home, then rerun doctor. The observability brief covers what doctor checks in depth.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 15311,
+      "inputTokens": 34,
+      "outputTokens": 696,
+      "costUsd": 0.366319,
+      "turns": 2
+    },
+    {
+      "caseId": "task-chain-replace",
+      "condition": "recall",
+      "text": "Replace the chain when it measures **0.5% stretch** (per `06-Cycling/brief-bike-maintenance.md`). Measure it rather than guessing — a chain checker tool or ruler works.\n\n**Why waiting costs more:** Chain wear drives everything else in the drivetrain. As the chain elongates, it stops matching the tooth pitch on the cassette and chainrings, and the worn chain grinds those teeth into a matching worn profile. Past that point, a new chain won't mesh properly with the worn cogs (it skips), so you're forced to replace the cassette and chainrings too — far more expensive than a chain.\n\nReplace chains on time and the cassette and chainrings last **several chains** instead of just one.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 7526,
+      "inputTokens": 2,
+      "outputTokens": 239,
+      "costUsd": 0.04705375,
+      "turns": 1,
+      "injected": [
+        "06-Cycling/brief-bike-maintenance.md"
+      ]
+    },
+    {
+      "caseId": "task-chain-replace",
+      "condition": "bare",
+      "text": "This isn't project-specific, so here's the general answer:\n\n**When to replace**\n\nMeasure chain \"stretch\" (actually pin/roller wear) with a chain checker or ruler:\n\n- **0.5% elongation** — replace now if you run 11/12-speed (narrow chains wear cassettes faster).\n- **0.75%** — replace for 8–10-speed.\n- **1%+** — you've waited too long; the cassette is likely worn too.\n\nRough mileage: 2,000–5,000 km depending on conditions, cleanliness, and drivetrain. Check every few hundred km rather than relying on distance.\n\n**Why waiting costs more**\n\nA worn chain's pitch grows slightly, so it no longer meshes with the cassette's tooth spacing. It rides up and grinds the teeth into a hooked \"shark-fin\" shape, and does the same to chainrings. Once the cogs have worn to match the stretched chain:\n\n- A **new chain won't mesh** with the old cassette — it skips under load, especially on your most-used cogs.\n- You're forced to replace **chain + cassette** (often **+ chainrings**) together.\n\nCost comparison: a chain is ~$20–60; a cassette ~$50–300+; chainrings more still. Swapping chains on time typically lets one cassette outlast 2–3 chains — waiting turns a cheap consumable into a full drivetrain overhaul.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 11825,
+      "inputTokens": 2,
+      "outputTokens": 545,
+      "costUsd": 0.060013750000000005,
+      "turns": 1
+    },
+    {
+      "caseId": "task-sourdough-timing",
+      "condition": "plugin",
+      "text": "Your kitchen is almost certainly cooler than the one the recipe was written in. Your vault's sourdough brief is blunt about this: recipe times are a proxy for temperature, and they are only correct in the author's kitchen.\n\nThe note gives concrete numbers:\n\n| Dough temperature | Bulk ferment time |\n|---|---|\n| 26°C | about 4 hours |\n| 20°C | 7 to 8 hours |\n\nSo a four-hour recipe assumes a warm dough. At a typical room temperature, expect nearly double that.\n\n**What to do now.** Ignore the clock and judge the dough directly. The brief's readiness cues are a 30 to 50 percent volume increase, a domed surface, and a jiggle rather than a slosh when you shake the container. Keep going until you see those.\n\n**Going forward.** Buy a thermometer and check dough temperature, not just the room. The note's line is that sourdough stops being unpredictable the moment you own one. You can also warm the dough by using warmer water at mix time or resting it somewhere warm like an oven with just the light on.\n\nOne caution from the same note: if you give up early and bake anyway, you will get a dense, gummy loaf, which is the classic underproofed result.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 19227,
+      "inputTokens": 34,
+      "outputTokens": 615,
+      "costUsd": 0.34575925,
+      "turns": 2
+    },
+    {
+      "caseId": "task-neg-finetune",
+      "condition": "bare",
+      "text": "I don't have any information about this project's embedding setup, so I can't tell you how it supports fine-tuning — or whether it does at all. I'd be guessing at project-specific details (model name, training scripts, config flags), and I'd rather not invent them.\n\nTo answer this concretely, I'd need to know:\n\n- **Which embedding model the vault uses** (e.g. a local sentence-transformers model, Ollama, or a hosted API like OpenAI/Voyage). Hosted API models generally can't be fine-tuned on your own data; local open-weight models can.\n- **Whether the project ships a fine-tuning or training script** — check the repo for things like `train`, `finetune`, or `contrastive` in file names, or a section in the README/docs.\n- **Where retrieval is falling short** — sometimes chunking, hybrid (BM25 + vector) search, or a reranker improves results more cheaply than fine-tuning.\n\nIf you point me at the repo (or tell me which embedding library it uses), I can look at the actual code/docs and give you specific steps.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 9590,
+      "inputTokens": 2,
+      "outputTokens": 457,
+      "costUsd": 0.05573375,
+      "turns": 1
+    },
+    {
+      "caseId": "task-chain-replace",
+      "condition": "plugin",
+      "text": "Per your vault brief on drivetrain maintenance, replace the chain when a chain checker reads **0.5% wear** for 11- and 12-speed chains, or 0.75% for older, wider chains. Check it every 300 km.\n\n**Why waiting costs more:** a chain doesn't actually stretch. The bushings wear, so each link gets fractionally longer and the chain no longer sits correctly in the cogs. A worn chain then grinds the cassette teeth into a shape matching its elongated spacing. When you finally fit a new chain to that cassette, it skips under load because the teeth no longer fit correct spacing, so the cassette has to be replaced too. The brief's framing: a £25 part turns into a £150 one.\n\nReplace on schedule and the cassette lasts 2 to 3 chains instead of one. You pay for one cheap part regularly rather than three expensive ones occasionally.\n\nRelated intervals from the same brief:\n- Clean and lube every 200 km or after any wet ride.\n- Cassette every 2 to 3 chains.\n- Cables annually, sooner if shifting feels vague.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 12998,
+      "inputTokens": 34,
+      "outputTokens": 527,
+      "costUsd": 0.34153875,
+      "turns": 2
+    },
+    {
+      "caseId": "task-neg-finetune",
+      "condition": "recall",
+      "text": "I don't have information about fine-tuning the embedding model in this project — the retrieved note (`02-Retrieval/brief-hybrid-retrieval.md`) doesn't describe any fine-tuning workflow, and I shouldn't guess at one.\n\nWhat the note does establish:\n\n- The system uses a **local embedding model** (details in `[[brief-embedding-index]]`, which covers the model and its caching — that's the note to check for whether fine-tuning or model swapping is supported at all).\n- Retrieval quality is not driven by embeddings alone. It's a **hybrid**: MiniSearch keyword search + vector search, fused with reciprocal-rank fusion (`src/vault/hybrid.ts`), with raw sessions demoted and the routed canonical brief pinned into results.\n\nSo before fine-tuning, it's worth noting that several retrieval failures the note describes (rare identifiers like `gitAutoPush` getting \"averaged into mush\", briefs being buried under session notes) are addressed by the keyword index, demotion, and pinning — not by a better embedding model. The `[[brief-eval-harness]]` note describes how retrieval quality is measured, which is what you'd want to run before and after any model change.\n\nIf you can share `brief-embedding-index.md` or the embedding code, I can give a concrete answer on whether swapping or tuning the model is feasible.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 9654,
+      "inputTokens": 2,
+      "outputTokens": 544,
+      "costUsd": 0.08556375,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-hybrid-retrieval.md"
+      ]
+    },
+    {
+      "caseId": "task-neg-sharding",
+      "condition": "bare",
+      "text": "I don't have any information about this project's vector index or how it's distributed. Nothing in my current context describes the vault, its indexing layer, or a sharding strategy, and I don't have file-reading tools available in this session to inspect the codebase.\n\nRather than guess, here's what I'd need to answer accurately:\n\n- **Which vector store is in use** (e.g., a self-hosted engine like Qdrant/Milvus/Weaviate, pgvector, FAISS, or a managed service) — each has very different sharding semantics.\n- **The relevant config or module** — typically something like an `index/`, `search/`, or `embeddings/` directory, or infra config (Helm charts, Terraform, docker-compose) that would show replica/shard counts.\n- **Any design docs or ADRs** describing scaling plans.\n\nIf you point me at the repo (or paste the relevant config/docs), I can give you a concrete answer on whether it's sharded at all, by what key (e.g., hash of document ID, per-user/per-vault namespace, or time-based), how queries fan out across shards, and how rebalancing works.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 9715,
+      "inputTokens": 2,
+      "outputTokens": 482,
+      "costUsd": 0.05684375,
+      "turns": 1
+    },
+    {
+      "caseId": "task-neg-sharding",
+      "condition": "recall",
+      "text": "The retrieved brief doesn't describe any cross-machine sharding of the vector index — and it actually points the other way.\n\nWhat the note says:\n\n- **No native vector store.** The vault is plain markdown in a git repo; semantic search is \"bolted on\" via a single machine-state file, `.mcp/embeddings.json`.\n- **Scale is explicitly bounded** \"by what fits comfortably in a git repo.\" That's presented as an accepted cost of the design, not a problem solved by distribution.\n- **Sync is delegated to git**, not to any index-distribution layer. Each clone would have its own copy of `.mcp/embeddings.json`.\n\nSo, based on this material, there is no sharding mechanism: the embeddings live in one JSON file alongside the vault, and \"getting big\" is handled by the constraint that the vault shouldn't get that big.\n\nIf sharding or a distributed index exists somewhere else in the project (e.g. a separate retrieval brief like `brief-brief-routing` or an embeddings note), it isn't in what I retrieved. I'd check the `02-Retrieval` folder for anything about `embeddings.json` before assuming it's there — I don't want to invent details.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 8292,
+      "inputTokens": 2,
+      "outputTokens": 386,
+      "costUsd": 0.07446375,
+      "turns": 1,
+      "injected": [
+        "01-Architecture/brief-vault-structure.md"
+      ]
+    },
+    {
+      "caseId": "task-neg-finetune",
+      "condition": "plugin",
+      "text": "The vault has no fine-tuning workflow for the embedding model. Nothing in the retrieval briefs describes training, adapters, or a fine-tuning command, so I can't give you a project-specific recipe.\n\nWhat the vault does document, and what it suggests you do instead:\n\n- **Swap the model, don't train it.** The embedding brief says `EMBEDDING_MODEL` overrides the default all-MiniLM-L6-v2, and it can point at a vendored directory. If you fine-tuned a sentence-transformers model externally on your notes, this is the documented hook for loading it.\n- **Rebuild the cache after swapping.** Embeddings cache to `.mcp/embeddings.json` keyed on path and content hash, so a model change needs the cache deleted to force a full re-embed.\n- **Measure before and after.** The eval harness brief describes recall@k, success@k, MRR, and routing precision with a frozen clock. Run it on both models so you know the fine-tune actually helped.\n- **Check whether retrieval is the real problem.** The hybrid retrieval brief attributes most misses to one index failing where the other succeeds, and fixes them with rank fusion, session demotion, and brief pinning rather than a better embedding model.\n\nIf you want, I can look at the actual embedding loader in the code to confirm what model formats it accepts.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 17007,
+      "inputTokens": 34,
+      "outputTokens": 691,
+      "costUsd": 0.393074,
+      "turns": 2
+    },
+    {
+      "caseId": "task-neg-pinecone",
+      "condition": "bare",
+      "text": "I don't have file-reading or search tools available in this session (Read, Grep, Glob, and Bash aren't loaded, and the working directory is unmapped), so I can't inspect the project's server configuration to see how it selects a vector backend.\n\nI don't want to guess at project-specific details — the exact env var or config key (e.g. something like `VECTOR_STORE=pinecone` plus `PINECONE_API_KEY`/`PINECONE_INDEX`) depends entirely on how this codebase is written.\n\nTo get a concrete answer, could you either:\n\n1. Paste the relevant config/README snippet or the server's startup/vector-store initialization code, or\n2. Re-run this with file access enabled so I can look at the repo directly?\n\nWith that in hand I can point you to the exact setting and any required Pinecone credentials/index-name variables.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 10835,
+      "inputTokens": 34,
+      "outputTokens": 431,
+      "costUsd": 0.061989999999999996,
+      "turns": 2
+    },
+    {
+      "caseId": "task-neg-sharding",
+      "condition": "plugin",
+      "text": "It isn't. The vault has no sharding story because there is no distributed vector index to shard.\n\nWhat the briefs actually describe:\n\n- **Single-machine, in-process index.** Embeddings come from a local MiniLM model via transformers.js and are cached to one file, `.mcp/embeddings.json`, inside the vault.\n- **Exhaustive scan, no ANN.** Vectors are L2-normalised and searched with a plain dot product over the whole corpus. The embedding-index brief says approximate nearest neighbour only becomes worth it around 50k chunks, and calls it premature before then.\n- **Scale is deliberately bounded.** The vault-structure brief states scale is \"bounded by what fits comfortably in a git repo\" and that there is no native vector store. Only curated notes are embedded, which keeps the index in the low thousands of chunks.\n\nSo the documented growth path is: stay exhaustive until roughly 50k chunks, then add an ANN index locally. Cross-machine sharding is not designed, discussed, or planned anywhere in the vault. If you need that, it would be a new decision worth recording rather than something the current architecture supports.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 15762,
+      "inputTokens": 66,
+      "outputTokens": 735,
+      "costUsd": 0.40257225,
+      "turns": 3
+    },
+    {
+      "caseId": "task-neg-pinecone",
+      "condition": "recall",
+      "text": "There isn't one. Based on the retrieved brief, the embedding tier is built specifically to *avoid* a hosted vector store — the design premise is \"nothing leaves the machine when you search,\" and the note says shipping queries/notes to a hosted API would contradict that.\n\nWhat the brief actually documents:\n\n- **Model**: `all-MiniLM-L6-v2` via `@xenova/transformers`, run in-process. `EMBEDDING_MODEL` swaps the model (including a vendored directory); `TRANSFORMERS_CACHE` / `TRANSFORMERS_OFFLINE` control weight caching.\n- **Index storage**: a local file, `.mcp/embeddings.json`, keyed on note path + content hash. Vectors are L2-normalised and searched by exhaustive dot-product scan — ANN is explicitly called premature below ~50k chunks.\n- **Turning it off**: `DISABLE_EMBEDDINGS=1` drops to keyword + routing only.\n\nNo Pinecone (or any external vector DB) integration, config knob, or adapter is mentioned. If you need one, it would be a new backend behind the embedding/search layer rather than a supported configuration — but I don't have project information confirming such an extension point exists, so I can't tell you how to wire it.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 10925,
+      "inputTokens": 2,
+      "outputTokens": 426,
+      "costUsd": 0.07582375,
+      "turns": 1,
+      "injected": [
+        "02-Retrieval/brief-embedding-index.md"
+      ]
+    },
+    {
+      "caseId": "task-neg-pinecone",
+      "condition": "plugin",
+      "text": "The vault has no documented way to point the server at Pinecone, and the design deliberately rules it out.\n\nThe embedding-index brief states the premise is local-only inference: `all-MiniLM-L6-v2` runs in-process through transformers.js, weights cache on disk, and nothing leaves the machine at query time. The stated reason is privacy for NDA and regulated work, where the notes themselves are the sensitive data. Vectors are kept in a flat cache file and scanned exhaustively, with the brief noting that an approximate-nearest-neighbour index only becomes worthwhile around 50k chunks.\n\nThe knobs that do exist:\n\n- `EMBEDDING_MODEL` swaps the local model or points at a vendored directory.\n- `TRANSFORMERS_CACHE` and `TRANSFORMERS_OFFLINE` control where weights live and enforce offline use.\n- `DISABLE_EMBEDDINGS=1` turns the semantic tier off entirely, leaving keyword search plus routing.\n\nA search for \"Pinecone\" across the vault returned nothing, so if a hosted vector store has been discussed or prototyped, it is not recorded there. Adding one would be a design change against the documented privacy premise rather than a configuration switch.",
+      "model": "claude-fable-5-1",
+      "latencyMs": 14585,
+      "inputTokens": 34,
+      "outputTokens": 624,
+      "costUsd": 0.361136,
+      "turns": 2
+    }
+  ],
+  "judgments": [
+    {
+      "caseId": "task-routing-thresholds",
+      "pass": 0,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and C both give floor 4, margin ratio 1.3, the per-vault MiniSearch calibration caveat, the eval-harness sweep, and the no-scorecard-tuning guidance, with mutually consistent extra detail; C wins the tie by being shorter, while B abstains entirely."
+    },
+    {
+      "caseId": "task-rrf-constant",
+      "pass": 1,
+      "order": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "B and A both state k = 60, the 1/(k+rank) formula, and the agreement-beats-single-top-hit effect; B additionally makes explicit that only ranks (not raw scores) are fused, matching the judge note, while C abstains and offers only generic RRF explanation with 60 as a hedged default."
+    },
+    {
+      "caseId": "task-rrf-constant",
+      "pass": 0,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A states k=60, the rank-based formula, the agreement-over-confidence effect, and explicitly that only ranks (not scores) are used; C matches on k=60 and the effect but adds unsupported vault-specific claims (raw-session demotion, exact-match pinning) and never explicitly says scores aren't compared; B abstains and gives only generic RRF explanation."
+    },
+    {
+      "caseId": "task-embedding-cache",
+      "pass": 1,
+      "order": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and B both give the .mcp/embeddings.json path, path+content-hash keying, delete-to-rebuild, and the separate transformers.js/TRANSFORMERS_CACHE weight cache with no unsupported claims; A is slightly shorter and equally complete, while C abstains entirely."
+    },
+    {
+      "caseId": "task-routing-thresholds",
+      "pass": 1,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and C both give DEFAULT_FLOOR=4, DEFAULT_MARGIN_RATIO=1.3, the per-vault MiniSearch calibration caveat, the eval-harness sweep, and the no-scorecard-tuning guidance (tie broken by C being shorter); B abstains entirely."
+    },
+    {
+      "caseId": "task-capture-records",
+      "pass": 0,
+      "order": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A and B both capture the three extracted items (topics, files changed, shell commands), the single committed markdown note, opt-in routing via the vault map, and redactSecrets-first, with consistent extra detail drawn from the same brief; they tie and A is marginally shorter, while C abstains entirely."
+    },
+    {
+      "caseId": "task-embedding-cache",
+      "pass": 0,
+      "order": [
+        "recall",
+        "bare",
+        "plugin"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A and C both correctly give .mcp/embeddings.json, path+content-hash keying, per-note re-embed, delete-to-rebuild, and the separate transformers/TRANSFORMERS_CACHE weight cache with consistent extra brief details; C edges A only by being slightly shorter, while B abstains entirely."
+    },
+    {
+      "caseId": "task-capture-records",
+      "pass": 1,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A and C both capture the reference's substance (topics, files changed, commands; one note per mapped vault, committed; opt-in fail-closed; redactSecrets first) with consistent extra detail from the same brief, while B abstains entirely; A edges C on tie-break by being marginally shorter."
+    },
+    {
+      "caseId": "task-archive-invariant",
+      "pass": 1,
+      "order": [
+        "bare",
+        "recall",
+        "plugin"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 1,
+          "grounding": 1,
+          "fabrication": 1,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "C matches the reference fully (sources: frontmatter check, lossy-compression rationale, --no-require-digest manual-only override, wrong-path stranding); B gets the core digest-coverage condition but misses the override and adds an unsupported claim that source links are repointed after archiving; A abstains."
+    },
+    {
+      "caseId": "task-embedding-model",
+      "pass": 0,
+      "order": [
+        "bare",
+        "plugin",
+        "recall"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "B and C both match the reference on model name, local-only operation, one-time HuggingFace download, and the EMBEDDING_MODEL/DISABLE_EMBEDDINGS knobs; C is slightly shorter with equally accurate extra detail, while A abstained entirely."
+    },
+    {
+      "caseId": "task-archive-invariant",
+      "pass": 0,
+      "order": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 1,
+          "grounding": 1,
+          "fabrication": 1,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "B captures the full invariant (digest must list the session in sources: frontmatter), the lossy-compression rationale, the path-based stranding risk, and the manual-only --no-require-digest override; A gets the core digest-coverage rule but omits the sources: check and override and adds an unsupported claim that source links are repointed so \"nothing is stranded\"; C abstains."
+    },
+    {
+      "caseId": "task-embedding-model",
+      "pass": 1,
+      "order": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and B both correctly name all-MiniLM-L6-v2 via transformers.js, the one-time weight download, local-only querying, and the EMBEDDING_MODEL/DISABLE_EMBEDDINGS knobs; A ranks first as the shorter of the tie, while C abstains entirely."
+    },
+    {
+      "caseId": "task-why-demote-sessions",
+      "pass": 0,
+      "order": [
+        "bare",
+        "plugin",
+        "recall"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 0,
+          "grounding": 1,
+          "fabrication": 1,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "reason": "B matches the reference on all points (volume/verbosity, path-based demotion in fusion, still retrievable, digests exempt); A cleanly abstains; C abstains but asserts an unsupported mechanism (sessions excluded from the embedding index) that the reference does not support."
+    },
+    {
+      "caseId": "task-why-rrf",
+      "pass": 0,
+      "order": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and B both reproduce the reference's core points (incomparable BM25 vs cosine distributions, per-vault calibration burden, RRF summing 1/(k+rank) rewarding agreement) with matching vault-specific details, so they tie and A wins on brevity; C abstains and gives only generic, though partly correct, rank-fusion arguments."
+    },
+    {
+      "caseId": "task-why-rrf",
+      "pass": 1,
+      "order": [
+        "bare",
+        "plugin",
+        "recall"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "B and C both reproduce the reference's two points (incomparable MiniSearch/cosine distributions with per-vault calibration burden, and RRF rewarding cross-index agreement) with consistent vault-specific details; C edges ahead by citing the brief path and being marginally tighter, while A explicitly abstains and gives only generic RRF-vs-normalisation reasoning."
+    },
+    {
+      "caseId": "task-why-demote-sessions",
+      "pass": 1,
+      "order": [
+        "bare",
+        "plugin",
+        "recall"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 0,
+          "grounding": 1,
+          "fabrication": 1,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "reason": "B matches the reference on every point (volume/verbosity, path-based demotion in fusion, still retrievable, digests exempt); A cleanly abstains; C abstains but asserts an unsupported mechanism (sessions excluded from the embedding index) that the reference does not support."
+    },
+    {
+      "caseId": "task-why-no-autoapply",
+      "pass": 0,
+      "order": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and B both capture the confidence/correctness anti-correlation, the silent-corruption argument, propose-only with confidence as triage hint, and the shadow-mode condition; B is slightly shorter and equally complete, while C abstains entirely."
+    },
+    {
+      "caseId": "task-why-no-autoapply",
+      "pass": 1,
+      "order": [
+        "bare",
+        "recall",
+        "plugin"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "B and C both capture the confidence/correctness anti-correlation, the silent-corruption argument, propose-only with confidence as triage hint, and the shadow-mode condition; B wins the tie by being shorter, while A abstains entirely."
+    },
+    {
+      "caseId": "task-why-abstain",
+      "pass": 0,
+      "order": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 1,
+          "grounding": 1,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A reproduces the reference's core asymmetry (visible miss vs. invisible wrong brief) and the one-in-twelve framing; B captures that a wrong pin misleads and abstention is priced but misses the explicit visible-miss contrast and cost comparison; C abstains entirely."
+    },
+    {
+      "caseId": "task-why-floor-low",
+      "pass": 0,
+      "order": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and B both capture the reference's core points (floor is a coarse noise filter, raising it kills legitimate fuzzy/paraphrase routes, the domain trigger with brief-map/title/slug tokens is the precision instrument) with matching vault-specific detail; A is slightly tighter so wins the tie, while C abstains and offers only generic precision/recall reasoning."
+    },
+    {
+      "caseId": "task-why-abstain",
+      "pass": 1,
+      "order": [
+        "bare",
+        "recall",
+        "plugin"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 1,
+          "grounding": 1,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "C reproduces the reference's core asymmetry (visible miss vs. invisible wrong brief) and the 1/3-abstain vs. 1/12-wrong framing; B captures that a wrong pick misleads and precision is prioritized but misses the visible-vs-invisible asymmetry; A abstains entirely."
+    },
+    {
+      "caseId": "task-why-floor-low",
+      "pass": 1,
+      "order": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A and B both capture the reference's core (floor is a coarse noise filter, raising it kills fuzzy/paraphrase recall, the domain trigger with brief-tied tokens is the precision instrument), but A asserts uncorroborated specifics (DEFAULT_FLOOR = 4, MiniSearch, eval-harness strata) the reference does not support, while C abstains and offers only generic precision/recall advice."
+    },
+    {
+      "caseId": "task-why-dry-run",
+      "pass": 0,
+      "order": [
+        "recall",
+        "bare",
+        "plugin"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and C both reproduce the reference's core argument (Write access plus Bash(node:*) enabling node -e, bounded by instructions not allowlist, supervised run before --apply in the plist), with A matching the wording more precisely; both append unsupported knowledge-base-specific extras (A: doctor.mjs/silent death; C: a propose-only brief rule), while B abstains entirely."
+    },
+    {
+      "caseId": "task-why-dry-run",
+      "pass": 1,
+      "order": [
+        "bare",
+        "recall",
+        "plugin"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "B and C both capture the reference's core (Write access plus Bash(node:*) allowing node -e making the allowlist weaker than it looks, supervise-first then --apply in the plist); B is marginally tighter and more precise, while A abstains entirely."
+    },
+    {
+      "caseId": "task-onboard-vault",
+      "pass": 0,
+      "order": [
+        "bare",
+        "recall",
+        "plugin"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 1,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "C covers setup-vault per project vs bootstrap per machine, what setup-vault creates (skeleton, brief-map.json, .gitignore, Home MOC, registry, slug routing, --git) and doctor to verify; B gets the three-step structure and basename routing but omits what gets created and the session-note check; A abstains entirely."
+    },
+    {
+      "caseId": "task-weekly-steps",
+      "pass": 1,
+      "order": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and B both give the exact eight-step order (preflight, digests, stale briefs/proposals, archive, health, report, commit, notify) plus dry-run/--apply and the fresh-model TODO caveat; B is slightly more concise so ranks first, while C abstains entirely."
+    },
+    {
+      "caseId": "task-weekly-steps",
+      "pass": 0,
+      "order": [
+        "bare",
+        "plugin",
+        "recall"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "B and C both give the exact eight-step order (preflight/doctor, digests, stale briefs→proposals, archive with source-link repointing, health, report, commit, notify) plus dry-run/--apply and the fresh-model TODO caveat, clearly from the same brief; they tie on substance so C wins by brevity, while A abstains entirely."
+    },
+    {
+      "caseId": "task-onboard-vault",
+      "pass": 1,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 1,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A covers the bootstrap-vs-setup-vault split, what setup-vault creates (skeleton, brief-map.json, .gitignore, Home MOC), registry/routing, --git, and doctor verification, missing only the specific flags and the end-a-session check; C gets the three-step structure and basename routing but omits what gets created; B abstains entirely."
+    },
+    {
+      "caseId": "task-apply-proposal",
+      "pass": 0,
+      "order": [
+        "bare",
+        "plugin",
+        "recall"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "B matches the reference on every point (human apply via --apply or apply_brief_proposal, H1–H6 heading matching, the three limits, and restating unreachable proposals in run reports) with extra details consistent with the reference; A and C both abstain with no content, C being shorter."
+    },
+    {
+      "caseId": "task-apply-proposal",
+      "pass": 1,
+      "order": [
+        "bare",
+        "plugin",
+        "recall"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "B matches the reference fully (human apply via script/tool, H1–H6 heading reach, the three limits, restated in run reports) with extra consistent detail; A and C both abstain, with C shorter."
+    },
+    {
+      "caseId": "task-brief-map-entry",
+      "pass": 1,
+      "order": [
+        "recall",
+        "bare",
+        "plugin"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 1,
+          "grounding": 1,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "C names the .mcp/brief-map.json entry with no-threshold routing and exact-title fallback (missing only the watched-file and keep-it-small notes); A knows the routing brief's structure but misses the map entirely and only gets the title-match path; B abstains."
+    },
+    {
+      "caseId": "task-brief-map-entry",
+      "pass": 0,
+      "order": [
+        "recall",
+        "bare",
+        "plugin"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 1,
+          "grounding": 1,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "C gives the reference's core answer (add a keyword→path entry to .mcp/brief-map.json, no threshold, exact title also thresholdless) though it omits the watched-file and keep-it-small notes; A knows the exact-vs-fuzzy split but never identifies the brief map and admits it lacks the mechanism; B fully abstains."
+    },
+    {
+      "caseId": "task-first-run-check",
+      "pass": 0,
+      "order": [
+        "bare",
+        "recall",
+        "plugin"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "B and C both give the reference's exact recipe (temp HOME + CLAUDE_HOME, bootstrap --skip-install, doctor must exit 0) and the severity rule, but C adds unsupported history claims about doctor being broken for a long time, while A abstains and offers only generic clean-environment advice."
+    },
+    {
+      "caseId": "task-sourdough-timing",
+      "pass": 1,
+      "order": [
+        "bare",
+        "recall",
+        "plugin"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "B and C both reproduce the note's temperature-over-clock point, the 26°C/20°C timings, the 30–50% rise/dome/jiggle cues and the thermometer advice, but C attributes an unsupported \"dense, gummy loaf\" caution to the note; A is generic advice with different readiness numbers (50–75%) and no thermometer point."
+    },
+    {
+      "caseId": "task-sourdough-timing",
+      "pass": 0,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and C both reproduce the reference's temperature-over-clock point, the 26°C/20°C numbers, the 30–50% rise/dome/jiggle cues and the thermometer advice, but A explicitly attributes an unsupported \"dense, gummy loaf\" caution to the note; B is generic advice with different readiness cues (50–75%) and no grounding in the source material."
+    },
+    {
+      "caseId": "task-first-run-check",
+      "pass": 1,
+      "order": [
+        "bare",
+        "plugin",
+        "recall"
+      ],
+      "scores": {
+        "bare": {
+          "correctness": 0,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "B and C both give the exact throwaway HOME/CLAUDE_HOME + bootstrap --skip-install + doctor-must-exit-0 recipe; C edges out B by reproducing both parts of doctor's severity rule (never-curated vault only warns, weekly command fatal only if scheduled), while B adds unsupported history claims and omits the vault-warning point; A abstains with generic container/CI advice."
+    },
+    {
+      "caseId": "task-chain-replace",
+      "pass": 1,
+      "order": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 2,
+          "grounding": 1,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A reproduces the full reference (0.5%/0.75% thresholds, check cadence, cassette-reshaping consequence, 2–3 chains per cassette) from the vault brief; B hits the 0.5% threshold and cassette consequence with a file citation but omits the 0.75% and cadence details; C gets the substance right but explicitly treats it as generic knowledge rather than drawing from the knowledge base."
+    },
+    {
+      "caseId": "task-neg-finetune",
+      "pass": 0,
+      "order": [
+        "recall",
+        "bare",
+        "plugin"
+      ],
+      "scores": {
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "bare": {
+          "correctness": 2,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "plugin": {
+          "correctness": 1,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "recall",
+        "bare",
+        "plugin"
+      ],
+      "reason": "A plainly says the vault lacks fine-tuning info and only cites what the retrieved note actually covers without inventing a procedure; B abstains cleanly but is entirely generic; C says no workflow exists yet then supplies a vault-attributed swap-and-rebuild recipe (EMBEDDING_MODEL, all-MiniLM-L6-v2, .mcp/embeddings.json) the reference does not support, which the judge notes flag as fabrication."
+    },
+    {
+      "caseId": "task-chain-replace",
+      "pass": 0,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": false
+        },
+        "bare": {
+          "correctness": 2,
+          "grounding": 1,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": false
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and C both hit the 0.5% threshold and cassette-wear consequence from the vault brief, but A attributes extra unsupported specifics (£25/£150 prices, 200 km lube, annual cables) to the brief, so C edges it on fabrication; B gives a correct generic answer while explicitly disclaiming project knowledge."
+    },
+    {
+      "caseId": "task-neg-sharding",
+      "pass": 0,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 1,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A plainly states there is no sharding design and correctly cites the exhaustive-scan/50k-chunk ANN threshold without inventing a scheme; C also correctly says no sharding exists with some matching specifics but omits the 50k note and speculates about other briefs; B abstains but only because it lacks context, not because the vault doesn't cover it."
+    },
+    {
+      "caseId": "task-neg-sharding",
+      "pass": 1,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A plainly states the vault has no sharding design and cites the exhaustive-scan/50k-chunk limit exactly as the judge notes allow; C also correctly denies any sharding and grounds it in the git-repo-bounded scale note but omits the 50k point and hedges about unretrieved files; B honestly abstains but is entirely generic with no vault grounding."
+    },
+    {
+      "caseId": "task-neg-finetune",
+      "pass": 1,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": true
+        },
+        "bare": {
+          "correctness": 2,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 1,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "bare",
+        "recall",
+        "plugin"
+      ],
+      "reason": "All three correctly say the vault has no fine-tuning workflow, but B abstains cleanly with only generic pointers, while C and especially A go on to supply vault-specific details (env vars, cache paths, hybrid-retrieval internals) that the reference does not support, with A turning them into an actionable recipe."
+    },
+    {
+      "caseId": "task-neg-pinecone",
+      "pass": 0,
+      "order": [
+        "plugin",
+        "bare",
+        "recall"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "recall",
+        "plugin",
+        "bare"
+      ],
+      "reason": "A and C both state plainly that no Pinecone path exists, correctly grounding that in the vault's documented local-only embedding premise without inventing a config recipe; B abstains only because of missing tools and offers a generic, ungrounded guess at env var names."
+    },
+    {
+      "caseId": "task-neg-pinecone",
+      "pass": 1,
+      "order": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "scores": {
+        "plugin": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "recall": {
+          "correctness": 2,
+          "grounding": 2,
+          "fabrication": 0,
+          "abstained": true
+        },
+        "bare": {
+          "correctness": 1,
+          "grounding": 0,
+          "fabrication": 0,
+          "abstained": true
+        }
+      },
+      "ranking": [
+        "plugin",
+        "recall",
+        "bare"
+      ],
+      "reason": "A and B both plainly state the vault has no Pinecone integration and correctly ground that in the documented local-only embedding design without inventing a config recipe; C abstains only for lack of tool access rather than stating the vault doesn't cover it, with no grounding."
+    }
+  ]
+}
