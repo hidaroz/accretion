@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { mcpCommands } from "../cli/commands/index.js";
+import { createLocalEmbedder } from "../engine/retrieval/embedder.js";
 import type { CommandSpec, RunContext } from "../cli/spec.js";
 
 const require = createRequire(import.meta.url);
@@ -21,6 +22,8 @@ export function createServer(): McpServer {
     env: process.env,
     stdin: async () => "",
     stderr: (line) => process.stderr.write(line + "\n"),
+    // Loaded lazily on first semantic search, then reused for the life of the server.
+    embedder: createLocalEmbedder(),
   };
 
   for (const spec of mcpCommands() as CommandSpec[]) {

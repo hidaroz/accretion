@@ -21,8 +21,8 @@ export const search = defineCommand({
     explain: z.boolean().optional().describe("Include the routing decision in JSON output."),
     ...semanticFlags,
   }),
-  async run(args) {
-    const v = await openVault({ vaultId: args.vault, semantic: semanticFrom(args) });
+  async run(args, ctx) {
+    const v = await openVault({ vaultId: args.vault, semantic: semanticFrom(args), embedder: ctx.embedder });
     return v.search(args.query, { limit: args.limit, explain: args.explain });
   },
   format(result, args) {

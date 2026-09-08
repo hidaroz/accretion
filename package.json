@@ -1,7 +1,7 @@
 {
   "name": "accretion",
-  "version": "0.1.0",
-  "description": "Curated Obsidian-vault memory served to AI agents over MCP: hybrid retrieval, confidence-gated brief routing, and a self-running weekly maintenance loop.",
+  "version": "0.2.0",
+  "description": "Curated agent memory over Obsidian vaults: an engine and the accretion CLI, with a Claude Code plugin (skills, capture and passive-recall hooks) and a stdio MCP adapter.",
   "type": "module",
   "main": "dist/engine/index.js",
   "author": "Hidar Elhassan",
@@ -18,8 +18,8 @@
     "accretion-mcp": "dist/mcp/main.js"
   },
   "scripts": {
-    "build": "tsc && node scripts/build-hooks.mjs",
-    "start": "node dist/index.js",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc && node scripts/build-hooks.mjs",
+    "start": "node dist/cli/main.js",
     "dev": "tsx watch src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -29,18 +29,11 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@xenova/transformers": "^2.17.2",
-    "chokidar": "^4.0.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^5.1.0",
-    "express-rate-limit": "^8.3.2",
     "gray-matter": "^4.0.3",
     "minisearch": "^7.2.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.2",
     "@types/node": "^22.15.3",
     "esbuild": "^0.25.12",
     "tsx": "^4.19.4",

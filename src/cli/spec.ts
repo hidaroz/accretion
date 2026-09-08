@@ -13,6 +13,8 @@ export interface RunContext {
   env: NodeJS.ProcessEnv;
   stdin: () => Promise<string>;
   stderr: (line: string) => void;
+  /** Long-lived callers (MCP) share one embedder so the model loads once per process. */
+  embedder?: import("../engine/retrieval/embedding-index.js").Embedder;
 }
 
 export interface Positional {

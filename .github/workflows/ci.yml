@@ -26,7 +26,7 @@ jobs:
       # takes minutes; gating every PR on it buys little, and the retrieval
       # numbers that matter are regenerated deliberately, not per-commit.
       - name: Retrieval eval (no semantic)
-        run: node scripts/memory-eval.mjs --vault demo --no-semantic
+        run: node dist/cli/main.js eval --vault demo --no-semantic
         env:
           VAULTS_CONFIG: .github/ci-vaults.json
 

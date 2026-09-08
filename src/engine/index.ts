@@ -19,7 +19,7 @@
 import path from "node:path";
 import { VaultManager } from "./vault/vault-manager.js";
 import { SearchIndex, type SearchResult } from "./retrieval/search-index.js";
-import { EmbeddingIndex } from "./retrieval/embedding-index.js";
+import { EmbeddingIndex, type Embedder } from "./retrieval/embedding-index.js";
 import { createLocalEmbedder } from "./retrieval/embedder.js";
 import { loadBriefMap } from "./retrieval/brief-map-loader.js";
 import { routeBrief, type RouteResult } from "./retrieval/brief-routing.js";
@@ -50,6 +50,8 @@ export interface OpenVaultOptions {
   now?: () => number;
   /** Lift the write allowlist (tests, migrations). */
   unrestrictedWrites?: boolean;
+  /** Share one embedder across calls in a long-lived process (the MCP adapter) so the model loads once. */
+  embedder?: Embedder;
 }
 
 export interface SearchHit {
@@ -123,7 +125,7 @@ export async function openVault(options: OpenVaultOptions = {}): Promise<VaultHa
   if (semantic) {
     try {
       notes = notes ?? (await vault.getAllNotes());
-      embeddingIndex = new EmbeddingIndex(createLocalEmbedder(), {
+      embeddingIndex = new EmbeddingIndex(options.embedder ?? createLocalEmbedder(), {
         cachePath: path.join(config.path, ".mcp", "embeddings.json"),
       });
       await embeddingIndex.loadCache();
@@ -222,7 +224,6 @@ export * from "./config/project-map.js";
 export * from "./vault/vault-manager.js";
 export * from "./vault/frontmatter.js";
 export * from "./vault/note-scan.js";
-export * from "./vault/tag-index.js";
 export * from "./vault/wikilink-index.js";
 export * from "./vault/vault-onboarding.js";
 export * from "./retrieval/search-index.js";
@@ -234,7 +235,6 @@ export * from "./retrieval/brief-keywords.js";
 export * from "./retrieval/brief-map-loader.js";
 export * from "./retrieval/index-store.js";
 export * from "./retrieval/weights.js";
-export * from "./retrieval/search-analytics.js";
 export * from "./context/assemble.js";
 export * from "./context/recall.js";
 export * from "./lifecycle/session-scan.js";
