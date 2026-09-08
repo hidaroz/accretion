@@ -132,8 +132,9 @@ One line each; sources and quotes are in the research files.
 
 Named here so they are not re-litigated as scope for this change.
 
-- **Task-level eval.** Built 2026-09-08 as `accretion task-eval` (see evals/README.md). Twenty to thirty real tasks run with and without the vault, judged
+- **Task-level eval.** Built 2026-09-08 as `accretion task-eval` (see evals/README.md), with a source-aware fabrication pass added the same day after the first fabrication number proved to be a gold-omission artifact (docs/REVIEW-RESPONSE.md section 10). The grounding contract in the recall block was the first lever measured against it. Twenty to thirty real tasks run with and without the vault, judged
   against a rubric, reporting win rate. The prerequisite for earning any auto-apply lane back.
+- **Validity metadata.** Done 2026-09-08: `last_reviewed`, `valid_from`, `review_by`, `superseded_by` render as one line wherever a note is placed in front of a model; `accretion garden` has a `stale` rule. Measured for no regression on the demo; its value shows on vaults old enough to have stale notes.
 - **LLM-summarised capture.** Decisions and open threads at session end instead of the first
   hundred characters of each message. Must run detached; the SessionEnd budget is 1.5 s.
 - **sqlite-vec index** behind the existing `IndexStore` interface, replacing the JSON vector

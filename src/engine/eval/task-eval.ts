@@ -231,7 +231,7 @@ export const FABRICATION_SCHEMA = {
 } as const;
 
 /** Bump when the fabrication rubric changes; the cache key carries it so old judgments retire. */
-export const FABRICATION_RUBRIC_VERSION = 3;
+export const FABRICATION_RUBRIC_VERSION = 4;
 
 export function buildFabricationPrompt(c: TaskCase, answer: AgentAnswer, sources: SourceExcerpt[]): string {
   const src = sources.length

@@ -31,6 +31,7 @@ import {
 } from "../engine/eval/task-eval.js";
 import { openVault, type VaultHandle } from "../engine/index.js";
 import { truncateAtSection } from "../engine/context/assemble.js";
+import { validityLine } from "../engine/context/validity.js";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const NO_TOOLS = "Bash,Read,Write,Edit,MultiEdit,NotebookEdit,Glob,Grep,LS,WebSearch,WebFetch,Agent,Task,TodoWrite,Skill";
@@ -282,7 +283,11 @@ export class ClaudeHeadlessRunner implements AgentRunner, Judge {
     for (const p of paths) {
       try {
         const n = await v.vault.read(p);
-        out.push({ path: p, content: truncateAtSection(n.content, maxChars) });
+        // The model sees the validity line under the title; the judge must too, or a
+        // true "last reviewed on" statement reads as unsupported.
+        const validity = validityLine(n.frontmatter);
+        const content = `${validity ? `(note metadata: ${validity})\n\n` : ""}${truncateAtSection(n.content, maxChars)}`;
+        out.push({ path: p, content });
       } catch {
         // a lure path that does not exist is simply absent from the evidence
       }

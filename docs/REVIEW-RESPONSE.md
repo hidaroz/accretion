@@ -186,6 +186,36 @@ over-fitting.
   cycles — recording what it *would* have applied against what a human approved — until the
   false-accept rate is demonstrably near zero. Not before.
 
+## 10. The task-level tier, and the number that was measuring the wrong thing
+
+The retrieval eval says whether the right note comes back. A task-level eval
+(`accretion task-eval`) now asks the question that matters: does an agent answer better
+with the vault than without? Each case is a question, a gold answer, and its source notes,
+answered under three conditions through `claude -p` (no vault; the passive-recall block
+only; the full plugin), then graded blind by a judge that sees the answers shuffled.
+
+The first demo scorecard showed the memory working (correctness 0.48 bare, 1.64 recall,
+1.98 plugin) and a cost: fabrication in 16 to 18 percent of memory-backed answers, none
+in the baseline. That number went into a commit message before anyone read the judge's
+reasons. Reading them, and then the notes, showed that the judge sees only the gold answer
+and so flags any true vault fact the gold omits. Thirteen of fifteen flags were exactly
+that. The one real failure was a negative case, where the agent said the vault does not
+cover the question and then assembled a recipe from true facts in an adjacent note.
+
+The fix was to the measurement first: a second judge pass reads each answer against the
+source notes and lists every project-specific claim as supported, unsupported, or
+contradicted. The honest baseline was unsupported claims in 9 percent of bare answers
+(the judge's own noise), 36 percent of recall answers, and 27 percent of plugin answers.
+Then one lever, measured alone: a grounding sentence in the injected block and in the
+skill ("answer from this note; where it does not cover the question, say so and stop").
+Recall fell to 14 percent and plugin to 9 percent, the noise floor, with correctness
+unchanged. The cost showed where predicted: the pointer-only tier over-hedges when it has
+no tools to follow the pointer. That trade is recorded on the scorecard rather than
+averaged away.
+
+Same lesson as section 7, one tier up: a metric that flatters or damns the system is
+worse than none, because it is trusted. Read the reasons before the rate.
+
 ## Reproducing
 
 ```bash
@@ -193,6 +223,7 @@ npm run build
 accretion eval --vault demo                 # full → evals/results/*-curated.md
 accretion eval --vault demo --no-semantic   # fast: keyword + routing
 accretion eval --vault demo --sweep-routing # floor/margin grid
+accretion task-eval --vault demo --label <name>   # answers + blind judges through claude -p
 ```
 
 `VAULTS_CONFIG` must point at a registry containing a `demo` vault at `demo-vault/`; see
