@@ -46,3 +46,29 @@ export function resolveVaultForSlug(slug: string, map: ProjectMap | null): strin
 export function slugForCwd(cwd: string | undefined): string {
   return cwd ? path.basename(cwd) : "unknown";
 }
+
+/**
+ * Vault for a working directory. The directory's own name is tried first, then
+ * each ancestor's, so a git worktree or a subpackage under a mapped project
+ * (`~/work/atlas-web-app/worktrees/feat-x`) lands in that project's vault instead
+ * of the catch-all. `_default` applies only when no ancestor is mapped. Returns
+ * the vault id and the slug that matched.
+ */
+export function resolveVaultForCwd(
+  cwd: string | undefined,
+  map: ProjectMap | null
+): { vaultId: string | null; slug: string; matched?: string } {
+  const own = slugForCwd(cwd);
+  if (!map || !cwd) return { vaultId: null, slug: own };
+  let dir = path.resolve(cwd);
+  for (;;) {
+    const slug = path.basename(dir);
+    const hit = map[slug];
+    if (typeof hit === "string" && hit) return { vaultId: hit, slug: own, matched: slug };
+    const parent = path.dirname(dir);
+    if (parent === dir || !slug) break;
+    dir = parent;
+  }
+  const fallback = map._default;
+  return { vaultId: typeof fallback === "string" && fallback ? fallback : null, slug: own };
+}

@@ -21,6 +21,7 @@ describe("hooks end to end", () => {
     vaultDir = path.join(root, "vault");
     await fs.cp(path.join(REPO, "demo-vault"), vaultDir, { recursive: true });
     await fs.rm(path.join(vaultDir, ".mcp", "search-index.json"), { force: true });
+    await fs.rm(path.join(vaultDir, ".mcp", "recall-log.jsonl"), { force: true });
     projectDir = path.join(root, "mapped-project");
     await fs.mkdir(projectDir);
     configPath = path.join(root, "vaults.json");
@@ -127,5 +128,13 @@ describe("hooks end to end", () => {
       expect(await captureSession({ session_id: "ffff0000", transcript_path: transcript, cwd: projectDir })).toBeNull();
       expect(await captureSession({ session_id: "ffff0001", transcript_path: transcript, cwd: path.join(root, "nope") })).toBeNull();
     });
+  });
+});
+
+describe("firstTimestamp", () => {
+  it("returns the earliest parseable timestamp or null", async () => {
+    const { firstTimestamp } = await import("../hooks/session-journal.js");
+    expect(firstTimestamp([{ timestamp: "2026-09-07T23:59:00Z" }, { timestamp: "2026-09-07T22:10:00Z" }, { timestamp: "nope" }, {}])).toBe("2026-09-07T22:10:00.000Z");
+    expect(firstTimestamp([{}, { timestamp: "x" }])).toBeNull();
   });
 });

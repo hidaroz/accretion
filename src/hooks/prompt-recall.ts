@@ -13,8 +13,7 @@ import { shouldRecall } from "../engine/context/recall.js";
 import {
   loadProjectMap,
   resolveProjectMapPath,
-  resolveVaultForSlug,
-  slugForCwd,
+  resolveVaultForCwd,
 } from "../engine/config/project-map.js";
 
 export interface PromptHookInput {
@@ -62,8 +61,7 @@ export async function runPromptRecall(
   const prompt = input.prompt ?? "";
   if (!shouldRecall(prompt)) return { output: null, reason: "prompt too short or a command", vaultId: null };
 
-  const slug = slugForCwd(input.cwd);
-  const vaultId = resolveVaultForSlug(slug, loadProjectMap(resolveProjectMapPath(env)));
+  const { vaultId, slug } = resolveVaultForCwd(input.cwd, loadProjectMap(resolveProjectMapPath(env)));
   if (!vaultId) return { output: null, reason: `no vault mapped for "${slug}"`, vaultId: null };
 
   const v = await openVault({ vaultId, semantic: undefined });

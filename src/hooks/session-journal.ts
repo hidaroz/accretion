@@ -14,6 +14,7 @@ import {
   loadProjectMap,
   resolveProjectMapPath,
   resolveVaultForSlug,
+  resolveVaultForCwd,
   slugForCwd,
 } from "../engine/config/project-map.js";
 import { appendLog } from "../engine/lifecycle/log.js";
@@ -21,6 +22,7 @@ import { appendLog } from "../engine/lifecycle/log.js";
 interface TranscriptLine {
   type?: string;
   aiTitle?: string;
+  timestamp?: string;
   message?: { content?: unknown };
 }
 
@@ -102,6 +104,17 @@ export function extractToolCalls(lines: TranscriptLine[]): ToolCall[] {
     }
   }
   return calls;
+}
+
+/** Earliest ISO timestamp on any transcript line, if the transcript carries them. */
+export function firstTimestamp(lines: Array<TranscriptLine & { timestamp?: string }>): string | null {
+  let best: number | null = null;
+  for (const l of lines) {
+    if (typeof l.timestamp !== "string") continue;
+    const t = Date.parse(l.timestamp);
+    if (Number.isFinite(t) && (best === null || t < best)) best = t;
+  }
+  return best === null ? null : new Date(best).toISOString();
 }
 
 export function getFirstUserMessage(lines: TranscriptLine[]): string | null {
@@ -259,8 +272,10 @@ export async function captureSession(input: HookInput, now: Date = new Date(), e
     aiTitle || (firstUserMsg ? `Session: ${firstUserMsg.slice(0, 80)}` : `Session: ${session_id.slice(0, 8)}`)
   );
 
+  // The note keeps the directory's own name as its project slug; the vault comes
+  // from the nearest mapped ancestor, so worktrees file under their project.
   const projectSlug = slugForCwd(cwd);
-  const vaultId = resolveVault(projectSlug);
+  const { vaultId } = resolveVaultForCwd(cwd, loadProjectMap(resolveProjectMapPath(env)));
   if (!vaultId) return null;
   const vaultPath = getVaultPath(vaultId);
   if (!vaultPath) return null;
@@ -272,8 +287,12 @@ export async function captureSession(input: HookInput, now: Date = new Date(), e
   const existingPath = findExistingSessionNote(vaultPath, fileName);
   const notePath = existingPath || `sessions/${dateDir}/${fileName}`;
   const fullPath = join(vaultPath, notePath);
-  // `created` stays at first capture: digests group by created-week.
-  const created = (existingPath && readCreated(fullPath)) || now.toISOString();
+  // `created` is when the work started, not when the hook ran: digests group by
+  // created-week, and a session captured after midnight belongs to the day it
+  // began. First capture uses the transcript's earliest timestamp; later captures
+  // of a resumed session keep the value already on the note.
+  const created =
+    (existingPath && readCreated(fullPath)) || firstTimestamp(lines) || now.toISOString();
 
   const topics = extractTopics(lines);
   const filesChanged = extractFilesChanged(toolCalls);

@@ -38,3 +38,15 @@ describe("project map", () => {
     expect(slugForCwd(undefined)).toBe("unknown");
   });
 });
+
+describe("resolveVaultForCwd", () => {
+  it("walks ancestors before the catch-all, and keeps the directory's own slug", async () => {
+    const { resolveVaultForCwd } = await import("../engine/config/project-map.js");
+    const map = { "atlas-web-app": "work", _default: "brain" };
+    expect(resolveVaultForCwd("/Users/x/devprojects/atlas-web-app/worktrees/feat-x", map)).toEqual({ vaultId: "work", slug: "feat-x", matched: "atlas-web-app" });
+    expect(resolveVaultForCwd("/Users/x/devprojects/atlas-web-app", map)).toEqual({ vaultId: "work", slug: "atlas-web-app", matched: "atlas-web-app" });
+    expect(resolveVaultForCwd("/Users/x/other/thing", map)).toEqual({ vaultId: "brain", slug: "thing" });
+    expect(resolveVaultForCwd("/Users/x/other/thing", { _default: null })).toEqual({ vaultId: null, slug: "thing" });
+    expect(resolveVaultForCwd(undefined, map)).toEqual({ vaultId: null, slug: "unknown" });
+  });
+});

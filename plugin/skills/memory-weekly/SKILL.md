@@ -133,7 +133,9 @@ sibling), or **drop** (recommend deletion). Surfacing is the job; act only on `i
 
 ### 6. Run report
 
-Write `sessions/digests/_runs/{YYYY-MM-DD}-memory-run.md` (print it under `--dry-run`):
+Write `sessions/digests/_runs/{YYYY-MM-DD}-memory-run.md` (print it under `--dry-run`). If a
+report for today already exists, write `{YYYY-MM-DD}-memory-run-2.md` (then `-3`, and so on)
+rather than overwriting it; an earlier run's report is part of the record.
 
 ```yaml
 ---
