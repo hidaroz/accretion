@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { logger } from "../utils/logger.js";
+import { VaultNotFoundError } from "../utils/errors.js";
 import { expandHome } from "../utils/path-safety.js";
 import type { RecallMode } from "../context/recall.js";
 
@@ -115,7 +116,7 @@ export async function loadVaultsConfig(): Promise<VaultConfig[]> {
 export function selectVault(vaults: VaultConfig[], vaultId?: string): VaultConfig {
   if (vaultId) {
     const v = vaults.find((x) => x.id === vaultId);
-    if (!v) throw new Error(`Unknown vault: "${vaultId}". Known: ${vaults.map((x) => x.id).join(", ")}`);
+    if (!v) throw new VaultNotFoundError(vaultId);
     return v;
   }
   return vaults.find((v) => v.default) ?? vaults[0];

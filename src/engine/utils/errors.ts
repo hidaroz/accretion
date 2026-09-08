@@ -15,9 +15,7 @@ export class NoteAlreadyExistsError extends Error {
 
 export class VaultNotFoundError extends Error {
   constructor(vaultId: string) {
-    super(
-      `Unknown vault: "${vaultId}". Use list_vaults to see available vaults.`
-    );
+    super(`Unknown vault: "${vaultId}". Run \`accretion list-vaults\` to see the registered ids.`);
     this.name = "VaultNotFoundError";
   }
 }

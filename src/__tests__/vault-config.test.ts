@@ -22,7 +22,7 @@ describe("selectVault", () => {
     expect(selectVault(vaults, "a").id).toBe("a");
     expect(selectVault(vaults).id).toBe("b");
     expect(selectVault([vaults[0]]).id).toBe("a");
-    expect(() => selectVault(vaults, "zzz")).toThrow(/Unknown vault/);
+    expect(() => selectVault(vaults, "zzz")).toThrow(/Unknown vault: "zzz"/);
   });
 });
 
