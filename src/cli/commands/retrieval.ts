@@ -48,7 +48,7 @@ export const brief = defineCommand({
   jsonIndent: 0,
   positional: { key: "topic", label: "topic", rest: true },
   input: z.object({
-    topic: z.string().min(1).describe("Topic keyword, e.g. 'routing', 'roasting'."),
+    topic: z.string().min(1).describe("Topic keyword, e.g. 'routing', 'capture'."),
     vault: vaultFlag,
   }),
   async run(args) {

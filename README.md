@@ -91,10 +91,10 @@ Environment: see [`.env.example`](.env.example) for `DISABLE_EMBEDDINGS`, `TRANS
 ## Use
 
 ```bash
-accretion brief routing                      # domain-shaped question: the one brief, or an honest abstention
-accretion search "why do sessions rank lower"       # hybrid search: ranked paths + snippets
-accretion context retrieval capture            # several briefs under one token budget
-accretion read 05-Kitchen/brief-coffee-roasting.md
+accretion brief routing                         # domain-shaped question: the one brief, or an honest abstention
+accretion search "why do sessions rank lower"   # hybrid search: ranked paths + snippets
+accretion context retrieval capture             # several briefs under one token budget
+accretion read 02-Retrieval/brief-hybrid-retrieval.md
 accretion log --last 5                          # what changed in the vault recently
 accretion recall "why did we pick RRF"          # what the recall hook would inject, inspectable
 accretion propose --title "..." --target 03-Architecture/brief-auth.md --source sessions/2026/09-07/x.md --body "..."

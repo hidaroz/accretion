@@ -5,7 +5,7 @@ import { routeBrief } from "../engine/retrieval/brief-routing.js";
 function idx(hits: Array<{ path: string; title: string; score: number }>) {
   return { search: (_q: string, _o?: { tag?: string; limit?: number }) => hits };
 }
-const MAP = { auth: "03/brief-auth.md", roasting: "05/brief-coffee.md" };
+const MAP = { auth: "03/brief-auth.md", roasting: "08/brief-coffee.md" };
 const OPTS = { floor: 5, marginRatio: 1.5 };
 
 describe("routeBrief", () => {

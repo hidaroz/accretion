@@ -63,7 +63,7 @@ const NOTES = [
       "# Auth Brief\n\n## Login Flow\nUser login with auth token and password.\n\n## Misc\nUnrelated.\n",
   },
   {
-    path: "05/roasting.md",
+    path: "08/roasting.md",
     title: "Roasting Brief",
     content: "# Roasting Brief\n\n## Beans\nPayment and roasting beans.\n",
   },
@@ -123,8 +123,8 @@ describe("EmbeddingIndex", () => {
     const embed = makeEmbedder();
     const idx = new EmbeddingIndex(embed);
     await idx.buildFromVault(NOTES);
-    idx.remove("05/roasting.md");
+    idx.remove("08/roasting.md");
     const results = await idx.search("grind roasting beans", 5);
-    expect(results.every((r) => r.path !== "05/roasting.md")).toBe(true);
+    expect(results.every((r) => r.path !== "08/roasting.md")).toBe(true);
   });
 });
