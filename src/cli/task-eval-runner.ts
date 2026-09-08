@@ -30,7 +30,7 @@ const NO_TOOLS = "Bash,Read,Write,Edit,MultiEdit,NotebookEdit,Glob,Grep,LS,WebSe
 const JUDGE_SYSTEM_PROMPT =
   "You are a careful, impartial grader. Follow the rubric exactly and return only the structured result.";
 
-export interface ClaudeResult {
+interface ClaudeResult {
   result: string;
   structured_output?: unknown;
   is_error?: boolean;
@@ -41,7 +41,7 @@ export interface ClaudeResult {
   modelUsage?: Record<string, unknown>;
 }
 
-export interface ClaudeCall {
+interface ClaudeCall {
   args: string[];
   cwd: string;
   env: NodeJS.ProcessEnv;
@@ -105,7 +105,7 @@ export function buildJudgeArgs(prompt: string, opts: { model?: string }): string
   return args;
 }
 
-export async function runClaude(call: ClaudeCall, timeoutMs = 240_000): Promise<ClaudeResult> {
+async function runClaude(call: ClaudeCall, timeoutMs = 240_000): Promise<ClaudeResult> {
   return new Promise((resolve, reject) => {
     const child = spawn("claude", call.args, { cwd: call.cwd, env: call.env, stdio: ["ignore", "pipe", "pipe"] });
     const out: Buffer[] = [];
@@ -139,7 +139,7 @@ function modelOf(r: ClaudeResult): string | undefined {
   return keys[0];
 }
 
-export interface RunnerOptions {
+interface RunnerOptions {
   vaultId: string;
   model?: string;
   judgeModel?: string;

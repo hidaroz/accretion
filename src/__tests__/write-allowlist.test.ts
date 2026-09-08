@@ -46,10 +46,6 @@ describe("VaultManager allowlist", () => {
     await expect(
       vault.update("01-Architecture/brief-x.md", { content: "changed" })
     ).rejects.toBeInstanceOf(WriteNotAllowedError);
-    await expect(
-      vault.patch("01-Architecture/brief-x.md", [{ old_string: "body", new_string: "b" }])
-    ).rejects.toBeInstanceOf(WriteNotAllowedError);
-    await expect(vault.delete("01-Architecture/brief-x.md")).rejects.toBeInstanceOf(WriteNotAllowedError);
     // untouched
     expect(await fs.readFile(path.join(root, "01-Architecture/brief-x.md"), "utf-8")).toContain("body");
   });

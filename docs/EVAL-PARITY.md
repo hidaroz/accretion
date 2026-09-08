@@ -92,8 +92,8 @@ a choice as a limitation hides that someone made a decision.
 ## Reproducing
 
 ```bash
-node scripts/memory-eval.mjs --vault demo                 # curated (semantic on)
-node scripts/memory-eval.mjs --vault demo --no-semantic   # keyword + routing only
+accretion eval --vault demo                 # curated (semantic on)
+accretion eval --vault demo --no-semantic   # keyword + routing only
 ```
 
 Result files are mode-stamped, so the two runs no longer clobber each other, and each embeds

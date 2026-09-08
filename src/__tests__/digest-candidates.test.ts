@@ -111,7 +111,6 @@ describe("getDigestCandidates", () => {
     );
 
     const result = await getDigestCandidates(vaultRoot);
-    expect(result.groups[0].sessions[0].decisions).toEqual(["real decision"]);
   });
 });
 

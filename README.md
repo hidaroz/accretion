@@ -188,7 +188,7 @@ src/cli/        the accretion binary; one command spec renders as a subcommand a
 src/hooks/      capture and recall hooks, bundled to single files in dist/hooks/
 src/mcp/        the stdio adapter
 plugin/         Claude Code plugin: manifest, skills, hooks, bin, .mcp.json
-scripts/        bootstrap, doctor, setup-vault, memory-eval (wrapped by CLI subcommands); the memory-*.mjs files are deprecation shims
+scripts/        bootstrap, doctor, setup-vault, memory-eval (wrapped by CLI subcommands)
 bin/            launchd wrappers: vault-commit.sh, memory-weekly-run.sh
 launchd/        plist templates for the committer and the weekly loop
 demo-vault/     example vault documenting this system; the eval fixture

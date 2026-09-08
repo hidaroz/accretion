@@ -12,7 +12,6 @@ export interface DigestCandidateSession {
   title: string;
   created: string;
   topics: string[];
-  decisions: string[];
   filesChangedCount: number;
 }
 
@@ -81,7 +80,6 @@ export async function getDigestCandidates(
         title: n.title,
         created: n.createdAt.toISOString(),
         topics: n.topics,
-        decisions: n.decisions,
         filesChangedCount: n.filesChanged.length,
       })),
     });

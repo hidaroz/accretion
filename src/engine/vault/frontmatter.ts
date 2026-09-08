@@ -21,12 +21,6 @@ export function stringifyNote(
   return matter.stringify(content, frontmatter);
 }
 
-export function mergeFrontmatter(
-  existing: Record<string, unknown>,
-  updates: Record<string, unknown>
-): Record<string, unknown> {
-  return { ...existing, ...updates };
-}
 
 /**
  * Extract title from frontmatter or first H1 heading, falling back to filename.

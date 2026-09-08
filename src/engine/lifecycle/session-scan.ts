@@ -10,7 +10,6 @@ export interface SessionNote {
   malformedDate: boolean;
   topics: string[];
   filesChanged: string[];
-  decisions: string[];
   project: string;
 }
 
@@ -165,7 +164,6 @@ export async function findSessionNotes(
             malformedDate: malformed,
             topics: extractSection(content, "Topics"),
             filesChanged: extractSection(content, "Files Changed"),
-            decisions: extractSection(content, "Decisions"),
             project: extractProjectTag(tags),
           });
         } catch {

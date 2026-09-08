@@ -3,13 +3,7 @@ import { realpathSync } from "node:fs";
 import path from "node:path";
 import { resolveSafePath, PathSafetyError } from "../utils/path-safety.js";
 import { parseNote, stringifyNote, extractTitle, extractTags, type ParsedNote } from "./frontmatter.js";
-import {
-  NoteNotFoundError,
-  NoteAlreadyExistsError,
-  PatchStringNotFoundError,
-  PatchStringAmbiguousError,
-  WriteNotAllowedError,
-} from "../utils/errors.js";
+import { NoteNotFoundError, NoteAlreadyExistsError, WriteNotAllowedError } from "../utils/errors.js";
 
 export interface NoteInfo {
   path: string;
@@ -25,11 +19,6 @@ export interface NoteContent extends NoteInfo {
   content: string;
 }
 
-export interface FolderTree {
-  name: string;
-  type: "folder" | "file";
-  children?: FolderTree[];
-}
 
 export interface VaultManagerOptions {
   /**
@@ -215,90 +204,9 @@ export class VaultManager {
     return this.read(relativePath);
   }
 
-  async patch(
-    relativePath: string,
-    edits: Array<{
-      old_string: string;
-      new_string: string;
-      replace_all?: boolean;
-    }>,
-    opts?: WriteOptions
-  ): Promise<NoteContent> {
-    this.assertWritable(relativePath, opts);
-    const absPath = await resolveSafePath(this.vaultRoot, relativePath);
-    const existing = await this.read(relativePath);
 
-    let content = existing.content;
 
-    for (let i = 0; i < edits.length; i++) {
-      const { old_string, new_string, replace_all } = edits[i];
-      const count = countOccurrences(content, old_string);
 
-      if (count === 0) {
-        throw new PatchStringNotFoundError(relativePath, i, old_string);
-      }
-      if (count > 1 && !replace_all) {
-        throw new PatchStringAmbiguousError(relativePath, i, count);
-      }
-
-      content = replace_all
-        ? content.split(old_string).join(new_string)
-        : content.replace(old_string, new_string);
-    }
-
-    const raw = stringifyNote(content, existing.frontmatter);
-    await fs.writeFile(absPath, raw, "utf-8");
-
-    return this.read(relativePath);
-  }
-
-  async delete(relativePath: string, opts?: WriteOptions): Promise<void> {
-    this.assertWritable(relativePath, opts);
-    const absPath = await resolveSafePath(this.vaultRoot, relativePath);
-
-    await fs.access(absPath);
-    await fs.unlink(absPath);
-
-    // Clean up empty parent directories
-    let dir = path.dirname(absPath);
-    while (dir !== this.vaultRoot) {
-      const entries = await fs.readdir(dir);
-      if (entries.length === 0) {
-        await fs.rmdir(dir);
-        dir = path.dirname(dir);
-      } else {
-        break;
-      }
-    }
-  }
-
-  async list(
-    folder: string = "",
-    recursive: boolean = false,
-    limit: number = 100
-  ): Promise<NoteInfo[]> {
-    const absFolder = folder
-      ? await resolveSafePath(this.vaultRoot, folder)
-      : this.vaultRoot;
-
-    const notes: NoteInfo[] = [];
-    await this.walkDir(absFolder, recursive, notes, limit);
-
-    notes.sort(
-      (a, b) =>
-        new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
-    );
-
-    return notes.slice(0, limit);
-  }
-
-  async getFolderTree(folder: string = ""): Promise<FolderTree> {
-    const absFolder = folder
-      ? await resolveSafePath(this.vaultRoot, folder)
-      : this.vaultRoot;
-
-    return this.buildTree(absFolder, path.basename(absFolder));
-  }
 
   async getAllNotes(): Promise<NoteContent[]> {
     const notes: NoteContent[] = [];
@@ -308,49 +216,6 @@ export class VaultManager {
 
   // --- Private helpers ---
 
-  private async walkDir(
-    dir: string,
-    recursive: boolean,
-    results: NoteInfo[],
-    limit: number
-  ): Promise<void> {
-    if (results.length >= limit) return;
-
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-
-    for (const entry of entries) {
-      if (results.length >= limit) return;
-
-      if (entry.name.startsWith(".")) continue;
-
-      const fullPath = path.join(dir, entry.name);
-
-      if (entry.isDirectory() && recursive) {
-        await this.walkDir(fullPath, recursive, results, limit);
-      } else if (entry.isFile() && entry.name.endsWith(".md")) {
-        const relativePath = path.relative(this.vaultRoot, fullPath);
-        try {
-          const stat = await fs.stat(fullPath);
-          const raw = await fs.readFile(fullPath, "utf-8");
-          const { frontmatter, content } = parseNote(raw);
-
-          results.push({
-            path: relativePath,
-            title: extractTitle(frontmatter, content, relativePath),
-            tags: extractTags(frontmatter, content),
-            createdAt:
-              typeof frontmatter.created === "string"
-                ? new Date(frontmatter.created).toISOString()
-                : stat.mtime.toISOString(),
-            modifiedAt: stat.mtime.toISOString(),
-            size: stat.size,
-          });
-        } catch {
-          // Skip unreadable files
-        }
-      }
-    }
-  }
 
   private async walkDirFull(
     dir: string,
@@ -380,36 +245,8 @@ export class VaultManager {
     }
   }
 
-  private async buildTree(dir: string, name: string): Promise<FolderTree> {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    const children: FolderTree[] = [];
-
-    for (const entry of entries) {
-      if (entry.name.startsWith(".")) continue;
-
-      const fullPath = path.join(dir, entry.name);
-
-      if (entry.isDirectory()) {
-        children.push(await this.buildTree(fullPath, entry.name));
-      } else if (entry.name.endsWith(".md")) {
-        children.push({ name: entry.name, type: "file" });
-      }
-    }
-
-    return { name, type: "folder", children };
-  }
 }
 
-function countOccurrences(haystack: string, needle: string): number {
-  if (needle.length === 0) return 0;
-  let count = 0;
-  let idx = 0;
-  while ((idx = haystack.indexOf(needle, idx)) !== -1) {
-    count++;
-    idx += needle.length;
-  }
-  return count;
-}
 
 export { PathSafetyError };
 export type { ParsedNote };

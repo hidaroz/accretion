@@ -19,7 +19,6 @@ function makeSession(overrides: Partial<SessionNote> = {}): SessionNote {
     malformedDate: overrides.malformedDate ?? false,
     topics: overrides.topics ?? [],
     filesChanged: overrides.filesChanged ?? [],
-    decisions: overrides.decisions ?? [],
     project: overrides.project ?? "atlas-web-app",
   };
 }

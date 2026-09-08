@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rrf, isRawSession, hybridSearch } from "../engine/retrieval/hybrid.js";
+import { rrf, isRawSession } from "../engine/retrieval/hybrid.js";
 
 describe("rrf", () => {
   it("ranks an item appearing in both lists above single-list items", () => {
@@ -51,29 +51,3 @@ describe("isRawSession", () => {
   });
 });
 
-describe("hybridSearch", () => {
-  const keyword = {
-    search: (_q: string, _o?: { limit?: number }) => [
-      { path: "03/brief-auth.md" },
-      { path: "sessions/2026/s.md" },
-    ],
-  };
-  const semantic = {
-    search: async (_q: string, _l?: number) => [
-      { path: "sessions/2026/s.md" },
-      { path: "03/brief-auth.md" },
-    ],
-  };
-
-  it("fuses keyword + semantic and demotes raw sessions", async () => {
-    const out = await hybridSearch(keyword, semantic, "auth", 5);
-    // brief is in both lists AND not demoted → ranks above the raw session
-    expect(out[0]).toBe("03/brief-auth.md");
-    expect(out).toContain("sessions/2026/s.md");
-  });
-
-  it("works with no semantic index (keyword only)", async () => {
-    const out = await hybridSearch(keyword, null, "auth", 5);
-    expect(out[0]).toBe("03/brief-auth.md");
-  });
-});

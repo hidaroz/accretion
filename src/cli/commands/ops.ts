@@ -12,14 +12,14 @@ const execFile = promisify(execFileCb);
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
 /** Engine-owned caches and logs under a vault's .mcp/. Never committed. */
-export const DERIVED_VAULT_FILES = [
+const DERIVED_VAULT_FILES = [
   ".mcp/search-index.json",
   ".mcp/embeddings.json",
   ".mcp/search-log.jsonl",
   ".mcp/recall-log.jsonl",
 ];
 
-export interface CommitResult {
+interface CommitResult {
   id: string;
   path: string;
   committed: boolean;
@@ -33,7 +33,7 @@ export interface CommitResult {
  * live index.lock, stage, no-op on an empty diff, commit, push only when the
  * vault opts in. Reads policy from vaults.json instead of hardcoded paths.
  */
-export async function commitVault(
+async function commitVault(
   cfg: { id: string; path: string; gitAutoCommit?: boolean; gitAutoPush?: boolean },
   opts: { only?: string; message?: string; push?: boolean; dryRun?: boolean } = {}
 ): Promise<CommitResult> {
