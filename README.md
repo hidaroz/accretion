@@ -1,5 +1,9 @@
 # accretion
 
+<p align="center">
+  <img src="docs/banner.png" alt="accretion: layers of session notes compressing into digests and briefs, with one thread tracing an answer back to its source" width="100%">
+</p>
+
 Curated, human-readable **memory for AI coding agents**, kept in Obsidian markdown vaults and
 served by one CLI. It indexes one or more vaults, routes questions to curated **briefs** with a
 gate that prefers abstaining over guessing, fuses keyword and local semantic retrieval, captures
