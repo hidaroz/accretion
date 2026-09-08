@@ -163,7 +163,9 @@ export const taskEval = defineCommand({
     await fs.mkdir(outDir, { recursive: true });
     const base = path.join(outDir, `${date}-task-${cfg.id}`);
     await fs.writeFile(`${base}.md`, md);
-    await fs.writeFile(`${base}.json`, JSON.stringify({ stamp, vault: cfg.id, casesPath, conditions, baseline, passes: args.passes, seed: args.seed, report, answers, judgments }, null, 2));
+    // Paths in the committed artifact are relative: the JSON is public for the demo vault.
+    const rel = (p: string) => path.relative(REPO, p);
+    await fs.writeFile(`${base}.json`, JSON.stringify({ stamp, vault: cfg.id, casesPath: rel(casesPath), conditions, baseline, passes: args.passes, seed: args.seed, report, answers, judgments }, null, 2));
     ctx.stderr(`scorecard written to ${base}.md`);
     return { scorecard: `${base}.md`, json: `${base}.json`, conditions: report.conditions, cases: report.cases.length };
   },
