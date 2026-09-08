@@ -64,7 +64,8 @@ export async function resolveVaultRoot(vaultId) {
         : `No vaults configured in ${VAULTS_CONFIG}`
     );
   }
-  return path.resolve(expandHome(vault.path));
+  // Relative to the registry file, matching the engine.
+  return path.resolve(path.dirname(VAULTS_CONFIG), expandHome(vault.path));
 }
 
 export function fail(message) {

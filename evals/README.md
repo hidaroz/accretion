@@ -66,3 +66,47 @@ Routing prefers **"no brief" over a plausible-but-wrong one**. The fuzzy `tag_se
 - **Expand the seed**: 90 cases ship here, written against `demo-vault/`. For your own vault, replace them — grow to 50+ covering the questions you actually ask, with the notes you'd expect a good answer to cite. Keep the negative strata; they are what stops you tuning yourself into a system that always answers and is sometimes confidently wrong.
 - **Re-run after any change** to retrieval, routing, the tokenizer stop list, conventions, brief keywords, or chunking. **A drop is a regression** — treat the committed scorecards as a baseline.
 - **Gate autonomy on it**: per the review, any future move to re-enable narrow auto-apply should be justified by measured behavior here, not confidence labels.
+
+
+## Task-level eval: does the vault make answers better?
+
+Retrieval metrics say whether the right note comes back. They cannot say whether an agent
+answered better because of it. `accretion task-eval` measures that directly.
+
+A case is a question, a gold answer written by the vault's owner, the notes a good answer
+draws on, and a stratum (`factual`, `rationale`, `procedural`, `negative`). Each case is
+answered under three conditions through `claude -p`, so the eval spends your Claude Code
+subscription and, for the last condition, exercises the real product surface:
+
+| Condition | What the agent gets |
+|---|---|
+| `bare` | the question only; every tool and MCP server denied |
+| `recall` | the passive-recall block the hook would inject, ahead of the question; no tools |
+| `plugin` | the installed plugin: skill, recall hook, `accretion` on PATH (`Bash(accretion *)` and `Read` only) |
+
+A blind judge (also `claude -p`, structured output) scores every answer against the gold:
+correctness 0-2, grounding 0-2, fabrication 0/1, abstained. It runs twice per case with the
+answers shuffled, so position bias cancels: a condition **wins** a case only when it beats
+the baseline in both passes, **loses** only when below in both, and ties otherwise. The
+scorecard reports win rate with a bootstrap CI, per stratum, and lists every loss with the
+judge's reason. Negative cases score abstention: an agent that invents vault-specific
+guidance for a question the vault does not cover is the failure this tier exists to catch.
+
+```bash
+accretion task-eval --vault demo --dry-run          # what would run, spend nothing
+accretion task-eval --vault demo                     # 22 cases × 3 conditions + 2 judge passes
+accretion task-eval --vault demo --only task-why-rrf,task-neg-pinecone
+accretion task-eval --vault demo --conditions bare,recall --model sonnet --judge-model opus
+accretion task-eval --vault work --include-drafts     # private cases from <vault>/.mcp/task-cases.jsonl
+```
+
+Answers and judgments are cached under the output directory (`task-cache/`), so adding a
+case or re-judging (`--rejudge`) spends only on what is new; `--fresh` discards both. Demo
+results land in `evals/results/`; any other vault's results stay inside the vault under
+`.mcp/task-eval/`, because answers quote its content. Capture is switched off for eval
+sessions (`ACCRETION_CAPTURE=off`), so runs never write session notes into the vault.
+
+Writing cases: `evals/tasks.jsonl` is the demo set. For your own vault, write
+`<vault>/.mcp/task-cases.jsonl` in the same shape, mark unreviewed ones `"draft": true`
+(skipped unless `--include-drafts`), and keep at least three negatives. Twenty real
+questions you have actually asked beat a hundred synthetic ones.

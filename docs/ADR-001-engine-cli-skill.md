@@ -129,7 +129,7 @@ One line each; sources and quotes are in the research files.
 
 Named here so they are not re-litigated as scope for this change.
 
-- **Task-level eval.** Twenty to thirty real tasks run with and without the vault, judged
+- **Task-level eval.** Built 2026-09-08 as `accretion task-eval` (see evals/README.md). Twenty to thirty real tasks run with and without the vault, judged
   against a rubric, reporting win rate. The prerequisite for earning any auto-apply lane back.
 - **LLM-summarised capture.** Decisions and open threads at session end instead of the first
   hundred characters of each message. Must run detached; the SessionEnd budget is 1.5 s.

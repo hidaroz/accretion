@@ -228,7 +228,10 @@ export interface CaptureResult {
   vaultId: string;
 }
 
-export async function captureSession(input: HookInput, now: Date = new Date()): Promise<CaptureResult | null> {
+export async function captureSession(input: HookInput, now: Date = new Date(), env: NodeJS.ProcessEnv = process.env): Promise<CaptureResult | null> {
+  // Automation that spawns Claude sessions on purpose (the task eval) turns capture
+  // off for that process tree; those transcripts are not the user's work.
+  if (env.ACCRETION_CAPTURE === "off") return null;
   const { session_id, transcript_path, cwd } = input;
   if (!transcript_path || !session_id) return null;
 

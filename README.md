@@ -128,6 +128,13 @@ note. It pushes only vaults with `gitAutoPush: true` and unstages the derived `.
 (index snapshot, embeddings, logs) whatever the vault's `.gitignore` says. List those files in the
 `.gitignore` anyway, so a hand-run `git add -A` does not commit them.
 
+## Measuring it
+
+Two evals, both deterministic to run again: `accretion eval` scores retrieval and routing against
+known-answer cases; `accretion task-eval` answers real questions with and without the vault through
+`claude -p` and has a blind judge score them, reporting win rates per condition. See
+[`evals/README.md`](evals/README.md).
+
 ## The weekly loop
 
 `/accretion:memory-weekly` synthesises digests from sessions, turns stale briefs into

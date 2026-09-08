@@ -2,6 +2,7 @@ import type { CommandSpec } from "../spec.js";
 import * as retrieval from "./retrieval.js";
 import * as lifecycle from "./lifecycle.js";
 import * as ops from "./ops.js";
+import { taskEval } from "./task-eval.js";
 
 export const commands: CommandSpec[] = [
   retrieval.search,
@@ -21,6 +22,7 @@ export const commands: CommandSpec[] = [
   lifecycle.log,
   lifecycle.index,
   lifecycle.propose,
+  taskEval,
   ops.commit,
   ops.evalCmd,
   ops.doctor,

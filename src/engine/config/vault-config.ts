@@ -81,9 +81,9 @@ export async function loadVaultsConfigFrom(configPath: string): Promise<VaultCon
   validate(parsed.vaults);
   // Vault paths are hand-editable, so they get the same treatment as the
   // registry path itself: a `~` in vaults.json is a typo waiting to happen.
-  // Relative paths resolve against the working directory, which is how the
-  // checked-in CI registry addresses demo-vault/.
-  for (const v of parsed.vaults) v.path = path.resolve(expandHome(v.path));
+  // Relative paths resolve against the registry file, not the working
+  // directory, so a checked-in registry means the same vault from any cwd.
+  for (const v of parsed.vaults) v.path = path.resolve(path.dirname(resolved), expandHome(v.path));
   logger.info(`Loaded ${parsed.vaults.length} vault(s) from ${resolved}`);
   return parsed.vaults;
 }

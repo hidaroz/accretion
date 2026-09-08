@@ -1,9 +1,9 @@
 {
-  "_comment": "Vault registry used only by CI, so the eval runs against the checked-in demo vault. The path is relative and resolves against the workspace root, which is where the workflow runs.",
+  "_comment": "Vault registry used only by CI, so the eval runs against the checked-in demo vault. The path is relative to this file, so the eval finds the vault from any working directory.",
   "vaults": [
     {
       "id": "demo",
-      "path": "demo-vault",
+      "path": "../demo-vault",
       "displayName": "Demo",
       "default": true,
       "gitAutoCommit": false,
