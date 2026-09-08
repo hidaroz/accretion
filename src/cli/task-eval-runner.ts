@@ -12,11 +12,17 @@ import { fileURLToPath } from "node:url";
 import {
   ANSWER_SYSTEM_PROMPT,
   JUDGE_SCHEMA,
+  FABRICATION_SCHEMA,
+  buildFabricationPrompt,
   buildJudgePrompt,
   buildRecallPrompt,
   parseJudgeOutput,
+  parseFabricationOutput,
   type AgentAnswer,
   type AgentRunner,
+  type FabricationJudgment,
+  type RawFabricationOutput,
+  type SourceExcerpt,
   type Condition,
   type Judge,
   type Judgment,
@@ -24,6 +30,7 @@ import {
   type TaskCase,
 } from "../engine/eval/task-eval.js";
 import { openVault, type VaultHandle } from "../engine/index.js";
+import { truncateAtSection } from "../engine/context/assemble.js";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const NO_TOOLS = "Bash,Read,Write,Edit,MultiEdit,NotebookEdit,Glob,Grep,LS,WebSearch,WebFetch,Agent,Task,TodoWrite,Skill";
@@ -84,7 +91,7 @@ export function buildAnswerArgs(
   ];
 }
 
-export function buildJudgeArgs(prompt: string, opts: { model?: string }): string[] {
+export function buildJudgeArgs(prompt: string, opts: { model?: string; schema?: unknown }): string[] {
   const args = [
     "-p",
     prompt,
@@ -92,7 +99,7 @@ export function buildJudgeArgs(prompt: string, opts: { model?: string }): string
     "json",
     "--no-session-persistence",
     "--json-schema",
-    JSON.stringify(JUDGE_SCHEMA),
+    JSON.stringify(opts.schema ?? JUDGE_SCHEMA),
     "--system-prompt",
     JUDGE_SYSTEM_PROMPT,
     "--strict-mcp-config",
@@ -222,11 +229,13 @@ export class ClaudeHeadlessRunner implements AgentRunner, Judge {
     const t0 = Date.now();
     let prompt = c.question;
     let injected: string[] | undefined;
+    let recallTier: string | undefined;
     if (condition === "recall") {
       const v = await this.vault();
       const r = await v.recall(c.question, v.config.recall);
       prompt = buildRecallPrompt(r.text, c.question);
       injected = r.injectedPaths;
+      recallTier = r.tier;
     }
     const args = buildAnswerArgs(condition, prompt, { model: this.opts.model, pluginDir: this.opts.pluginDir ?? null });
     const cwd = condition === "plugin" ? ws.plugin : ws.bare;
@@ -243,10 +252,60 @@ export class ClaudeHeadlessRunner implements AgentRunner, Judge {
         costUsd: r.total_cost_usd,
         turns: r.num_turns,
         injected,
+        recallTier,
       };
     } catch (e) {
       return { caseId: c.id, condition, text: "", latencyMs: Date.now() - t0, injected, error: e instanceof Error ? e.message : String(e) };
     }
+  }
+
+  /**
+   * Source notes for the fabrication pass: the case's own sources, whatever recall
+   * injected for this answer, and (for negatives) what deterministic recall would
+   * inject for the question, so a plugin answer's likely reading is covered too.
+   */
+  async sourcesFor(c: TaskCase, answer: AgentAnswer, maxChars = 6000): Promise<SourceExcerpt[]> {
+    const v = await this.vault();
+    const paths = new Set<string>(c.sources ?? []);
+    for (const p of answer.injected ?? []) paths.add(p);
+    // The plugin condition reads whatever it searches for and nothing records that,
+    // so add what it most plausibly read: notes the answer names by path, and the
+    // top keyword hits for the question. A true fact from one of those is then
+    // "supported", and only claims no note makes remain unsupported.
+    for (const m of answer.text.matchAll(/\b([\w./-]+\/[\w.-]+\.md)\b/g)) paths.add(m[1]);
+    if (answer.condition === "plugin" || c.negative || paths.size === 0) {
+      const r = await v.recall(c.question, { ...v.config.recall, mode: "brief-or-hits" });
+      for (const p of r.injectedPaths) paths.add(p);
+      for (const hit of v.searchIndex.search(c.question, { limit: 5 })) paths.add(hit.path);
+    }
+    const out: SourceExcerpt[] = [];
+    for (const p of paths) {
+      try {
+        const n = await v.vault.read(p);
+        out.push({ path: p, content: truncateAtSection(n.content, maxChars) });
+      } catch {
+        // a lure path that does not exist is simply absent from the evidence
+      }
+    }
+    return out;
+  }
+
+  async judgeFabrication(c: TaskCase, answer: AgentAnswer): Promise<FabricationJudgment> {
+    const ws = await this.workspace();
+    const sources = await this.sourcesFor(c, answer);
+    const prompt = buildFabricationPrompt(c, answer, sources);
+    const args = buildJudgeArgs(prompt, { model: this.opts.judgeModel, schema: FABRICATION_SCHEMA });
+    const r = await this.withRetry(() => runClaude({ args, cwd: ws.bare, env: ws.env }, this.opts.timeoutMs));
+    let raw: RawFabricationOutput | null = null;
+    if (r.structured_output && typeof r.structured_output === "object") raw = r.structured_output as RawFabricationOutput;
+    else {
+      try {
+        raw = JSON.parse(r.result) as RawFabricationOutput;
+      } catch {
+        throw new Error(`fabrication judge returned no structured output: ${String(r.result).slice(0, 200)}`);
+      }
+    }
+    return parseFabricationOutput(raw, c.id, answer.condition);
   }
 
   async judge(c: TaskCase, answers: AgentAnswer[], order: Condition[], pass: number): Promise<Judgment> {

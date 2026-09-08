@@ -85,7 +85,15 @@ subscription and, for the last condition, exercises the real product surface:
 | `plugin` | the installed plugin: skill, recall hook, `accretion` on PATH (`Bash(accretion *)` and `Read` only) |
 
 A blind judge (also `claude -p`, structured output) scores every answer against the gold:
-correctness 0-2, grounding 0-2, fabrication 0/1, abstained. It runs twice per case with the
+correctness 0-2, grounding 0-2, fabrication 0/1, abstained. That judge sees only the gold, so
+a true vault fact the gold omits looks like fabrication; the first demo run reported 16 to 18%
+on that basis, and a line-by-line check found most of it was exactly that. A **second,
+source-aware pass** therefore reads each answer against the case's source notes (plus whatever
+recall injected, notes the answer names by path, and the top keyword hits for the question)
+and lists every project-specific claim as supported, unsupported, or contradicted. The
+scorecard's headline column is **unsupported (vs sources)**; the comparative judge's column
+stays as **fabrication (vs gold)** for continuity. General-world knowledge and an answer's
+remarks about its own context are not claims. It runs twice per case with the
 answers shuffled, so position bias cancels: a condition **wins** a case only when it beats
 the baseline in both passes, **loses** only when below in both, and ties otherwise. The
 scorecard reports win rate with a bootstrap CI, per stratum, and lists every loss with the
@@ -101,7 +109,13 @@ accretion task-eval --vault work --include-drafts     # private cases from <vaul
 ```
 
 Answers and judgments are cached under the output directory (`task-cache/`), so adding a
-case or re-judging (`--rejudge`) spends only on what is new; `--fresh` discards both. Demo
+case or re-judging (`--rejudge`) spends only on what is new; `--fresh` discards both.
+Judgments are keyed on the answer texts and on a rubric version, so refreshing one
+condition's answers (`--fresh-conditions recall,plugin`) re-judges only those, and a rubric
+change retires old judgments by itself. `--label <name>` suffixes the scorecard filename so
+runs on one day coexist: the A/B workflow is one lever per label, bare answers cached
+throughout, compared on unsupported rate, negative clean-abstain, correctness, positive
+abstain, and win/tie/loss. `--no-fabrication-pass` skips the second judge. Demo
 results land in `evals/results/`; any other vault's results stay inside the vault under
 `.mcp/task-eval/`, because answers quote its content. Capture is switched off for eval
 sessions (`ACCRETION_CAPTURE=off`), so runs never write session notes into the vault.

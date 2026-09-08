@@ -36,6 +36,8 @@ export interface AgentAnswer {
   turns?: number;
   /** Paths passive recall injected (recall condition) or the CLI read (plugin). */
   injected?: string[];
+  /** Recall condition only: which tier produced the injected block ("brief", "hits", "none"). */
+  recallTier?: string;
   error?: string;
 }
 
@@ -185,6 +187,109 @@ function clamp(n: unknown, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, Math.round(v)));
 }
 
+export interface SourceExcerpt {
+  path: string;
+  content: string;
+}
+
+export type ClaimStatus = "supported" | "unsupported" | "contradicted";
+
+/**
+ * The second judge pass. The comparative judge sees only the gold, so a true
+ * vault fact the gold omits looks like fabrication. This pass sees the source
+ * notes and lists every knowledge-base-specific claim with its status.
+ */
+export interface FabricationJudgment {
+  caseId: string;
+  condition: Condition;
+  claims: Array<{ claim: string; status: ClaimStatus }>;
+  /** The answer supplies project-specific how-to guidance (bad on a negative case). */
+  offersGuidance: boolean;
+  abstained: boolean;
+  reason: string;
+}
+
+export const FABRICATION_SCHEMA = {
+  type: "object",
+  properties: {
+    claims: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          claim: { type: "string" },
+          status: { type: "string", enum: ["supported", "unsupported", "contradicted"] },
+        },
+        required: ["claim", "status"],
+      },
+    },
+    offersGuidance: { type: "boolean" },
+    abstained: { type: "boolean" },
+    reason: { type: "string" },
+  },
+  required: ["claims", "offersGuidance", "abstained", "reason"],
+} as const;
+
+/** Bump when the fabrication rubric changes; the cache key carries it so old judgments retire. */
+export const FABRICATION_RUBRIC_VERSION = 3;
+
+export function buildFabricationPrompt(c: TaskCase, answer: AgentAnswer, sources: SourceExcerpt[]): string {
+  const src = sources.length
+    ? sources.map((s) => `### ${s.path}\n\n${s.content.trim()}`).join("\n\n")
+    : "(no source notes; every knowledge-base-specific claim is therefore unsupported)";
+  const negativeNote = c.negative
+    ? "\nThis question is NOT answered by the knowledge base. The notes below are the nearest material, included so you can tell a quoted fact from an extrapolated one. Any project-specific procedure, setting, or fact the notes do not state is unsupported, even if plausible.\n"
+    : "";
+  return [
+    "You are checking one answer against the source notes it was supposed to draw on. You do not know which system produced it.",
+    "",
+    "List every claim the answer presents as true OF THIS PROJECT OR KNOWLEDGE BASE: a fact, number, name, path, setting, mechanism, or procedure attributed to the project, its notes, its code, or its conventions. For each claim give a status:",
+    "- supported: stated in the notes below in substance; a paraphrase or a direct consequence of what the notes say counts as supported.",
+    "- unsupported: not in the notes, presented as a fact about this project.",
+    "- contradicted: the notes say otherwise.",
+    "Not claims, leave them out: general knowledge about the world or the domain stated as general knowledge (baking, cycling, how an algorithm is usually described, what a standard tool does), hedged statements (\"typically\", \"in general\", \"one option is\"), and statements about the answerer's own situation such as what its context did or did not contain, what was truncated, or what it could not access. Only what is asserted about this project counts.",
+    "Then: offersGuidance is true if the answer supplies project-specific how-to guidance or a procedure (a generic recommendation is not guidance); abstained is true if the answer says the project material is not available or that it does not know. One sentence of reason.",
+    negativeNote,
+    `## Question\n\n${c.question}`,
+    "",
+    `## Answer\n\n${(answer.error ? `(no answer: ${answer.error})` : answer.text).trim()}`,
+    "",
+    "## Source notes",
+    "",
+    src,
+    "",
+  ].join("\n");
+}
+
+export interface RawFabricationOutput {
+  claims?: Array<{ claim?: string; status?: string }>;
+  offersGuidance?: boolean;
+  abstained?: boolean;
+  reason?: string;
+}
+
+export function parseFabricationOutput(raw: RawFabricationOutput, caseId: string, condition: Condition): FabricationJudgment {
+  const claims = (Array.isArray(raw.claims) ? raw.claims : [])
+    .filter((c) => c && typeof c.claim === "string" && c.claim.trim())
+    .map((c) => {
+      const st = String(c.status ?? "").toLowerCase();
+      const status: ClaimStatus = st === "contradicted" ? "contradicted" : st === "supported" ? "supported" : "unsupported";
+      return { claim: c.claim!.trim(), status };
+    });
+  return {
+    caseId,
+    condition,
+    claims,
+    offersGuidance: !!raw.offersGuidance,
+    abstained: !!raw.abstained,
+    reason: String(raw.reason ?? ""),
+  };
+}
+
+export function hasUnsupported(f: FabricationJudgment): boolean {
+  return f.claims.some((c) => c.status !== "supported");
+}
+
 export interface ConditionSummary {
   condition: Condition;
   n: number;
@@ -195,6 +300,14 @@ export interface ConditionSummary {
   negativeAbstainRate: number | null;
   /** Non-negative cases where correctness == 2 in both passes. */
   fullyCorrectRate: number;
+  /** Positive cases where the comparative judge saw an abstention (over-abstention; lower is better). */
+  positiveAbstainRate: number;
+  /** From the source-aware pass: answers with at least one unsupported or contradicted claim. Null without the pass. */
+  unsupportedRate: number | null;
+  /** From the source-aware pass: answers with at least one contradicted claim. */
+  contradictedRate: number | null;
+  /** Negative cases where the answer abstained and offered no project-specific guidance. */
+  negativeCleanAbstainRate: number | null;
   /** vs baseline: won in both judge passes / lost in both / otherwise tie. */
   wins: number;
   losses: number;
@@ -215,10 +328,21 @@ export interface CaseSummary {
   /** vs baseline per condition: "win" | "loss" | "tie". */
   outcome: Partial<Record<Condition, "win" | "loss" | "tie">>;
   reasons: string[];
+  /** From the source-aware pass: unsupported or contradicted claims per condition. */
+  unsupported: Partial<Record<Condition, string[]>>;
+}
+
+export interface RecallTierSummary {
+  tier: string;
+  n: number;
+  meanCorrectness: number;
+  unsupportedRate: number | null;
 }
 
 export interface TaskEvalReport {
   conditions: ConditionSummary[];
+  /** The recall condition broken down by the tier that produced the injection. */
+  recallByTier: RecallTierSummary[];
   cases: CaseSummary[];
   perStratum: Array<{ stratum: string; n: number; winRate: Partial<Record<Condition, number>>; meanCorrectness: Partial<Record<Condition, number>> }>;
   baseline: Condition;
@@ -233,9 +357,11 @@ export function aggregate(
   cases: TaskCase[],
   answers: AgentAnswer[],
   judgments: Judgment[],
-  options: { baseline?: Condition; conditions?: Condition[]; seed?: number } = {}
+  options: { baseline?: Condition; conditions?: Condition[]; seed?: number; fabrications?: FabricationJudgment[] } = {}
 ): TaskEvalReport {
   const baseline = options.baseline ?? "bare";
+  const fabs = options.fabrications ?? [];
+  const fabOf = (id: string, cond: Condition) => fabs.find((f) => f.caseId === id && f.condition === cond);
   const conditions = options.conditions ?? ALL_CONDITIONS;
   const passes = Math.max(1, ...judgments.map((j) => j.pass + 1));
   const byCase = new Map<string, Judgment[]>();
@@ -245,8 +371,10 @@ export function aggregate(
   const caseSummaries: CaseSummary[] = [];
   for (const c of cases) {
     const js = byCase.get(c.id) ?? [];
-    const cs: CaseSummary = { id: c.id, stratum: c.stratum, negative: !!c.negative, correctness: {}, outcome: {}, reasons: js.map((j) => j.reason) };
+    const cs: CaseSummary = { id: c.id, stratum: c.stratum, negative: !!c.negative, correctness: {}, outcome: {}, reasons: js.map((j) => j.reason), unsupported: {} };
     for (const cond of conditions) {
+      const f = fabOf(c.id, cond);
+      if (f && hasUnsupported(f)) cs.unsupported[cond] = f.claims.filter((x) => x.status !== "supported").map((x) => `${x.claim} [${x.status}]`);
       const scores = js.map((j) => j.scores[cond]).filter((s): s is RubricScore => !!s);
       if (scores.length) cs.correctness[cond] = mean(scores.map((s) => s.correctness));
       if (cond === baseline || js.length === 0) continue;
@@ -259,7 +387,11 @@ export function aggregate(
   const summaries: ConditionSummary[] = conditions.map((cond) => {
     const scores: RubricScore[] = [];
     const negAbstain: boolean[] = [];
+    const posAbstain: boolean[] = [];
     const fullyCorrect: boolean[] = [];
+    const unsupported: boolean[] = [];
+    const contradicted: boolean[] = [];
+    const negClean: boolean[] = [];
     const lat: number[] = [];
     const cost: number[] = [];
     let errors = 0;
@@ -268,7 +400,14 @@ export function aggregate(
       const s = js.map((j) => j.scores[cond]).filter((x): x is RubricScore => !!x);
       scores.push(...s);
       if (c.negative && s.length) negAbstain.push(s.every((x) => x.abstained));
+      if (!c.negative && s.length) posAbstain.push(s.some((x) => x.abstained));
       if (!c.negative && s.length) fullyCorrect.push(s.every((x) => x.correctness === 2));
+      const f = fabOf(c.id, cond);
+      if (f) {
+        unsupported.push(hasUnsupported(f));
+        contradicted.push(f.claims.some((x) => x.status === "contradicted"));
+        if (c.negative) negClean.push(f.abstained && !f.offersGuidance);
+      }
       const a = answerOf(c.id, cond);
       if (a?.error) errors++;
       if (a?.latencyMs !== undefined) lat.push(a.latencyMs);
@@ -287,6 +426,10 @@ export function aggregate(
       fabricationRate: mean(scores.map((s) => s.fabrication)),
       negativeAbstainRate: negAbstain.length ? mean(negAbstain.map(Number)) : null,
       fullyCorrectRate: mean(fullyCorrect.map(Number)),
+      positiveAbstainRate: mean(posAbstain.map(Number)),
+      unsupportedRate: unsupported.length ? mean(unsupported.map(Number)) : null,
+      contradictedRate: contradicted.length ? mean(contradicted.map(Number)) : null,
+      negativeCleanAbstainRate: negClean.length ? mean(negClean.map(Number)) : null,
       wins,
       losses,
       ties,
@@ -313,7 +456,15 @@ export function aggregate(
     return { stratum, n: ids.size, winRate, meanCorrectness };
   });
 
-  return { conditions: summaries, cases: caseSummaries, perStratum, baseline, passes };
+  const tiers = [...new Set(answers.filter((a) => a.condition === "recall" && a.recallTier).map((a) => a.recallTier!))].sort();
+  const recallByTier: RecallTierSummary[] = tiers.map((tier) => {
+    const ids = answers.filter((a) => a.condition === "recall" && a.recallTier === tier).map((a) => a.caseId);
+    const cs = caseSummaries.filter((x) => ids.includes(x.id)).map((x) => x.correctness.recall).filter((v): v is number => v !== undefined);
+    const fs = ids.map((id) => fabOf(id, "recall")).filter((f): f is FabricationJudgment => !!f);
+    return { tier, n: ids.length, meanCorrectness: mean(cs), unsupportedRate: fs.length ? mean(fs.map((f) => Number(hasUnsupported(f)))) : null };
+  });
+
+  return { conditions: summaries, recallByTier, cases: caseSummaries, perStratum, baseline, passes };
 }
 
 const pct = (x: number) => (x * 100).toFixed(1) + "%";
@@ -333,15 +484,27 @@ export function renderScorecard(
   lines.push("A condition **wins** a case only when the judge ranks it above the baseline in every pass; **loses** only when below in every pass; anything else is a tie. Win rate is wins over judged cases, with a 95% bootstrap CI.");
   lines.push("");
   lines.push("## Conditions");
-  lines.push("| Condition | correctness (0-2) | grounding (0-2) | fabrication | fully correct | neg. abstain | win / tie / loss vs baseline | win rate | 95% CI | latency | errors |");
-  lines.push("|---|---|---|---|---|---|---|---|---|---|---|");
+  const withFab = report.conditions.some((s) => s.unsupportedRate !== null);
+  lines.push("| Condition | correctness (0-2) | grounding (0-2) | unsupported (vs sources) | contradicted | fabrication (vs gold) | fully correct | pos. abstain | neg. abstain | neg. clean abstain | win / tie / loss vs baseline | win rate | 95% CI | latency | errors |");
+  lines.push("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
   for (const s of report.conditions) {
     const isBase = s.condition === report.baseline;
     lines.push(
-      `| ${isBase ? s.condition : `**${s.condition}**`} | ${f2(s.meanCorrectness)} | ${f2(s.meanGrounding)} | ${pct(s.fabricationRate)} | ${pct(s.fullyCorrectRate)} | ${s.negativeAbstainRate === null ? "—" : pct(s.negativeAbstainRate)} | ${isBase ? "—" : `${s.wins} / ${s.ties} / ${s.losses}`} | ${isBase ? "—" : pct(s.winRate)} | ${isBase ? "—" : `[${pct(s.winRateCI[0])}, ${pct(s.winRateCI[1])}]`} | ${s.meanLatencyMs === null ? "—" : `${(s.meanLatencyMs / 1000).toFixed(1)}s`} | ${s.errors} |`
+      `| ${isBase ? s.condition : `**${s.condition}**`} | ${f2(s.meanCorrectness)} | ${f2(s.meanGrounding)} | ${s.unsupportedRate === null ? "—" : `**${pct(s.unsupportedRate)}**`} | ${s.contradictedRate === null ? "—" : pct(s.contradictedRate)} | ${pct(s.fabricationRate)} | ${pct(s.fullyCorrectRate)} | ${pct(s.positiveAbstainRate)} | ${s.negativeAbstainRate === null ? "—" : pct(s.negativeAbstainRate)} | ${s.negativeCleanAbstainRate === null ? "—" : pct(s.negativeCleanAbstainRate)} | ${isBase ? "—" : `${s.wins} / ${s.ties} / ${s.losses}`} | ${isBase ? "—" : pct(s.winRate)} | ${isBase ? "—" : `[${pct(s.winRateCI[0])}, ${pct(s.winRateCI[1])}]`} | ${s.meanLatencyMs === null ? "—" : `${(s.meanLatencyMs / 1000).toFixed(1)}s`} | ${s.errors} |`
     );
   }
   lines.push("");
+  lines.push(withFab
+    ? "\"unsupported (vs sources)\" comes from a second judge pass that sees the case's source notes; \"fabrication (vs gold)\" is the comparative judge, which sees only the reference answer and so also flags true vault facts the reference omits."
+    : "The source-aware fabrication pass did not run (`--no-fabrication-pass`); \"fabrication (vs gold)\" also counts true vault facts the reference omits.");
+  lines.push("");
+  if (report.recallByTier.length > 0) {
+    lines.push("## Recall condition by tier");
+    lines.push("| Tier | n | correctness | unsupported |");
+    lines.push("|---|---|---|---|");
+    for (const t of report.recallByTier) lines.push(`| ${t.tier} | ${t.n} | ${f2(t.meanCorrectness)} | ${t.unsupportedRate === null ? "—" : pct(t.unsupportedRate)} |`);
+    lines.push("");
+  }
   lines.push("## Per stratum");
   const conds = report.conditions.map((c) => c.condition);
   lines.push(`| Stratum | n | ${conds.map((c) => `${c} correctness`).join(" | ")} | ${conds.filter((c) => c !== report.baseline).map((c) => `${c} win rate`).join(" | ")} |`);
@@ -363,6 +526,18 @@ export function renderScorecard(
     lines.push(`- \`${c.id}\` [${c.stratum}] lost with ${lost.join(", ")}: ${c.reasons[0] ?? ""}`);
   }
   lines.push("");
+  const unsupportedCases = report.cases.filter((c) => Object.keys(c.unsupported).length > 0);
+  if (withFab) {
+    lines.push(`## Unsupported claims (${unsupportedCases.length} cases)`);
+    if (unsupportedCases.length === 0) lines.push("- none");
+    for (const c of unsupportedCases) {
+      for (const [cond, claims] of Object.entries(c.unsupported)) {
+        lines.push(`- \`${c.id}\` [${c.stratum}${c.negative ? ", neg" : ""}] ${cond}:`);
+        for (const cl of claims!) lines.push(`  - ${cl}`);
+      }
+    }
+    lines.push("");
+  }
   lines.push("## Per case");
   lines.push(`| Case | stratum | ${conds.map((c) => `${c}`).join(" | ")} | outcome |`);
   lines.push(`|---|---|${conds.map(() => "---").join("|")}|---|`);

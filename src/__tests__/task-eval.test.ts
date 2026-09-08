@@ -131,3 +131,76 @@ describe("claude argument builders", () => {
     expect(judge[judge.indexOf("--model") + 1]).toBe("opus");
   });
 });
+
+describe("source-aware fabrication pass", () => {
+  it("builds a prompt with the source bodies and the negative-case note", async () => {
+    const { buildFabricationPrompt, parseFabricationOutput, hasUnsupported } = await import("../engine/eval/task-eval.js");
+    const answer: AgentAnswer = { caseId: "c3", condition: "plugin", text: "Set EMBEDDING_MODEL and rebuild .mcp/embeddings.json." };
+    const p = buildFabricationPrompt(cases[2], answer, [{ path: "02/brief-embedding.md", content: "Weights download once and cache." }]);
+    expect(p).toContain("### 02/brief-embedding.md\n\nWeights download once and cache.");
+    expect(p).toContain("NOT answered by the knowledge base");
+    expect(p).toContain("## Answer\n\nSet EMBEDDING_MODEL");
+    expect(p).toContain("statements about the answerer's own situation");
+    expect(p).toContain("general knowledge about the world");
+    const pos = buildFabricationPrompt(cases[0], { caseId: "c1", condition: "bare", text: "", error: "timed out" }, []);
+    expect(pos).not.toContain("NOT answered");
+    expect(pos).toContain("(no answer: timed out)");
+    expect(pos).toContain("(no source notes;");
+
+    const f = parseFabricationOutput(
+      { claims: [{ claim: "k is 60", status: "supported" }, { claim: "sessions are excluded from the embedding index", status: "Unsupported" }, { claim: "", status: "supported" }, { claim: "floor is 9", status: "contradicted" }], offersGuidance: true, abstained: false, reason: "r" },
+      "c1",
+      "recall"
+    );
+    expect(f.claims).toEqual([
+      { claim: "k is 60", status: "supported" },
+      { claim: "sessions are excluded from the embedding index", status: "unsupported" },
+      { claim: "floor is 9", status: "contradicted" },
+    ]);
+    expect(hasUnsupported(f)).toBe(true);
+    expect(parseFabricationOutput({}, "c1", "bare")).toEqual({ caseId: "c1", condition: "bare", claims: [], offersGuidance: false, abstained: false, reason: "" });
+  });
+
+  it("aggregates unsupported, contradicted, positive-abstain and clean-abstain rates, and lists the claims", () => {
+    const answers: AgentAnswer[] = cases.flatMap((c) =>
+      conds.map((cond) => ({ caseId: c.id, condition: cond, text: "x", recallTier: cond === "recall" ? (c.id === "c1" ? "brief" : "hits") : undefined }))
+    );
+    const judgments: Judgment[] = [
+      judgment("c1", 0, ["plugin", "recall", "bare"], { bare: score(0, 0, 0, true), recall: score(2), plugin: score(2) }),
+      judgment("c2", 0, ["recall", "bare", "plugin"], { bare: score(1), recall: score(1), plugin: score(0) }),
+      judgment("c3", 0, ["bare", "recall", "plugin"], { bare: score(2, 0, 0, true), recall: score(2, 0, 0, true), plugin: score(0, 1, 1, true) }),
+    ];
+    const fabrications = [
+      { caseId: "c1", condition: "recall" as const, claims: [{ claim: "k is 60", status: "supported" as const }], offersGuidance: false, abstained: false, reason: "" },
+      { caseId: "c1", condition: "plugin" as const, claims: [{ claim: "k is 60", status: "supported" as const }, { claim: "raw sessions are demoted", status: "unsupported" as const }], offersGuidance: false, abstained: false, reason: "" },
+      { caseId: "c2", condition: "plugin" as const, claims: [{ claim: "sessions are dropped", status: "contradicted" as const }], offersGuidance: true, abstained: false, reason: "" },
+      { caseId: "c3", condition: "recall" as const, claims: [], offersGuidance: false, abstained: true, reason: "" },
+      { caseId: "c3", condition: "plugin" as const, claims: [{ claim: "set EMBEDDING_MODEL", status: "unsupported" as const }], offersGuidance: true, abstained: true, reason: "" },
+    ];
+    const r = aggregate(cases, answers, judgments, { baseline: "bare", conditions: conds, fabrications });
+    const bare = r.conditions.find((c) => c.condition === "bare")!;
+    const recall = r.conditions.find((c) => c.condition === "recall")!;
+    const plugin = r.conditions.find((c) => c.condition === "plugin")!;
+    expect(bare.unsupportedRate).toBeNull();
+    expect(bare.positiveAbstainRate).toBeCloseTo(0.5);
+    expect(recall.unsupportedRate).toBe(0);
+    expect(recall.negativeCleanAbstainRate).toBe(1);
+    expect(plugin.unsupportedRate).toBeCloseTo(1);
+    expect(plugin.contradictedRate).toBeCloseTo(1 / 3);
+    expect(plugin.negativeCleanAbstainRate).toBe(0);
+    expect(r.cases.find((c) => c.id === "c3")!.unsupported.plugin).toEqual(["set EMBEDDING_MODEL [unsupported]"]);
+    expect(r.recallByTier.map((t) => [t.tier, t.n])).toEqual([["brief", 1], ["hits", 2]]);
+    const md = renderScorecard(r, { vault: "demo", date: "2026-09-08", casesPath: "x", seed: 42, stamp: "s" });
+    expect(md).toContain("unsupported (vs sources)");
+    expect(md).toContain("## Unsupported claims (3 cases)");
+    expect(md).toContain("- `c3` [negative, neg] plugin:");
+    expect(md).toContain("## Recall condition by tier");
+  });
+
+  it("the fabrication judge args use the fabrication schema and the same tool denial", async () => {
+    const { FABRICATION_SCHEMA } = await import("../engine/eval/task-eval.js");
+    const args = buildJudgeArgs("j", { schema: FABRICATION_SCHEMA });
+    expect(args[args.indexOf("--json-schema") + 1]).toContain('"offersGuidance"');
+    expect(args.join(" ")).toContain("--disallowedTools Bash,Read");
+  });
+});
