@@ -113,7 +113,7 @@ if (!fs.existsSync(mapDest)) {
 }
 
 // 5. skills
-for (const name of ["accretion", "memory-weekly"]) {
+for (const name of ["memory", "memory-weekly"]) {
   const destDir = path.join(CLAUDE_HOME, "skills", name);
   try {
     const st = fs.lstatSync(destDir);

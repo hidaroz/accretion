@@ -101,6 +101,9 @@ One line each; sources and quotes are in the research files.
 - Human intent gates capture; recall reads but never writes ([Karpathy](research/karpathy.md), 9).
 - Frontmatter is the dashboard: `sources`, `last_reviewed`, `generated_by` on every generated note ([Karpathy](research/karpathy.md), 11).
 - Resurface reports in three verbs: promote, merge, drop ([Karpathy](research/karpathy.md), 10).
+- Cap and frame the injection, and render temporal validity inline: Mem0's hook injects at most five memories with no model call at capture; Zep renders valid-from and valid-to on each fact; Letta's MemFS keeps only `system/` always loaded ([memory products survey](research/memory-products-2026.md), sections 1 to 3 and 11).
+- Only a description enters context by default and the body is fetched on demand; add expiry and a review date to durable notes, because un-expired corrections contradict each other within weeks ([agent-native survey](research/agent-native-memory-2026.md), Cascade `model_decision` trigger and claude-code issue 34776).
+- Maintenance, not ingest, is where file-based memories die; validation is the first thing cut under cost pressure; the defensible claim is the combination of markdown governance, abstaining routing, propose-only writes, passive recall and negative-case evals, not any one of them ([llm-wiki landscape](research/llm-wiki-landscape-2026.md), recurring patterns and closing section).
 
 ## Consequences
 

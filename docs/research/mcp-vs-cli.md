@@ -280,3 +280,11 @@ command spec.
 - [Simon Willison, Claude Skills are awesome, maybe a bigger deal than MCP](https://simonwillison.net/2025/Oct/16/claude-skills/) · [OpenAI are quietly adopting skills](https://simonwillison.net/2025/Dec/12/openai-skills/)
 - Papers: [BFCL (ICML 2025)](https://proceedings.mlr.press/v267/patil25a.html) · [RAG-MCP](https://arxiv.org/html/2505.03275v1) · [OSWorld-MCP](https://arxiv.org/pdf/2510.24563) · [HumanMCP](https://arxiv.org/pdf/2602.23367) · [How Many Tools Should an LLM Agent See?](https://arxiv.org/pdf/2605.24660)
 - Secondary (unverified items only): [Cursor forum](https://forum.cursor.com/t/tools-limited-to-40-total/67976) · [getunblocked.com](https://getunblocked.com/blog/mcp-tool-overload/) · [claudelog.com](https://claudelog.com/faqs/what-is-tool-search-in-claude-code/) · [Medium](https://achan2013.medium.com/how-tool-complexity-impacts-ai-agents-selection-accuracy-a3b6280ddce5) · [claude-code#26844](https://github.com/anthropics/claude-code/issues/26844)
+
+## Related surveys
+
+Three further surveys of the memory landscape, gathered 2026-09-08 from primary sources:
+
+- [memory-products-2026.md](memory-products-2026.md): Mem0, Zep/Graphiti, Letta (MemFS), LangMem, A-MEM, Cognee, Supermemory, Memori, and what the LoCoMo, LongMemEval and BEAM benchmarks actually measure.
+- [agent-native-memory-2026.md](agent-native-memory-2026.md): how Claude Code, Codex, ChatGPT, Cursor, Windsurf and Gemini CLI handle memory and compaction, plus named practitioner setups.
+- [llm-wiki-landscape-2026.md](llm-wiki-landscape-2026.md): implementations that followed Karpathy's llm-wiki gist, what broke for them, and the 2025 to 2026 research on memory architectures and their evaluation.

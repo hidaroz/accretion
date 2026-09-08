@@ -75,7 +75,7 @@ notify_fail() { notify "run failed; see $LOG" "memory-weekly FAILED ($VAULT)"; }
   # The allowlist is the CLI and the notifier. The skill never runs git itself:
   # `accretion commit` does, reading push policy from vaults.json.
   claude -p "/accretion:memory-weekly $SKILL_ARGS" \
-    "${PLUGIN_ARGS[@]}" \
+    ${PLUGIN_ARGS[@]+"${PLUGIN_ARGS[@]}"} \
     --permission-mode acceptEdits \
     --permission-prompts none \
     --allowedTools "Bash(accretion *)" "Bash(osascript *)" "Read" "Write" "Edit" "Glob" "Grep"
