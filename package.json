@@ -37,6 +37,6 @@
     "@types/node": "^22.15.3",
     "esbuild": "^0.28.2",
     "typescript": "^5.8.0",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.11"
   }
 }
